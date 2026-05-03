@@ -12017,3 +12017,12 @@ table.table-5 td {
   background-color: var(--color-light-2);
   z-index: -2;
 }
+
+.langMenu__content {
+  max-width: 760px;
+}
+
+.langMenu .modalGrid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}

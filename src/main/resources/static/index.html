@@ -695,6 +695,11 @@
           <div class="col-auto">
             <div class="d-flex items-center">
 
+              <button class="d-flex items-center text-14 text-dark-1" data-x-click="lang">
+                    <img src="img/general/lang.png" alt="image" class="rounded-full mr-10">
+                    <span class="js-language-mainTitle">English</span>
+                    <i class="icon-chevron-sm-down text-7 ml-15"></i>
+                </button>
 
               <div class="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
                 <a href="login.html" class="button px-30 fw-400 text-14 -blue-1 bg-dark-1 h-50 text-white">Become An Expert</a>
@@ -781,9 +786,6 @@
                       </button>
                     </div>
 
-
-
-
                   </div>
                 </div>
               </div>
@@ -837,66 +839,81 @@
                         </div>
                       </button>
                     </div>
+
                   </div>
                 </div>
               </div>
             </div>
-              <div class="px-30 lg:py-20 lg:px-0">
-                  <h4 class="text-15 fw-500 ls-2 lh-16">Pick up</h4>
 
-                  <div class="d-flex items-center x-gap-10">
-                      <input id="pickupDate"
-                             type="text"
-                             class="text-15 text-light-1"
-                             style="border:none; outline:none; width:125px;">
+              <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar js-calendar-el">
+                  <div data-x-dd-click="searchMenu-date">
+                      <h4 class="text-15 fw-500 ls-2 lh-16">Pick up</h4>
 
-                      <select id="pickupHour"
-                              class="text-15 text-light-1"
-                              style="border:none; outline:none; background:white;">
-                          <option value="09:00">09:00</option>
-                          <option value="10:00" selected>10:00</option>
-                          <option value="11:00">11:00</option>
-                          <option value="12:00">12:00</option>
-                          <option value="13:00">13:00</option>
-                          <option value="14:00">14:00</option>
-                          <option value="15:00">15:00</option>
-                          <option value="16:00">16:00</option>
-                          <option value="17:00">17:00</option>
-                          <option value="18:00">18:00</option>
-                          <option value="19:00">19:00</option>
-                          <option value="20:00">20:00</option>
-                      </select>
+                      <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
+                          <span id="pickupDateText" class="js-first-date">Select date</span>
+
+                          <select id="pickupHour"
+                                  class="text-15 text-light-1"
+                                  style="border:none; outline:none; background:white;">
+                              <option value="09:00">09:00</option>
+                              <option value="10:00" selected>10:00</option>
+                              <option value="11:00">11:00</option>
+                              <option value="12:00">12:00</option>
+                              <option value="13:00">13:00</option>
+                              <option value="14:00">14:00</option>
+                              <option value="15:00">15:00</option>
+                              <option value="16:00">16:00</option>
+                              <option value="17:00">17:00</option>
+                              <option value="18:00">18:00</option>
+                              <option value="19:00">19:00</option>
+                              <option value="20:00">20:00</option>
+                          </select>
+                      </div>
+                  </div>
+
+                  <div class="searchMenu-date__field shadow-2"
+                       data-x-dd="searchMenu-date"
+                       data-x-dd-toggle="-is-active">
+                      <div class="bg-white px-30 py-30 rounded-4">
+                          <div class="elCalendar js-calendar-el-calendar"></div>
+                      </div>
                   </div>
               </div>
 
-              <div class="px-30 lg:py-20 lg:px-0">
-                  <h4 class="text-15 fw-500 ls-2 lh-16">Drop off</h4>
+              <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar js-calendar-el">
+                  <div data-x-dd-click="searchMenu-date">
+                      <h4 class="text-15 fw-500 ls-2 lh-16">Drop off</h4>
 
-                  <div class="d-flex items-center x-gap-10">
-                      <input id="dropoffDate"
-                             type="text"
-                             class="text-15 text-light-1"
-                             style="border:none; outline:none; width:125px;">
+                      <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
+                          <span id="dropoffDateText" class="js-first-date">Select date</span>
 
-                      <select id="dropoffHour"
-                              class="text-15 text-light-1"
-                              style="border:none; outline:none; background:white;">
-                          <option value="09:00">09:00</option>
-                          <option value="10:00" selected>10:00</option>
-                          <option value="11:00">11:00</option>
-                          <option value="12:00">12:00</option>
-                          <option value="13:00">13:00</option>
-                          <option value="14:00">14:00</option>
-                          <option value="15:00">15:00</option>
-                          <option value="16:00">16:00</option>
-                          <option value="17:00">17:00</option>
-                          <option value="18:00">18:00</option>
-                          <option value="19:00">19:00</option>
-                          <option value="20:00">20:00</option>
-                      </select>
+                          <select id="dropoffHour"
+                                  class="text-15 text-light-1"
+                                  style="border:none; outline:none; background:white;">
+                              <option value="09:00">09:00</option>
+                              <option value="10:00" selected>10:00</option>
+                              <option value="11:00">11:00</option>
+                              <option value="12:00">12:00</option>
+                              <option value="13:00">13:00</option>
+                              <option value="14:00">14:00</option>
+                              <option value="15:00">15:00</option>
+                              <option value="16:00">16:00</option>
+                              <option value="17:00">17:00</option>
+                              <option value="18:00">18:00</option>
+                              <option value="19:00">19:00</option>
+                              <option value="20:00">20:00</option>
+                          </select>
+                      </div>
+                  </div>
+
+                  <div class="searchMenu-date__field shadow-2"
+                       data-x-dd="searchMenu-date"
+                       data-x-dd-toggle="-is-active">
+                      <div class="bg-white px-30 py-30 rounded-4">
+                          <div class="elCalendar js-calendar-el-calendar"></div>
+                      </div>
                   </div>
               </div>
-
 
             <div class="button-item">
                 <button id="searchCarsButton" type="button" class="mainSearch__submit button -dark-1 py-15 px-35 h-60 col-12 rounded-4 bg-dark-1 text-white">
@@ -956,7 +973,7 @@
 
             <div class="featureIcon -type-1 -hover-shadow px-50 py-50 lg:px-24 lg:py-15">
               <div class="d-flex justify-center">
-                <img src="#" data-src="img/featureIcons/2/1.svg" alt="image" class="js-lazy">
+                <img src="#" data-src="img/featureIcons/3/1.svg" alt="image" class="js-lazy">
               </div>
 
               <div class="text-center mt-30">
@@ -971,7 +988,7 @@
 
             <div class="featureIcon -type-1 -hover-shadow px-50 py-50 lg:px-24 lg:py-15">
               <div class="d-flex justify-center">
-                <img src="#" data-src="img/featureIcons/2/2.svg" alt="image" class="js-lazy">
+                <img src="#" data-src="img/featureIcons/3/2.svg" alt="image" class="js-lazy">
               </div>
 
               <div class="text-center mt-30">
@@ -986,7 +1003,7 @@
 
             <div class="featureIcon -type-1 -hover-shadow px-50 py-50 lg:px-24 lg:py-15">
               <div class="d-flex justify-center">
-                <img src="#" data-src="img/featureIcons/2/3.svg" alt="image" class="js-lazy">
+                <img src="#" data-src="img/featureIcons/3/3.svg" alt="image" class="js-lazy">
               </div>
 
               <div class="text-center mt-30">
@@ -1408,162 +1425,7 @@
 
   </main>
 
-  <div class="langMenu is-hidden js-langMenu" data-x="lang" data-x-toggle="is-hidden">
-    <div class="langMenu__bg" data-x-click="lang"></div>
-
-    <div class="langMenu__content bg-white rounded-4">
-      <div class="d-flex items-center justify-between px-30 py-20 sm:px-15 border-bottom-light">
-        <div class="text-20 fw-500 lh-15">Select your language</div>
-        <button class="pointer" data-x-click="lang">
-          <i class="icon-close"></i>
-        </button>
-      </div>
-
-      <div class="modalGrid px-30 py-30 sm:px-15 sm:py-15">
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">English</div>
-            <div class="text-14 lh-15 mt-5 js-title">United States</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Türkçe</div>
-            <div class="text-14 lh-15 mt-5 js-title">Turkey</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Español</div>
-            <div class="text-14 lh-15 mt-5 js-title">España</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Français</div>
-            <div class="text-14 lh-15 mt-5 js-title">France</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Italiano</div>
-            <div class="text-14 lh-15 mt-5 js-title">Italia</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">English</div>
-            <div class="text-14 lh-15 mt-5 js-title">United States</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Türkçe</div>
-            <div class="text-14 lh-15 mt-5 js-title">Turkey</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Español</div>
-            <div class="text-14 lh-15 mt-5 js-title">España</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Français</div>
-            <div class="text-14 lh-15 mt-5 js-title">France</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Italiano</div>
-            <div class="text-14 lh-15 mt-5 js-title">Italia</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">English</div>
-            <div class="text-14 lh-15 mt-5 js-title">United States</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Türkçe</div>
-            <div class="text-14 lh-15 mt-5 js-title">Turkey</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Español</div>
-            <div class="text-14 lh-15 mt-5 js-title">España</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Français</div>
-            <div class="text-14 lh-15 mt-5 js-title">France</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Italiano</div>
-            <div class="text-14 lh-15 mt-5 js-title">Italia</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">English</div>
-            <div class="text-14 lh-15 mt-5 js-title">United States</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Türkçe</div>
-            <div class="text-14 lh-15 mt-5 js-title">Turkey</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Español</div>
-            <div class="text-14 lh-15 mt-5 js-title">España</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Français</div>
-            <div class="text-14 lh-15 mt-5 js-title">France</div>
-          </div>
-        </div>
-
-        <div class="modalGrid__item js-item">
-          <div class="py-10 px-15 sm:px-5 sm:py-5">
-            <div class="text-15 lh-15 fw-500 text-dark-1">Italiano</div>
-            <div class="text-14 lh-15 mt-5 js-title">Italia</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
+  <div id="language-modal-placeholder"></div>
 
   <div class="currencyMenu is-hidden js-currencyMenu" data-x="currency" data-x-toggle="is-hidden">
     <div class="currencyMenu__bg" data-x-click="currency"></div>
