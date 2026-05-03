@@ -1,0 +1,58 @@
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100%;
+}
+
+body {
+	padding: 0;
+  font-family: var(--font-primary);
+	width: 100%;
+  background-color: white;
+  color: var(--color-dark-1);
+  font-size: $font-size;
+  line-height: 1.875;
+}
+
+select,
+input:not([type="range"]),
+textarea {
+  border: 0;
+  outline: none;
+  width: 100%;
+  background-color: transparent;
+}
+
+main {
+  overflow: hidden;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  transition: color 0.2s ease-in-out;
+  text-decoration: none;
+
+	&:hover {
+		text-decoration: none;
+  }
+}
+
+ul, li {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+p {
+  margin: 0;
+  font-size: $font-size;
+  color: var(--color-light-1);
+}
