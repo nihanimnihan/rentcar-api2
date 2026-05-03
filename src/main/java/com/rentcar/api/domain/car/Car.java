@@ -1,6 +1,5 @@
 package com.rentcar.api.domain.car;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,8 +33,36 @@ public class Car {
     @Column(nullable = false)
     private String model;
 
+    // Economy, Premium, Luxury...
     @Column(nullable = false)
     private String segment;
+
+    // SUV, Sedan, Family Car...
+    @Column(nullable = false)
+    private String vehicleType;
+
+    // AUTOMATIC, MANUAL
+    @Column(nullable = false)
+    private String transmission;
+
+    // GASOLINE, DIESEL, ELECTRIC, HYBRID
+    @Column(nullable = false)
+    private String fuelType;
+
+    @Column(nullable = false)
+    private Integer seats;
+
+    @Column(nullable = false)
+    private Integer bags;
+
+    @Column(nullable = false)
+    private Boolean airConditioning;
+
+    @Column(nullable = false)
+    private Boolean premium;
+
+    @Column(nullable = false)
+    private Boolean guaranteedModel;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal dailyPrice;

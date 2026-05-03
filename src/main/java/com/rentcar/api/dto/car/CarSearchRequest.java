@@ -6,6 +6,14 @@ public record CarSearchRequest(
         String pickupLocation,
         String dropoffLocation,
         LocalDateTime pickupDateTime,
-        LocalDateTime dropoffDateTime
+        LocalDateTime dropoffDateTime,
+        String vehicleType,
+        String transmission,
+        String fuelType,
+        Integer seats,
+        Integer bags,
+        Boolean airConditioning,
+        Boolean premium,
+        Boolean guaranteedModel
 ) {
 }
