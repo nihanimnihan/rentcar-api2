@@ -149,7 +149,7 @@ function renderCars(cars) {
               Per day
             </div>
             <a
-              href="car.html?id=${car.id}"
+              href="${buildCarDetailUrl(car.id)}"
               class="button h-50 px-24 bg-dark-1 -yellow-1 text-white mt-24">
               View Detail
             </a>
@@ -158,4 +158,26 @@ function renderCars(cars) {
       </div>
     </div>
   `).join("");
+}
+
+function buildCarDetailUrl(carId) {
+  const currentParams = new URLSearchParams(window.location.search);
+  const detailParams = new URLSearchParams();
+
+  detailParams.set("id", carId);
+
+  copyParam(currentParams, detailParams, "pickupLocation");
+  copyParam(currentParams, detailParams, "dropoffLocation");
+  copyParam(currentParams, detailParams, "pickupDateTime");
+  copyParam(currentParams, detailParams, "dropoffDateTime");
+
+  return "car.html?" + detailParams.toString();
+}
+
+function copyParam(source, target, name) {
+  const value = source.get(name);
+
+  if (value) {
+    target.set(name, value);
+  }
 }
