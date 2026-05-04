@@ -1,4 +1,8 @@
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", function () {
+  loadCars();
+});
+
+async function loadCars() {
   const params = new URLSearchParams(window.location.search);
   const apiUrl = "/api/cars/search?" + params.toString();
 
@@ -10,7 +14,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     const cars = await response.json();
-
     renderCars(cars);
 
   } catch (error) {
@@ -24,7 +27,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       </div>
     `;
   }
-});
+}
+
+window.loadCars = loadCars;
 
 
 function renderCars(cars) {
@@ -69,18 +74,13 @@ function renderCars(cars) {
                   src="${car.imageUrl || 'img/lists/car/1/1.png'}"
                   alt="${car.brand} ${car.model}">
               </div>
-
             </div>
           </div>
 
-
           <!-- Info -->
           <div class="col-md">
-
             <div class="d-flex flex-column h-full justify-between">
-
               <div>
-
                 <div class="row x-gap-5 items-center">
 
                   <div class="col-auto">
@@ -98,65 +98,45 @@ function renderCars(cars) {
                       ${car.segment || ''}
                     </div>
                   </div>
-
                 </div>
-
 
                 <h3 class="text-18 lh-16 fw-500 mt-5">
                   ${car.brand} ${car.model}
                 </h3>
-
               </div>
 
-
               <div class="col-lg-7 mt-20">
-
                 <div class="row y-gap-5">
-
                   <div class="col-sm-6">
                     <div class="d-flex items-center">
                       <i class="icon-transmission"></i>
-
                       <div class="text-14 ml-10">
                         ${car.segment || 'Standard'}
                       </div>
                     </div>
                   </div>
 
-
                   <div class="col-sm-6">
                     <div class="d-flex items-center">
                       <i class="icon-check"></i>
-
                       <div class="text-14 ml-10">
                         Available
                       </div>
                     </div>
                   </div>
-
                 </div>
-
               </div>
 
-
               <div class="mt-20">
-
                 <div class="d-flex items-center">
-
                   <i class="icon-check text-10"></i>
-
                   <div class="text-14 fw-500 text-green-2 ml-10">
                     Free Cancellation
                   </div>
-
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
 
           <!-- Price -->
           <div class="col-md-auto text-right md:text-left">
@@ -168,22 +148,14 @@ function renderCars(cars) {
             <div class="text-14 text-light-1 mt-5">
               Per day
             </div>
-
-
             <a
-              href="car-single.html?id=${car.id}"
+              href="car.html?id=${car.id}"
               class="button h-50 px-24 bg-dark-1 -yellow-1 text-white mt-24">
-
               View Detail
-
             </a>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   `).join("");
 }
