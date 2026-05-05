@@ -43,7 +43,6 @@ function renderCars(cars) {
     carsCount.textContent = "0 cars";
 
     carsList.innerHTML = `
-      <div class="col-12">
         <div class="text-15 text-light-1">
           No cars found.
         </div>
@@ -58,8 +57,7 @@ function renderCars(cars) {
 
   // Render list
   carsList.innerHTML = cars.map(car => `
-    <div class="col-12">
-
+    <div class="col-12" id="car-card-${car.id}">
       <div class="border-top-light pt-30">
 
         <div class="row x-gap-20 y-gap-20">
@@ -148,11 +146,12 @@ function renderCars(cars) {
             <div class="text-14 text-light-1 mt-5">
               Per day
             </div>
-            <a
-              href="${buildCarDetailUrl(car.id)}"
+            <button
+              type="button"
+              onclick="showCarDetail(${car.id})"
               class="button h-50 px-24 bg-dark-1 -yellow-1 text-white mt-24">
               View Detail
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -181,3 +180,96 @@ function copyParam(source, target, name) {
     target.set(name, value);
   }
 }
+
+async function showCarDetail(carId) {
+  removeExistingDetail();
+  const response = await fetch(`/api/cars/${carId}`);
+
+  if (!response.ok) {
+    console.error("Car detail could not be loaded");
+    return;
+  }
+
+  const car = await response.json();
+  console.log("Loaded car detail:", car);
+  const card = document.getElementById(`car-card-${carId}`);
+
+  if (!card) return;
+
+  const detailHtml = buildDetailHtml(car, carId);
+  card.insertAdjacentHTML("afterend", detailHtml);
+
+  document.getElementById(`car-detail-${carId}`)
+    ?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest"
+    });
+}
+
+function removeExistingDetail() {
+  document.querySelectorAll(".inline-car-detail").forEach(el => el.remove());
+}
+
+function buildDetailHtml(car, carId) {
+  return `
+    <div
+      class="col-12 inline-car-detail mt-20"
+      id="car-detail-${carId}">
+
+      <div class="border-light rounded-4 shadow-4 bg-white px-30 py-30">
+
+        <div class="row y-gap-30">
+
+          <div class="col-lg-7">
+            <h2 class="text-24 fw-600">
+              ${car.brand} ${car.model}
+            </h2>
+
+            <div
+              class="rounded-4 bg-light-2 mt-20 d-flex items-center justify-center"
+              style="height:360px;">
+
+              <img
+                src="${car.imageUrl || 'img/lists/car/1/1.png'}"
+                alt="${car.brand}"
+                style="
+                  max-width:100%;
+                  max-height:100%;
+                  object-fit:contain;">
+            </div>
+          </div>
+
+          <div class="col-lg-5">
+
+            <div class="text-20 fw-500">
+              Booking option
+            </div>
+
+            <div class="border-light rounded-4 px-20 py-20 mt-20">
+              <div class="fw-500">Best price</div>
+              <div class="text-15 text-light-1 mt-5">
+                Free cancellation
+              </div>
+
+              <div class="text-24 fw-600 mt-20">
+                €${car.dailyPrice}
+              </div>
+            </div>
+
+            <div class="row pt-25 y-gap-10">
+              <div class="col-6">Seats: ${car.seats || "-"}</div>
+              <div class="col-6">Luggage: ${car.luggage || "-"}</div>
+              <div class="col-6">Transmission: ${car.transmission || "-"}</div>
+              <div class="col-6">Segment: ${car.segment || "-"}</div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+window.showCarDetail = showCarDetail;

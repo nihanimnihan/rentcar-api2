@@ -1,858 +1,262 @@
 <section class="layout-pt-md layout-pb-lg">
     <div class="container">
         <div class="row y-gap-30">
-            <div class="col-xl-3 col-lg-4 lg:d-none">
-                <aside class="sidebar y-gap-30">
 
-                    <div class="sidebar__item -no-border">
-                        <h5 class="text-18 fw-500 mb-10">Vehicle type</h5>
-                        <div class="sidebar-checkbox">
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="SUV">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">SUV</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="SEDAN">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Sedan</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="STATION_WAGON">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Station wagon</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="COUPE">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Coupe</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="CONVERTIBLE">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Convertible</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="VAN">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Family car</div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="sidebar__item">
-                        <h5 class="text-18 fw-500 mb-10">Premium selections</h5>
-                        <div class="sidebar-checkbox">
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="premium" value="true">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Premium</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="guaranteedModel" value="true">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Guaranteed model</div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="sidebar__item">
-                        <h5 class="text-18 fw-500 mb-10">Features</h5>
-                        <div class="sidebar-checkbox">
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="fuelType" value="ELECTRIC">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Electric</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="fuelType" value="HYBRID">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Hybrid</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="transmission" value="AUTOMATIC">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Automatic</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="hotOffer" value="true">
-                                    <div class="form-checkbox__mark">
-                                        <div class="form-checkbox__icon icon-check"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">Hot offers</div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="sidebar__item">
-                        <h5 class="text-18 fw-500 mb-10">Minimum number of seats</h5>
-                        <div class="sidebar-checkbox">
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="seats" value="2">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">2</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="seats" value="4">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">4</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="seats" value="5">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">5</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="seats" value="9">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">9</div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="sidebar__item">
-                        <h5 class="text-18 fw-500 mb-10">Bags</h5>
-                        <div class="sidebar-checkbox">
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="bags" value="2">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">2</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="bags" value="3">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">3</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="bags" value="4">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">4</div>
-                            </div>
-
-                            <div class="d-flex items-center mb-10">
-                                <div class="form-checkbox">
-                                    <input type="checkbox" class="js-car-filter" data-filter="bags" value="5">
-                                    <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                </div>
-                                <div class="text-15 ml-10">5</div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="sidebar__item">
-                        <h5 class="text-18 fw-500 mb-10">Primary driver age</h5>
-                        <div class="sidebar-checkbox">
-
-                            <div class="form-radio d-flex items-center mb-10">
-                                <div class="radio">
-                                    <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="21">
-                                    <div class="radio__mark">
-                                        <div class="radio__icon"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">21+</div>
-                            </div>
-
-                            <div class="form-radio d-flex items-center mb-10">
-                                <div class="radio">
-                                    <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="25">
-                                    <div class="radio__mark">
-                                        <div class="radio__icon"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">25+</div>
-                            </div>
-
-                            <div class="form-radio d-flex items-center mb-10">
-                                <div class="radio">
-                                    <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="30">
-                                    <div class="radio__mark">
-                                        <div class="radio__icon"></div>
-                                    </div>
-                                </div>
-                                <div class="text-15 ml-10">30+</div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </aside>
-            </div>
-
-            <div class="col-xl-9 col-lg-8">
+            <div class="col-12">
                 <div class="row y-gap-10 items-center justify-between">
                     <div class="col-auto">
                         <div class="text-18"><span id="carsCount" class="fw-500">0 cars</span> available</div>
                     </div>
 
                     <div class="col-auto">
-                        <div class="row x-gap-20 y-gap-20">
+                        <div class="row x-gap-10 y-gap-10">
+                            <div class="col-auto">
+                                <button data-x-click="filterPopup" class="button -blue-1 h-40 px-20 rounded-100 bg-blue-1-05 text-15 text-blue-1">
+                                    <i class="icon-up-down text-14 mr-10"></i>
+                                    Filter
+                                </button>
+                            </div>
+
                             <div class="col-auto">
                                 <button class="button -blue-1 h-40 px-20 rounded-100 bg-blue-1-05 text-15 text-blue-1">
                                     <i class="icon-up-down text-14 mr-10"></i>
                                     Sort
                                 </button>
                             </div>
-
-                            <div class="col-auto d-none lg:d-block">
-                                <button data-x-click="filterPopup" class="button -blue-1 h-40 px-20 rounded-100 bg-blue-1-05 text-15 text-blue-1">
-                                    <i class="icon-up-down text-14 mr-10"></i>
-                                    Filter
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="filterPopup bg-white rentcar-filter-drawer" data-x="filterPopup" data-x-toggle="-is-active">
+                    <aside class="sidebar -mobile-filter rentcar-filter-content">
 
-                <div class="filterPopup bg-white" data-x="filterPopup" data-x-toggle="-is-active">
-                    <aside class="sidebar -mobile-filter">
-                        <div data-x-click="filterPopup" class="-icon-close">
-                            <i class="icon-close"></i>
+                        <div class="d-flex items-center justify-between px-30 py-20 border-bottom-light">
+                            <button type="button" data-x-click="filterPopup" class="button -blue-1 size-40 bg-light-2">
+                                <i class="icon-close text-15"></i>
+                            </button>
+
+                            <div class="text-18 fw-500">Filters</div>
+
+                            <button type="button" id="clearCarFiltersButton" class="text-14 fw-500 underline">
+                                Clear
+                            </button>
                         </div>
 
-                        <div class="sidebar__item -no-border">
-                            <h5 class="text-18 fw-500 mb-10">Location (Heathrow Airport)</h5>
-                            <div class="sidebar-checkbox">
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Airport (meet &amp; greet)</div>
-
+                        <div class="rentcar-filter-body">
+                            <div class="sidebar__item -no-border">
+                                <h5 class="text-18 fw-500 mb-10">Vehicle type</h5>
+                                <div class="sidebar-checkbox">
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="SEDAN">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">Sedan</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$92</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Airport (shuttle) </div>
-
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="SUV">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">SUV</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$45</div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <div class="sidebar__item">
-                            <h5 class="text-18 fw-500 mb-10">Car Category</h5>
-                            <div class="sidebar-checkbox">
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Small</div>
-
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="STATION_WAGON">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">Station wagon</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$92</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Medium</div>
-
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="VAN">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">Family car</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$45</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Large</div>
-
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="CONVERTIBLE">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">Convertible</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$21</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Premium</div>
-
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="COUPE">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$78</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">SUV</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$679</div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <div class="sidebar__item pb-30">
-                            <h5 class="text-18 fw-500 mb-10">Price</h5>
-                            <div class="row x-gap-10 y-gap-30">
-                                <div class="col-12">
-                                    <div class="js-price-rangeSlider">
-                                        <div class="text-14 fw-500"></div>
-
-                                        <div class="d-flex justify-between mb-20">
-                                            <div class="text-15 text-dark-1">
-                                                <span class="js-lower"></span>
-                                                -
-                                                <span class="js-upper"></span>
-                                            </div>
-                                        </div>
-
-                                        <div class="px-5">
-                                            <div class="js-slider"></div>
-                                        </div>
+                                        <div class="text-15 ml-10">Coupe</div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="sidebar__item">
-                            <h5 class="text-18 fw-500 mb-10">Supplier</h5>
-                            <div class="sidebar-checkbox">
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Avis</div>
-
+                            <div class="sidebar__item">
+                                <h5 class="text-18 fw-500 mb-10">Premium selections</h5>
+                                <div class="sidebar-checkbox">
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="premium" value="true">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">Premium</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$92</div>
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="guaranteedModel" value="true">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">Guaranteed model</div>
                                     </div>
                                 </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Budget</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$45</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Sixt</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$21</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Europcar</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$78</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Enterprise</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$679</div>
-                                    </div>
-                                </div>
-
                             </div>
-                        </div>
 
-                        <div class="sidebar__item">
-                            <h5 class="text-18 fw-500 mb-10">Car Specifications</h5>
-                            <div class="sidebar-checkbox">
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">With air conditioning</div>
-
+                            <div class="sidebar__item">
+                                <h5 class="text-18 fw-500 mb-10">Features</h5>
+                                <div class="sidebar-checkbox">
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="fuelType" value="ELECTRIC">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">Electric</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$92</div>
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="fuelType" value="HYBRID">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">Hybrid</div>
+                                    </div>
+
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="transmission" value="AUTOMATIC">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">Automatic</div>
+                                    </div>
+
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="hotOffer" value="true">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">Hot offers</div>
                                     </div>
                                 </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Automatic transmission</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$45</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Manual transmission</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$21</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">2 doors</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$78</div>
-                                    </div>
-                                </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">4 doors</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$679</div>
-                                    </div>
-                                </div>
-
                             </div>
-                        </div>
 
-                        <div class="sidebar__item">
-                            <h5 class="text-18 fw-500 mb-10">Mileage/Kilometres</h5>
-                            <div class="sidebar-checkbox">
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Limited</div>
-
+                            <div class="sidebar__item">
+                                <h5 class="text-18 fw-500 mb-10">Minimum number of seats</h5>
+                                <div class="sidebar-checkbox">
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="2">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">2</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$92</div>
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="4">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">4</div>
+                                    </div>
+
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="5">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">5</div>
+                                    </div>
+
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="9">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">9</div>
                                     </div>
                                 </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Unlimited</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$45</div>
-                                    </div>
-                                </div>
-
                             </div>
-                        </div>
 
-                        <div class="sidebar__item">
-                            <h5 class="text-18 fw-500 mb-10">Transmission</h5>
-                            <div class="sidebar-checkbox">
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Automatic</div>
-
+                            <div class="sidebar__item">
+                                <h5 class="text-18 fw-500 mb-10">Bags</h5>
+                                <div class="sidebar-checkbox">
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="2">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">2</div>
                                     </div>
 
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$92</div>
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="3">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">3</div>
+                                    </div>
+
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="4">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">4</div>
+                                    </div>
+
+                                    <div class="filter-chip">
+                                        <div class="form-checkbox">
+                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="5">
+                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">5</div>
                                     </div>
                                 </div>
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Manual</div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$45</div>
-                                    </div>
-                                </div>
-
                             </div>
-                        </div>
 
-                        <div class="sidebar__item">
-                            <h5 class="text-18 fw-500 mb-10">Fuel Policy</h5>
-                            <div class="sidebar-checkbox">
-
-                                <div class="row y-gap-10 items-center justify-between">
-                                    <div class="col-auto">
-
-                                        <div class="d-flex items-center">
-                                            <div class="form-checkbox ">
-                                                <input type="checkbox" name="name">
-                                                <div class="form-checkbox__mark">
-                                                    <div class="form-checkbox__icon icon-check"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="text-15 ml-10">Full to full</div>
-
+                            <div class="sidebar__item">
+                                <h5 class="text-18 fw-500 mb-10">Primary driver age</h5>
+                                <div class="sidebar-checkbox">
+                                    <div class="filter-chip">
+                                        <div class="radio">
+                                            <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="21">
+                                            <div class="radio__mark"><div class="radio__icon"></div></div>
                                         </div>
-
+                                        <div class="text-15 ml-10">21+</div>
                                     </div>
-
-                                    <div class="col-auto">
-                                        <div class="text-15 text-light-1">$92</div>
+                                    <div class="filter-chip">
+                                        <div class="radio">
+                                            <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="25">
+                                            <div class="radio__mark"><div class="radio__icon"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">25+</div>
+                                    </div>
+                                    <div class="filter-chip">
+                                        <div class="radio">
+                                            <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="30">
+                                            <div class="radio__mark"><div class="radio__icon"></div></div>
+                                        </div>
+                                        <div class="text-15 ml-10">30+</div>
                                     </div>
                                 </div>
-
                             </div>
-                        </div>
 
+                        </div>
                     </aside>
                 </div>
-
                 <div class="mt-30"></div>
                 <div id="carsList" class="row y-gap-30">
                     <div class="col-12">
