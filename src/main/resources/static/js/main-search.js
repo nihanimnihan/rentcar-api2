@@ -135,6 +135,24 @@ document.addEventListener("DOMContentLoaded", function () {
       dropoffDateTime: `${selectedDropoffDate}T${dropoffHour}`
     });
 
-    window.location.href = "/cars.html?" + params.toString();
+    const newUrl = "/cars.html?" + params.toString();
+    const isCarsPage = window.location.pathname.endsWith("/cars.html");
+    if (isCarsPage) {
+      window.history.pushState({}, "", newUrl);
+      fillHeaderBookingSummary();
+      if (typeof loadCars === "function") {
+        loadCars();
+      }
+      document.getElementById("carsSearchDrawer")?.classList.remove("is-active");
+    } else {
+      window.location.href = newUrl;
+    }
   });
+});
+
+document.addEventListener("click", function (event) {
+  if (event.target.closest("#editSearchButton")) {
+    event.preventDefault();
+    document.getElementById("carsSearchDrawer")?.classList.toggle("is-active");
+  }
 });

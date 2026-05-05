@@ -41,3 +41,23 @@ function markSelectedFilters() {
     }
   });
 }
+
+document.addEventListener("click", function (event) {
+  if (event.target.closest("#openCarFiltersButton")) {
+    event.preventDefault();
+    openCarFilters();
+  }
+
+  if (event.target.closest("#closeCarFiltersButton")) {
+    event.preventDefault();
+    closeCarFilters();
+  }
+});
+
+function openCarFilters() {
+  document.querySelector('[data-x="filterPopup"]')?.classList.add("-is-active");
+}
+
+function closeCarFilters() {
+  document.querySelector('[data-x="filterPopup"]')?.classList.remove("-is-active");
+}

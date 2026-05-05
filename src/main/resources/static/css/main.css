@@ -12112,3 +12112,40 @@ table.table-5 td {
 .rentcar-filter-content h5 {
   margin-bottom: 14px !important;
 }
+
+.rentcar-booking-header {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+}
+
+.cars-search-drawer {
+  position: fixed;
+  top: 90px;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background: white;
+  padding: 38px 0;
+  box-shadow: 0 20px 50px rgba(5, 16, 54, 0.12);
+  transform: translateY(-120%);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s ease;
+}
+
+.cars-search-drawer.is-active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cars-search-drawer .mainSearch {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 767px) {
+  .cars-search-drawer {
+    top: 80px;
+  }
+}
