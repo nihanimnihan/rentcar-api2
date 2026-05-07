@@ -72,4 +72,13 @@ public class Car {
 
     @Column
     private String imageUrl;
+
+    @Column(nullable = false)
+    private String displayClass;
+
+    @Column(nullable = false)
+    private Integer doors;
+
+    @Column(nullable = false)
+    private Integer minDriverAge;
 }

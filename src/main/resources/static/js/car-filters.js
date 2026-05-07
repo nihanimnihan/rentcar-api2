@@ -52,6 +52,10 @@ document.addEventListener("click", function (event) {
     event.preventDefault();
     closeCarFilters();
   }
+  if (event.target.closest("#showFilteredCarsButton")) {
+    event.preventDefault();
+    document.querySelector('[data-x="filterPopup"]')?.classList.remove("-is-active");
+  }
 });
 
 function openCarFilters() {

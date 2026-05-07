@@ -37,7 +37,14 @@ function renderCars(cars) {
   const carsCount = document.getElementById("carsCount");
 
   if (!cars || cars.length === 0) {
-    if (carsCount) carsCount.textContent = "0 cars";
+    if (carsCount) {
+      carsCount.textContent = "0 cars";
+    }
+    const filterCarsCount = document.getElementById("filterCarsCount");
+
+    if (filterCarsCount) {
+      filterCarsCount.textContent = 0;
+    }
 
     carsList.innerHTML = `
       <div class="col-12">
@@ -50,100 +57,129 @@ function renderCars(cars) {
   }
 
   if (carsCount) carsCount.textContent = `${cars.length} cars`;
+  const filterCarsCount = document.getElementById("filterCarsCount");
+  if (filterCarsCount) filterCarsCount.textContent = cars.length;
 
-  carsList.innerHTML = cars.map(car => `
-    <div class="col-12" id="car-card-${car.id}">
-      <div class="border-top-light pt-30">
-        <div class="row x-gap-20 y-gap-20">
+  carsList.innerHTML = cars.map(car => {
+    const displayClass = car.displayClass || car.segment || "Standard";
+    const vehicleType = car.vehicleType || "";
+    const transmission = car.transmission || "";
+    const fuelType = car.fuelType || "";
 
-          <div class="col-md-auto">
-            <div class="cardImage ratio ratio-1:1 w-250 md:w-1/1 rounded-4">
+    const seats = car.seats || "-";
+    const doors = car.doors || 4;
+    const bags = car.bags || "-";
+    const minDriverAge = car.minDriverAge || 21;
+    const hasAc = car.airConditioning !== false;
+
+    const dailyPrice = car.dailyPrice || "-";
+    const totalPrice = car.totalPrice || dailyPrice;
+
+    return `
+      <div class="col-lg-6 col-12" id="car-card-${car.id}">
+        <div class="border-top-light pt-30 h-full">
+          <div class="rounded-4 bg-white px-20 py-20 h-full">
+
+            <div>
+              <h3 class="text-22 fw-600">
+                ${car.brand || ""} ${car.model || ""}
+              </h3>
+              <div class="rentcar-spec-list mt-10">
+                <span class="rentcar-spec-pill">${displayClass}</span>
+                <span class="rentcar-spec-pill">${vehicleType}</span>
+                <span class="rentcar-spec-pill">${transmission}</span>
+                <span class="rentcar-spec-pill">${fuelType}</span>
+              </div>
+            </div>
+
+            <div class="cardImage ratio ratio-3:2 rounded-4 mt-20">
               <div class="cardImage__content">
                 <img
                   class="rounded-4 col-12"
-                  src="${car.imageUrl || 'img/lists/car/1/1.png'}"
-                  alt="${car.brand || ''} ${car.model || ''}">
+                  src="${car.imageUrl || "img/lists/car/1/1.png"}"
+                  alt="${car.brand || ""} ${car.model || ""}">
               </div>
             </div>
-          </div>
 
-          <div class="col-md">
-            <div class="d-flex flex-column h-full justify-between">
-              <div>
-                <div class="row x-gap-5 items-center">
-                  <div class="col-auto">
-                    <div class="text-14 text-light-1">Available car</div>
-                  </div>
-
-                  <div class="col-auto">
-                    <div class="size-3 rounded-full bg-light-1"></div>
-                  </div>
-
-                  <div class="col-auto">
-                    <div class="text-14 text-light-1">${car.segment || ''}</div>
-                  </div>
-                </div>
-
-                <h3 class="text-18 lh-16 fw-500 mt-5">
-                  ${car.brand || ''} ${car.model || ''}
-                </h3>
-              </div>
-
-              <div class="col-lg-7 mt-20">
-                <div class="row y-gap-5">
-                  <div class="col-sm-6">
-                    <div class="d-flex items-center">
-                      <i class="icon-transmission"></i>
-                      <div class="text-14 ml-10">
-                        ${car.segment || 'Standard'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="col-sm-6">
-                    <div class="d-flex items-center">
-                      <i class="icon-check"></i>
-                      <div class="text-14 ml-10">Available</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-20">
+            <div class="d-flex x-gap-15 y-gap-10 flex-wrap mt-20 text-14">
                 <div class="d-flex items-center">
-                  <i class="icon-check text-10"></i>
-                  <div class="text-14 fw-500 text-green-2 ml-10">
-                    Free Cancellation
-                  </div>
+                  <i class="icon-user text-16 mr-5"></i>
+                  ${seats} seats
+                </div>
+
+                <div class="d-flex items-center">
+                  <i class="icon-car text-16 mr-5"></i>
+                  ${doors} doors
+                </div>
+
+                <div class="d-flex items-center">
+                  <i class="icon-luggage text-16 mr-5"></i>
+                  ${bags} bags
+                </div>
+
+                <div class="d-flex items-center">
+                  ${hasAc ? "AC" : "No AC"}
+                </div>
+
+                <div class="d-flex items-center">
+                  <i class="icon-customer text-16 mr-5"></i>
+                  Min age ${minDriverAge}
+                </div>
+            </div>
+
+            <div class="d-flex x-gap-20 y-gap-10 flex-wrap mt-20">
+              <div class="d-flex items-center">
+                <i class="icon-check text-10 text-green-2 mr-10"></i>
+                <div class="text-14 fw-500 text-green-2">
+                  Free cancellation
+                </div>
+              </div>
+
+              <div class="d-flex items-center">
+                <i class="icon-check text-10 text-green-2 mr-10"></i>
+                <div class="text-14 fw-500 text-green-2">
+                  Unlimited kilometers available
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="col-md-auto text-right md:text-left">
-            <div class="text-22 lh-12 fw-600 mt-70 md:mt-20">
-              €${car.dailyPrice || '-'}
+            <div class="d-flex items-end justify-between mt-25">
+               <div class="rentcar-price-row">
+                  <div class="text-28 fw-700 text-red-1 lh-1">
+                    €${dailyPrice}
+                    <span class="text-14 fw-600">/ day</span>
+                  </div>
+                  <div class="rentcar-total-price">
+                    €${totalPrice} total
+                  </div>
+                </div>
+
+              <button
+                type="button"
+                onclick="showCarDetail(${car.id})"
+                class="button h-50 px-24 bg-dark-1 -yellow-1 text-white">
+                View Detail
+              </button>
             </div>
 
-            <div class="text-14 text-light-1 mt-5">
-              Per day
-            </div>
-
-            <button
-              type="button"
-              onclick="showCarDetail(${car.id})"
-              class="button h-50 px-24 bg-dark-1 -yellow-1 text-white mt-24">
-              View Detail
-            </button>
           </div>
-
         </div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 async function showCarDetail(carId) {
+  const card = document.getElementById(`car-card-${carId}`);
+
+  if (!card) return;
+
+  if (card.classList.contains("car-card-selected")) {
+    card.classList.remove("car-card-selected");
+    removeExistingDetail();
+    return;
+  }
+
   removeExistingDetail();
 
   try {
@@ -154,12 +190,16 @@ async function showCarDetail(carId) {
     }
 
     const car = await response.json();
-    const card = document.getElementById(`car-card-${carId}`);
 
-    if (!card) return;
+    document.querySelectorAll(".car-card-selected")
+      .forEach(el => el.classList.remove("car-card-selected"));
+
+    card.classList.add("car-card-selected");
 
     const detailHtml = buildDetailHtml(car, carId);
-    card.insertAdjacentHTML("afterend", detailHtml);
+    const insertAfterCard = findRowEndCard(card);
+
+    insertAfterCard.insertAdjacentHTML("afterend", detailHtml);
 
     document.getElementById(`car-detail-${carId}`)?.scrollIntoView({
       behavior: "smooth",
@@ -304,4 +344,18 @@ function formatDateTimeForHeader(value) {
 
   const [datePart, timePart] = value.split("T");
   return `${formatDateForDisplay(datePart)} ${timePart ? timePart.substring(0, 5) : ""}`;
+}
+
+function findRowEndCard(card) {
+  const nextCard = card.nextElementSibling;
+
+  if (
+    nextCard &&
+    nextCard.id?.startsWith("car-card-") &&
+    card.offsetTop === nextCard.offsetTop
+  ) {
+    return nextCard;
+  }
+
+  return card;
 }

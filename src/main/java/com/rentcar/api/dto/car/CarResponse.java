@@ -16,6 +16,9 @@ public record CarResponse(
         Boolean premium,
         Boolean guaranteedModel,
         BigDecimal dailyPrice,
-        String imageUrl
+        String imageUrl,
+        String displayClass,
+        Integer doors,
+        Integer minDriverAge
 ) {
 }

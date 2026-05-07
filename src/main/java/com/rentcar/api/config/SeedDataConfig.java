@@ -39,6 +39,9 @@ public class SeedDataConfig {
                             .dailyPrice(new BigDecimal("95.00"))
                             .active(true)
                             .imageUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e")
+                            .displayClass("Compact Elite")
+                            .doors(4)
+                            .minDriverAge(21)
                             .build()
             );
 
@@ -58,6 +61,9 @@ public class SeedDataConfig {
                             .dailyPrice(new BigDecimal("140.00"))
                             .active(true)
                             .imageUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e")
+                            .displayClass("Compact Elite")
+                            .doors(4)
+                            .minDriverAge(21)
                             .build()
             );
 
@@ -77,6 +83,9 @@ public class SeedDataConfig {
                             .dailyPrice(new BigDecimal("180.00"))
                             .active(true)
                             .imageUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e")
+                            .displayClass("Compact Elite")
+                            .doors(4)
+                            .minDriverAge(21)
                             .build()
             );
         };

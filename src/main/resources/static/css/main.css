@@ -12149,3 +12149,85 @@ table.table-5 td {
     top: 80px;
   }
 }
+.car-card-selected .button {
+  background-color: var(--color-yellow-1) !important;
+  color: var(--color-dark-1) !important;
+  border-color: var(--color-yellow-1) !important;
+}
+.rentcar-filter-footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+}
+
+.rentcar-filter-footer button {
+  width: 100%;
+  height: 58px;
+  border-radius: 12px;
+  background: var(--color-yellow-1);
+  color: var(--color-dark-1);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.rentcar-feature-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: #f5f5f5;
+  font-size: 11px;
+  font-weight: 700;
+}
+.rentcar-spec-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(5, 16, 54, 0.08);
+  color: #051036;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.rentcar-total-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #5E6D77;
+  margin-bottom: 4px; /* daily ile baseline hizası */
+}
+.rentcar-spec-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.rentcar-price-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.rentcar-price-row .text-red-1 {
+  font-size: 28px !important;
+  line-height: 1 !important;
+}
+
+.rentcar-price-row .text-red-1 span {
+  font-size: 14px !important;
+}
+
+.rentcar-total-price {
+  font-size: 15px !important;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #5E6D77;
+  margin-bottom: 3px;
+}
