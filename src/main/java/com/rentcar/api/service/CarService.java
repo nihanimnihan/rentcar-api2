@@ -1,6 +1,7 @@
 package com.rentcar.api.service;
 
 import com.rentcar.api.domain.car.Car;
+import com.rentcar.api.dto.car.CarResponse;
 import com.rentcar.api.exception.CarNotFoundException;
 import com.rentcar.api.repository.CarRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +34,12 @@ public class CarService {
         }
 
         return car;
+    }
+
+    public List<Car> getPopularCars() {
+        return carRepository.findPopularCars()
+                .stream()
+                .limit(4)
+                .toList();
     }
 }

@@ -36,4 +36,9 @@ public class CarController {
 
         //return carService.searchAvailableCars(request);
     }
+
+    @GetMapping("/popular")
+    public List<CarResponse> getPopularCars() {
+        return carService.getPopularCars().stream().map(carMapper::toResponse).toList();
+    }
 }

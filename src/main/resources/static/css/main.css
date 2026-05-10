@@ -12231,3 +12231,510 @@ table.table-5 td {
   color: #5E6D77;
   margin-bottom: 3px;
 }
+
+.rentcar-detail-bg{
+  background:#FFFBEF;
+}
+
+.rentcar-option-box{
+  background:white;
+  border:2px solid #111;
+  border-radius:16px;
+  padding:22px;
+  cursor:pointer;
+}
+
+.rentcar-option-box.secondary{
+  border:1px solid #DDD;
+}
+
+.rentcar-option-title{
+  font-size:28px;
+  font-weight:700;
+  color:#111;
+}
+
+.rentcar-option-sub{
+  font-size:15px;
+  color:#666;
+  margin-top:6px;
+}
+
+.rentcar-included{
+  font-size:18px;
+  font-weight:700;
+}
+
+.rentcar-pill-orange{
+  background:#ff5f00;
+  color:white;
+  border-radius:999px;
+  padding:4px 12px;
+  font-size:13px;
+  font-weight:700;
+}
+.rentcar-detail-card {
+  position: relative;
+  background: #fffaf0;
+  border: 1px solid #e7dfcf;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(5, 16, 54, 0.08);
+  padding: 36px;
+}
+
+.rentcar-detail-close {
+  position: absolute;
+  top: 26px;
+  right: 26px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  color: #111;
+  cursor: pointer;
+}
+
+.rentcar-detail-left,
+.rentcar-detail-right {
+  padding: 10px 28px;
+}
+
+.rentcar-detail-image-wrap {
+  margin-top: 34px;
+  height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rentcar-detail-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.rentcar-detail-specs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px 24px;
+  margin-top: 28px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #051036;
+}
+
+.rentcar-detail-specs span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rentcar-choice-card {
+  min-height: 92px;
+  border: 1px solid #dedede;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.65);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.rentcar-choice-card.is-selected {
+  border: 2px solid #111;
+}
+
+.rentcar-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #c7c7c7;
+  flex-shrink: 0;
+}
+
+.rentcar-radio.is-selected {
+  border: 8px solid #111;
+}
+
+.rentcar-choice-content {
+  flex: 1;
+}
+
+.rentcar-choice-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111;
+}
+
+.rentcar-choice-sub {
+  font-size: 15px;
+  color: #5E6D77;
+  margin-top: 5px;
+}
+
+.rentcar-choice-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.rentcar-detail-footer {
+  border-top: 1px solid #e5dfd0;
+  margin-top: 34px;
+  padding-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.rentcar-detail-price {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #e3342f;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.rentcar-detail-price span {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rentcar-detail-price strong {
+  color: #051036;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rentcar-price-details {
+  margin-top: 12px;
+  border: 0;
+  border-bottom: 2px solid #111;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+  padding: 0;
+}
+
+.rentcar-next-button {
+  min-width: 220px;
+  height: 64px;
+}
+
+@media (max-width: 991px) {
+  .rentcar-detail-card {
+    padding: 24px;
+  }
+
+  .rentcar-detail-left,
+  .rentcar-detail-right {
+    padding: 0;
+  }
+
+  .rentcar-detail-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rentcar-next-button {
+    min-width: 100%;
+  }
+
+  .rentcar-choice-card {
+    align-items: flex-start;
+  }
+
+  .rentcar-choice-price {
+    font-size: 15px;
+  }
+}
+.rentcar-choice-card-compact {
+  min-height: 74px;
+  padding: 13px 16px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+}
+
+.rentcar-choice-card-compact .rentcar-choice-title {
+  font-size: 17px;
+}
+
+.rentcar-choice-card-compact .rentcar-choice-sub {
+  font-size: 13px;
+}
+
+.rentcar-choice-card-compact .rentcar-choice-price {
+  font-size: 15px;
+}
+
+.rentcar-choice-card-compact .rentcar-radio {
+  width: 22px;
+  height: 22px;
+}
+
+.rentcar-choice-card-compact .rentcar-radio.is-selected {
+  border-width: 6px;
+}
+
+.rentcar-detail-side-footer {
+  margin-top: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.rentcar-detail-side-footer .rentcar-detail-price {
+  font-size: 56px;
+  font-weight: 800;
+}
+
+.rentcar-detail-side-footer .rentcar-detail-price span {
+  font-size: 22px;
+}
+
+.rentcar-detail-side-footer .rentcar-detail-price strong {
+  font-size: 18px;
+}
+
+.rentcar-detail-side-footer .rentcar-next-button {
+  min-width: 220px;
+  height: 56px;
+}
+
+.rentcar-detail-card {
+  position: relative;
+  background: #fffaf0;
+  border: 1px solid #eadfca;
+  border-radius: 26px;
+  box-shadow: 0 14px 40px rgba(5, 16, 54, 0.08);
+  padding: 42px 44px;
+}
+
+.rentcar-detail-close {
+  position: absolute;
+  top: 28px;
+  right: 30px;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.rentcar-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 44px;
+}
+
+.rentcar-detail-title {
+  font-size: 38px;
+  font-weight: 800;
+  color: #111;
+}
+
+.rentcar-detail-subtitle {
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.rentcar-detail-image-wrap {
+  height: 330px;
+  margin-top: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rentcar-detail-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rentcar-detail-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 26px;
+  margin-top: 28px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.rentcar-detail-specs span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rentcar-mileage-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.rentcar-choice-card {
+  position: relative;
+  min-height: 72px;
+  border: 1px solid #d7d7d7;
+  background: #ffffff;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.rentcar-choice-card input {
+  display: none;
+}
+
+.rentcar-choice-card.is-selected {
+  border: 2px solid #111;
+  z-index: 2;
+}
+
+.rentcar-radio {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #d5d5d5;
+  flex-shrink: 0;
+}
+
+.rentcar-choice-card.is-selected .rentcar-radio {
+  border: 6px solid #111;
+}
+
+.rentcar-choice-card + .rentcar-choice-card {
+  margin-top: -1px;
+}
+
+.rentcar-choice-card:first-of-type {
+  border-radius: 12px 12px 0 0;
+}
+
+.rentcar-choice-card:last-of-type {
+  border-radius: 0 0 12px 12px;
+}
+
+.rentcar-choice-content {
+  flex: 1;
+}
+
+.rentcar-choice-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.2;
+}
+
+.rentcar-choice-sub {
+  margin-top: 3px;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.rentcar-choice-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.rentcar-detail-action-row {
+  margin-top: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 26px;
+}
+
+.rentcar-detail-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  line-height: 1;
+  color: #111;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.rentcar-detail-price span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rentcar-detail-price strong {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rentcar-price-details {
+  margin-top: 12px;
+  border: 0;
+  border-bottom: 2px solid #111;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 0;
+}
+
+.rentcar-next-button {
+  min-width: 220px;
+  height: 54px;
+
+  background: #FFD84D;
+  color: #051036;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rentcar-next-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+@media (max-width: 991px) {
+  .rentcar-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rentcar-detail-action-row {
+    margin-top: 30px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rentcar-next-button {
+    width: 100%;
+  }
+}

@@ -1,6 +1,10 @@
 package com.rentcar.api.config;
 
 import com.rentcar.api.domain.car.Car;
+import com.rentcar.api.domain.car.FuelType;
+import com.rentcar.api.domain.car.TransmissionType;
+import com.rentcar.api.domain.car.VehicleSegment;
+import com.rentcar.api.domain.car.VehicleType;
 import com.rentcar.api.repository.CarRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -25,12 +29,12 @@ public class SeedDataConfig {
 
             carRepository.save(
                     Car.builder()
-                            .brand("BMW")
-                            .model("320i")
-                            .segment("PREMIUM")
-                            .vehicleType("SEDAN")
-                            .transmission("AUTOMATIC")
-                            .fuelType("GASOLINE")
+                            .brand("BMV sDrive18d")
+                            .model("X1")
+                            .segment(VehicleSegment.PREMIUM)
+                            .vehicleType(VehicleType.SUV)
+                            .transmission(TransmissionType.AUTOMATIC)
+                            .fuelType(FuelType.HYBRID)
                             .seats(5)
                             .bags(3)
                             .airConditioning(true)
@@ -38,9 +42,9 @@ public class SeedDataConfig {
                             .guaranteedModel(true)
                             .dailyPrice(new BigDecimal("95.00"))
                             .active(true)
-                            .imageUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e")
+                            .imageUrl("img/cars/bmw_x1_sdrive.png")
                             .displayClass("Compact Elite")
-                            .doors(4)
+                            .doors(5)
                             .minDriverAge(21)
                             .build()
             );
@@ -49,10 +53,10 @@ public class SeedDataConfig {
                     Car.builder()
                             .brand("Mercedes")
                             .model("Vito")
-                            .segment("FAMILY")
-                            .vehicleType("VAN")
-                            .transmission("AUTOMATIC")
-                            .fuelType("DIESEL")
+                            .segment(VehicleSegment.PREMIUM)
+                            .vehicleType(VehicleType.VAN)
+                            .transmission(TransmissionType.AUTOMATIC)
+                            .fuelType(FuelType.DIESEL)
                             .seats(7)
                             .bags(5)
                             .airConditioning(true)
@@ -60,31 +64,31 @@ public class SeedDataConfig {
                             .guaranteedModel(false)
                             .dailyPrice(new BigDecimal("140.00"))
                             .active(true)
-                            .imageUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e")
+                            .imageUrl("img/cars/mercedes_vito.png")
                             .displayClass("Compact Elite")
-                            .doors(4)
-                            .minDriverAge(21)
+                            .doors(5)
+                            .minDriverAge(26)
                             .build()
             );
 
             carRepository.save(
                     Car.builder()
                             .brand("Audi")
-                            .model("A6")
-                            .segment("LUXURY")
-                            .vehicleType("SEDAN")
-                            .transmission("AUTOMATIC")
-                            .fuelType("HYBRID")
+                            .model("Q2")
+                            .segment(VehicleSegment.LUXURY)
+                            .vehicleType(VehicleType.SEDAN)
+                            .transmission(TransmissionType.AUTOMATIC)
+                            .fuelType(FuelType.HYBRID)
                             .seats(5)
-                            .bags(4)
+                            .bags(5)
                             .airConditioning(true)
                             .premium(true)
                             .guaranteedModel(true)
                             .dailyPrice(new BigDecimal("180.00"))
                             .active(true)
-                            .imageUrl("https://images.unsplash.com/photo-1555215695-3004980ad54e")
+                            .imageUrl("img/cars/audi_q2.png")
                             .displayClass("Compact Elite")
-                            .doors(4)
+                            .doors(3)
                             .minDriverAge(21)
                             .build()
             );

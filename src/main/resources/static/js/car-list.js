@@ -217,52 +217,126 @@ function removeExistingDetail() {
 }
 
 function buildDetailHtml(car, carId) {
+  const carName = `${car.brand || ""} ${car.model || ""}`.trim();
+  const displayClass = car.displayClass || car.segment || "Standard";
+  const transmission = car.transmission || "";
+  const seats = car.seats || "-";
+  const doors = car.doors || 4;
+  const bags = car.bags || "-";
+  const minDriverAge = car.minDriverAge || 21;
+  const dailyPrice = car.dailyPrice || "-";
+  const totalPrice = car.totalPrice || dailyPrice;
+
   return `
     <div class="col-12 inline-car-detail mt-20" id="car-detail-${carId}">
-      <div class="border-light rounded-4 shadow-4 bg-white px-30 py-30">
-        <div class="row y-gap-30">
+      <div class="rentcar-detail-card">
 
-          <div class="col-lg-7">
-            <h2 class="text-24 fw-600">
-              ${car.brand || ''} ${car.model || ''}
-            </h2>
+        <button
+          type="button"
+          class="rentcar-detail-close"
+          onclick="removeExistingDetail(); document.querySelectorAll('.car-card-selected').forEach(el => el.classList.remove('car-card-selected'));">
+          <i class="icon-close"></i>
+        </button>
 
-            <div
-              class="rounded-4 bg-light-2 mt-20 d-flex items-center justify-center"
-              style="height:360px;">
+        <div class="rentcar-detail-grid">
 
-              <img
-                src="${car.imageUrl || 'img/lists/car/1/1.png'}"
-                alt="${car.brand || ''} ${car.model || ''}"
-                style="max-width:100%; max-height:100%; object-fit:contain;">
-            </div>
-          </div>
-
-          <div class="col-lg-5">
-            <div class="text-20 fw-500">Booking option</div>
-
-            <div class="border-light rounded-4 px-20 py-20 mt-20">
-              <div class="fw-500">Best price</div>
-              <div class="text-15 text-light-1 mt-5">Free cancellation</div>
-
-              <div class="text-24 fw-600 mt-20">
-                €${car.dailyPrice || '-'}
+          <div class="rentcar-detail-left">
+            <div class="text-center">
+              <h2 class="rentcar-detail-title">${carName}</h2>
+              <div class="rentcar-detail-subtitle">
+                ${displayClass} · ${transmission}
               </div>
             </div>
 
-            <div class="row pt-25 y-gap-10">
-              <div class="col-6">Seats: ${car.seats || "-"}</div>
-              <div class="col-6">Bags: ${car.bags || "-"}</div>
-              <div class="col-6">Transmission: ${car.transmission || "-"}</div>
-              <div class="col-6">Segment: ${car.segment || "-"}</div>
+            <div class="rentcar-detail-image-wrap">
+              <img
+                src="${car.imageUrl || "img/lists/car/1/1.png"}"
+                alt="${carName}">
+            </div>
+
+            <div class="rentcar-detail-specs">
+              <span><i class="icon-user"></i> ${seats} Seats</span>
+              <span><i class="icon-luggage"></i> ${bags} Bags</span>
+              <span><i class="icon-car"></i> ${doors} Doors</span>
+              <span><i class="icon-transmission"></i> ${transmission}</span>
+              <span><i class="icon-customer"></i> Min age ${minDriverAge}</span>
+            </div>
+          </div>
+
+          <div class="rentcar-detail-right">
+            <div class="rentcar-mileage-title">Mileage</div>
+
+            <label class="rentcar-choice-card is-selected">
+              <input
+                type="radio"
+                name="mileage-${carId}"
+                value="limited"
+                checked
+                onchange="selectMileageOption(this)">
+
+              <span class="rentcar-radio"></span>
+
+              <div class="rentcar-choice-content">
+                <div class="rentcar-choice-title">3,420 km</div>
+                <div class="rentcar-choice-sub">+$0.25 / for every additional km</div>
+              </div>
+
+              <div class="rentcar-choice-price">Included</div>
+            </label>
+
+            <label class="rentcar-choice-card">
+              <input
+                type="radio"
+                name="mileage-${carId}"
+                value="unlimited"
+                onchange="selectMileageOption(this)">
+
+              <span class="rentcar-radio"></span>
+
+              <div class="rentcar-choice-content">
+                <div class="rentcar-choice-title">Unlimited kilometers</div>
+                <div class="rentcar-choice-sub">All kilometers are included in the price</div>
+              </div>
+
+              <div class="rentcar-choice-price">+ $ 5.77 / day</div>
+            </label>
+
+            <div class="rentcar-detail-action-row">
+              <div>
+                <div class="rentcar-detail-price">
+                  €${dailyPrice}<span>/ day</span>
+                  <strong>€${totalPrice} total</strong>
+                </div>
+
+                <button type="button" class="rentcar-price-details">
+                  Price details
+                </button>
+              </div>
+
+              <button type="button" class="rentcar-next-button">
+                Next
+              </button>
             </div>
           </div>
 
         </div>
+
       </div>
     </div>
   `;
 }
+
+function selectMileageOption(input) {
+  const detail = input.closest(".inline-car-detail");
+
+  detail
+    .querySelectorAll(".rentcar-choice-card")
+    .forEach(card => card.classList.remove("is-selected"));
+
+  input.closest(".rentcar-choice-card").classList.add("is-selected");
+}
+
+window.selectMileageOption = selectMileageOption;
 
 function fillCarsPageSearchFromUrl() {
   const params = new URLSearchParams(window.location.search);

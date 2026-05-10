@@ -2,6 +2,8 @@ package com.rentcar.api.domain.car;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,21 +35,17 @@ public class Car {
     @Column(nullable = false)
     private String model;
 
-    // Economy, Premium, Luxury...
-    @Column(nullable = false)
-    private String segment;
+    @Enumerated(EnumType.STRING)
+    private VehicleSegment segment;
 
-    // SUV, Sedan, Family Car...
-    @Column(nullable = false)
-    private String vehicleType;
+    @Enumerated(EnumType.STRING)
+    private VehicleType vehicleType;
 
-    // AUTOMATIC, MANUAL
-    @Column(nullable = false)
-    private String transmission;
+    @Enumerated(EnumType.STRING)
+    private TransmissionType transmission;
 
-    // GASOLINE, DIESEL, ELECTRIC, HYBRID
-    @Column(nullable = false)
-    private String fuelType;
+    @Enumerated(EnumType.STRING)
+    private FuelType fuelType;
 
     @Column(nullable = false)
     private Integer seats;
