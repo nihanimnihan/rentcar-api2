@@ -55,6 +55,28 @@ public class Booking {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private int rentalDays;
+
+    // Price snapshot
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal baseDailyPrice;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal discountedDailyPrice;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal rentalCharge;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal oneWayFee;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal premiumLocationFee;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal tax;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice;
 

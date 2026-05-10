@@ -12738,3 +12738,84 @@ table.table-5 td {
     width: 100%;
   }
 }
+
+.rentcar-price-modal {
+  display: none;
+}
+
+.rentcar-price-modal.is-active {
+  display: block;
+}
+
+.rentcar-price-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9998;
+}
+
+.rentcar-price-modal-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - 32px));
+  background: #fff;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+}
+
+.rentcar-price-modal-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.rentcar-price-modal-title {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 28px;
+  color: #050b2c;
+}
+
+.rentcar-price-section-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.rentcar-price-row-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 16px;
+  margin: 12px 0;
+}
+
+.rentcar-price-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 20px 0;
+}
+
+.rentcar-price-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.rentcar-price-total strong {
+  font-size: 30px;
+  color: #050b2c;
+}

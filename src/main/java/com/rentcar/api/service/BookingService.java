@@ -8,6 +8,7 @@ import com.rentcar.api.domain.customer.Customer;
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
+import com.rentcar.api.dto.pricing.PriceBreakdown;
 import com.rentcar.api.exception.BookingCannotBeCancelledException;
 import com.rentcar.api.exception.BookingNotFoundException;
 import com.rentcar.api.exception.CarNotAvailableException;
@@ -17,7 +18,6 @@ import com.rentcar.api.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -48,11 +48,7 @@ public class BookingService {
             throw new CarNotAvailableException(request.carId());
         }
 
-        BigDecimal totalPrice = pricingService.calculateTotalPrice(
-                car,
-                request.pickupDateTime(),
-                request.dropoffDateTime()
-        );
+        PriceBreakdown price = pricingService.calculate(car, request.pickupLocation(), request.dropoffLocation(), request.pickupDateTime(), request.dropoffDateTime());
 
         Customer customer = customerService.getOrCreateCustomer(request.customerName(), request.customerEmail(), request.customerPhone());
 
@@ -61,7 +57,14 @@ public class BookingService {
                 .customer(customer)
                 .pickupDateTime(request.pickupDateTime())
                 .dropoffDateTime(request.dropoffDateTime())
-                .totalPrice(totalPrice)
+                .rentalDays(price.rentalDays())
+                .baseDailyPrice(price.baseDailyPrice())
+                .discountedDailyPrice(price.discountedDailyPrice())
+                .rentalCharge(price.rentalCharge())
+                .oneWayFee(price.oneWayFee())
+                .premiumLocationFee(price.premiumLocationFee())
+                .tax(price.tax())
+                .totalPrice(price.totalPrice())
                 .status(BookingStatus.PENDING)
                 .source(BookingSource.WEB)
                 .build();
@@ -114,7 +117,6 @@ public class BookingService {
         } else {
             booking.setStatus(BookingStatus.FAILED);
         }
-
         return bookingRepository.save(booking);
     }
 

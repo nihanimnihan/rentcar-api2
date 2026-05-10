@@ -14,7 +14,9 @@ public record BookingResponse(
         CustomerResponse customer,
         LocalDateTime pickupDateTime,
         LocalDateTime dropoffDateTime,
+        BigDecimal dailyPrice,
         BigDecimal totalPrice,
+        int rentalDays,
         BookingStatus status,
         BookingSource source
 ) {

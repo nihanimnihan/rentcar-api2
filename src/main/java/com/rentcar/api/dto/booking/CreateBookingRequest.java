@@ -28,6 +28,12 @@ public record CreateBookingRequest(
 
         @NotNull
         @FutureOrPresent
-        LocalDateTime dropoffDateTime
+        LocalDateTime dropoffDateTime,
+
+        @NotNull
+        String pickupLocation,
+
+        @NotNull
+        String dropoffLocation
 ) {
 }

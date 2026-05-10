@@ -79,4 +79,5 @@ public class Car {
 
     @Column(nullable = false)
     private Integer minDriverAge;
+
 }

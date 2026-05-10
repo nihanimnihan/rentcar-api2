@@ -29,7 +29,7 @@ public class SeedDataConfig {
 
             carRepository.save(
                     Car.builder()
-                            .brand("BMV sDrive18d")
+                            .brand("BMW sDrive18d")
                             .model("X1")
                             .segment(VehicleSegment.PREMIUM)
                             .vehicleType(VehicleType.SUV)
@@ -80,7 +80,7 @@ public class SeedDataConfig {
                             .transmission(TransmissionType.AUTOMATIC)
                             .fuelType(FuelType.HYBRID)
                             .seats(5)
-                            .bags(5)
+                            .bags(3)
                             .airConditioning(true)
                             .premium(true)
                             .guaranteedModel(true)
@@ -88,7 +88,7 @@ public class SeedDataConfig {
                             .active(true)
                             .imageUrl("img/cars/audi_q2.png")
                             .displayClass("Compact Elite")
-                            .doors(3)
+                            .doors(5)
                             .minDriverAge(21)
                             .build()
             );
