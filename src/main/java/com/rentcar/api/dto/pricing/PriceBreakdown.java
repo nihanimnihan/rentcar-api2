@@ -1,6 +1,7 @@
 package com.rentcar.api.dto.pricing;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record PriceBreakdown(
         int rentalDays,
@@ -10,6 +11,8 @@ public record PriceBreakdown(
         BigDecimal oneWayFee,
         BigDecimal premiumLocationFee,
         BigDecimal tax,
-        BigDecimal totalPrice
+        BigDecimal totalPrice,
+        BigDecimal addonsTotal,
+        List<AddonPriceLine> addonLines
 ) {
 }

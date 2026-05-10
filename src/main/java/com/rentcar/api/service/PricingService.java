@@ -34,7 +34,7 @@ public class PricingService {
 
         BigDecimal tax = money(subtotal.multiply(TAX_RATE));
         BigDecimal totalPrice = money(subtotal.add(tax));
-        return new PriceBreakdown(rentalDays, baseDailyPrice, discountedDailyPrice, rentalCharge, oneWayFee, premiumLocationFee, tax, totalPrice);
+        return new PriceBreakdown(rentalDays, baseDailyPrice, discountedDailyPrice, rentalCharge, oneWayFee, premiumLocationFee, tax, totalPrice, null, null);
     }
 
     public PriceBreakdown calculate(Car car, String pickupLocation, String dropoffLocation, LocalDateTime pickupDateTime, LocalDateTime dropoffDateTime) {

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-x="html" data-x-toggle="html-overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/vendors.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>RentCar - Add-ons</title>
+</head>
+
+<body>
+<div id="preloader-placeholder"></div>
+
+<main>
+    <section class="py-20 bg-dark-3">
+        <div class="container">
+            <div class="row justify-between items-center">
+                <div class="col-auto">
+                    <div class="d-flex items-center">
+                        <button type="button"
+                                onclick="history.back()"
+                                class="button -blue-1 size-40 rounded-full bg-white-10 mr-15 text-white">
+                            <i class="icon-arrow-left text-18"></i>
+                        </button>
+
+                        <a href="index.html" class="header-logo">
+                            <img src="img/general/logo-light.svg" alt="RentCar logo">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <div class="d-flex items-center x-gap-20 text-white">
+                        <div>
+                            <span class="text-15 fw-600">Total:</span>
+                            <span id="addonsHeaderTotal" class="text-26 fw-800">€-</span>
+
+                            <button type="button"
+                                    id="addonsPriceDetailsButton"
+                                    class="d-block text-14 fw-600 underline text-white">
+                                Price details
+                            </button>
+                        </div>
+
+                        <button id="continueButton"
+                                type="button"
+                                class="button h-60 px-50 bg-yellow-1 text-dark-1 rounded-8 fw-700">
+                            Continue
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="layout-pt-md layout-pb-md bg-white">
+        <div class="container">
+            <div class="row x-gap-60 y-gap-40">
+
+                <div class="col-lg-8">
+                    <h2 class="text-26 fw-700 mb-25">Recommended add-ons for your trip</h2>
+
+                    <div id="addonsList" class="y-gap-20">
+
+                        <div class="rentcar-addon-card" data-addon-id="additionalDriver">
+                            <div class="rentcar-addon-image">
+                                <img src="img/addons/additional-driver.jpg" alt="Additional driver">
+                            </div>
+
+                            <div class="rentcar-addon-content">
+                                <div class="d-flex justify-between items-start">
+                                    <div>
+                                        <div class="text-13 fw-700 text-red-1">Popular</div>
+                                        <h3 class="text-20 fw-700">More drivers, more fun</h3>
+                                        <div class="text-15 text-light-1">Additional driver</div>
+                                    </div>
+                                    <i class="icon-info text-18"></i>
+                                </div>
+
+                                <div class="border-top-light mt-20 pt-15">
+                                    <div class="text-15 mb-5">✓ Switch drivers anytime to fit your plans</div>
+                                    <div class="text-15 mb-5">✓ Great for road trips, family vacations, or business travel</div>
+                                </div>
+
+                                <div class="d-flex justify-between items-center mt-20">
+                                    <div class="text-16 fw-700">€19.00 / day</div>
+                                    <button type="button" class="rentcar-addon-button" onclick="toggleAddon('additionalDriver')">
+                                        Add <span>+</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rentcar-addon-card" data-addon-id="gps">
+                            <div class="rentcar-addon-image">
+                                <img src="img/addons/gps.jpg" alt="GPS navigation">
+                            </div>
+
+                            <div class="rentcar-addon-content">
+                                <div class="d-flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-20 fw-700">Stress-free navigation</h3>
+                                        <div class="text-15 text-light-1">GPS and smartphone navigation support</div>
+                                    </div>
+                                    <i class="icon-info text-18"></i>
+                                </div>
+
+                                <div class="border-top-light mt-20 pt-15">
+                                    <div class="text-15 mb-5">✓ Built-in GPS navigation system, guaranteed</div>
+                                    <div class="text-15 mb-5">✓ Keep your eyes on the road</div>
+                                </div>
+
+                                <div class="d-flex justify-between items-center mt-20">
+                                    <div class="text-16 fw-700">€12.00 / day</div>
+                                    <button type="button" class="rentcar-addon-button" onclick="toggleAddon('gps')">
+                                        Add <span>+</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rentcar-addon-card" data-addon-id="refueling">
+                            <div class="rentcar-addon-image">
+                                <img src="img/addons/refueling.jpg" alt="Refueling service">
+                            </div>
+
+                            <div class="rentcar-addon-content">
+                                <div class="d-flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-20 fw-700">Skip refueling and save time</h3>
+                                        <div class="text-15 text-light-1">Refueling service</div>
+                                    </div>
+                                    <i class="icon-info text-18"></i>
+                                </div>
+
+                                <div class="border-top-light mt-20 pt-15">
+                                    <div class="text-15 mb-5">✓ Return without refueling — we’ll take care of it</div>
+                                    <div class="text-15 mb-5">✓ Save time and stress before your return</div>
+                                </div>
+
+                                <div class="d-flex justify-between items-center mt-20">
+                                    <div class="text-16 fw-700">€25.00 / one-time</div>
+                                    <button type="button" class="rentcar-addon-button" onclick="toggleAddon('refueling')">
+                                        Add <span>+</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rentcar-addon-card" data-addon-id="childSeat">
+                            <div class="rentcar-addon-icon">
+                                <i class="icon-user text-28"></i>
+                            </div>
+
+                            <div class="rentcar-addon-content">
+                                <div class="d-flex justify-between items-start">
+                                    <div>
+                                        <h3 class="text-20 fw-700">Travel safely with the right child seat</h3>
+                                        <div class="text-15 text-light-1">Choose a size below</div>
+                                    </div>
+                                    <i class="icon-chevron-sm-down text-16"></i>
+                                </div>
+
+                                <div class="border-top-light mt-20 pt-15">
+                                    <div class="text-15">
+                                        Rear-facing baby seats, forward-facing child seats, and booster seats available for children of all ages.
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-between items-center mt-20">
+                                    <div class="text-16 fw-700">€15.00 / day</div>
+                                    <button type="button" class="rentcar-addon-button" onclick="toggleAddon('childSeat')">
+                                        Choose seat <span>+</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="rentcar-addon-summary">
+                        <div class="d-flex x-gap-15 items-center">
+                            <img id="summaryCarImage" src="img/cars/1.png" alt="car" class="rentcar-summary-car-image">
+                            <div>
+                                <h3 id="summaryCarName" class="text-18 fw-700">Car</h3>
+                                <div id="summaryCarSubtitle" class="text-14 text-light-1">or similar</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-30">
+                            <h4 class="text-18 fw-700 mb-15">Pickup and return</h4>
+
+                            <div class="rentcar-summary-route">
+                                <div>
+                                    <div class="text-14 text-light-1">Pickup</div>
+                                    <div id="summaryPickupLocation" class="text-16 fw-600">-</div>
+                                    <div id="summaryPickupDate" class="text-14 text-light-1">-</div>
+                                </div>
+
+                                <div class="mt-20">
+                                    <div class="text-14 text-light-1">Return</div>
+                                    <div id="summaryDropoffLocation" class="text-16 fw-600">-</div>
+                                    <div id="summaryDropoffDate" class="text-14 text-light-1">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-top-light mt-25 pt-25">
+                            <h4 class="text-18 fw-700 mb-10">Included features</h4>
+                            <div class="text-15 mb-8">✓ Third party insurance</div>
+                            <div class="text-15 mb-8">✓ 24/7 breakdown assistance</div>
+                            <div class="text-15 mb-8">✓ Free cancellation</div>
+                        </div>
+
+                        <div class="border-top-light mt-25 pt-25">
+                            <h4 class="text-18 fw-700 mb-10">Added features</h4>
+                            <div id="summaryAddedFeatures" class="text-15 text-light-1">
+                                No add-ons selected yet.
+                            </div>
+                        </div>
+
+                        <div class="border-top-light mt-25 pt-25">
+                            <div class="d-flex justify-between items-center">
+                                <span class="text-18 fw-700">Total</span>
+                                <strong id="summaryTotal" class="text-26 fw-800">€-</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+<script src="js/vendors.js"></script>
+<script src="js/main.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/price-details-modal.js"></script>
+<script src="js/addons.js"></script>
+</body>
+</html>

@@ -309,7 +309,7 @@ function buildDetailHtml(car, carId) {
                   <strong>€${totalPrice} total</strong>
                 </div>
 
-                <button type="button" class="rentcar-price-details" onclick="openPriceDetails(${carId})">
+                <button type="button" class="rentcar-price-details" onclick="openPriceDetailsModal('price-modal-${carId}')">
                   Price details
                 </button>
               </div>
@@ -323,7 +323,7 @@ function buildDetailHtml(car, carId) {
         </div>
 
       </div>
-      ${buildPriceDetailsModal(car, carId)}
+      ${buildPriceDetailsModalHtml(`price-modal-${carId}`, car.priceBreakdown)}
     </div>
   `;
 }
@@ -436,103 +436,10 @@ function findRowEndCard(card) {
   return card;
 }
 
-function buildPriceDetailsModal(car, carId) {
-  const price = car.priceBreakdown;
-
-  if (!price) {
-    return "";
-  }
-
-  const feeRows = [];
-
-  if (Number(price.oneWayFee) > 0) {
-    feeRows.push(`
-      <div class="rentcar-price-row-line">
-        <span>One-way fee</span>
-        <strong>€${price.oneWayFee}</strong>
-      </div>
-    `);
-  }
-
-  if (Number(price.premiumLocationFee) > 0) {
-    feeRows.push(`
-      <div class="rentcar-price-row-line">
-        <span>Premium location fee</span>
-        <strong>€${price.premiumLocationFee}</strong>
-      </div>
-    `);
-  }
-
-  // tax artik gostermiyoruz
-
-  return `
-    <div class="rentcar-price-modal" id="price-modal-${carId}">
-      <div class="rentcar-price-modal-backdrop"
-           onclick="closePriceDetails(${carId})"></div>
-
-      <div class="rentcar-price-modal-card">
-
-        <button class="rentcar-price-modal-close"
-                onclick="closePriceDetails(${carId})">
-          <i class="icon-close"></i>
-        </button>
-
-        <h2 class="rentcar-price-modal-title">
-          PRICE DETAILS
-        </h2>
-
-        <div class="rentcar-price-section">
-
-          <div class="rentcar-price-section-title">
-            Rental charges
-          </div>
-
-          <div class="rentcar-price-row-line">
-            <span>
-              ${price.rentalDays} rental day${price.rentalDays > 1 ? "s" : ""}
-              x €${price.discountedDailyPrice}
-            </span>
-
-            <strong>
-              €${price.rentalCharge}
-            </strong>
-          </div>
-
-        </div>
-
-        ${feeRows.length > 0 ? `
-          <div class="rentcar-price-divider"></div>
-
-          <div class="rentcar-price-section">
-            <div class="rentcar-price-section-title">
-              Fees
-            </div>
-
-            ${feeRows.join("")}
-          </div>
-        ` : ""}
-
-        <div class="rentcar-price-divider"></div>
-
-        <div class="rentcar-price-total">
-          <span>Total</span>
-          <strong>€${price.totalPrice}</strong>
-        </div>
-
-      </div>
-    </div>
-  `;
-}
-
-function openPriceDetails(carId) {
-  document.getElementById(`price-modal-${carId}`)?.classList.add("is-active");
-}
-
 function closePriceDetails(carId) {
   document.getElementById(`price-modal-${carId}`)?.classList.remove("is-active");
 }
 
-window.openPriceDetails = openPriceDetails;
 window.closePriceDetails = closePriceDetails;
 
 function goToAddons(carId) {
