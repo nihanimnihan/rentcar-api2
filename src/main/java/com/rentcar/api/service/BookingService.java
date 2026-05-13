@@ -6,6 +6,7 @@ import com.rentcar.api.domain.addon.BookingAddon;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
+import com.rentcar.api.domain.booking.MileageOption;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.customer.Customer;
 import com.rentcar.api.domain.payment.Payment;
@@ -76,6 +77,16 @@ public class BookingService {
                 .map(addon -> computeAddonPrice(addon, price.rentalDays()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // Unlimited km surcharge — computed server-side, never trusted from frontend.
+        MileageOption mileageOption = request.mileageOption() != null
+                ? request.mileageOption()
+                : MileageOption.INCLUDED;
+        BigDecimal unlimitedKmCharge = mileageOption == MileageOption.UNLIMITED
+                ? price.unlimitedKmDailyPrice()
+                        .multiply(BigDecimal.valueOf(price.rentalDays()))
+                        .setScale(2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
         Customer customer = customerService.getOrCreateCustomer(request.customerName(), request.customerEmail(), request.customerPhone());
 
         Booking booking = Booking.builder()
@@ -92,9 +103,10 @@ public class BookingService {
                 .premiumLocationFee(price.premiumLocationFee())
                 .tax(price.tax())
                 .addonCharge(addonCharge)
-                .totalPrice(price.totalPrice().add(addonCharge))
+                .totalPrice(price.totalPrice().add(addonCharge).add(unlimitedKmCharge))
                 .includedKmSnapshot(price.includedKm())
                 .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
+                .mileageOption(mileageOption)
                 .status(BookingStatus.PENDING)
                 .source(BookingSource.WEB)
                 .build();

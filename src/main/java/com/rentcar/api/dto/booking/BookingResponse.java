@@ -2,6 +2,7 @@ package com.rentcar.api.dto.booking;
 
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
+import com.rentcar.api.domain.booking.MileageOption;
 import com.rentcar.api.dto.addon.BookingAddonResponse;
 import com.rentcar.api.dto.car.CarResponse;
 import com.rentcar.api.dto.customer.CustomerResponse;
@@ -25,6 +26,7 @@ public record BookingResponse(
         BigDecimal totalPrice,
         int includedKmSnapshot,
         BigDecimal unlimitedKmPriceSnapshot,
+        MileageOption mileageOption,
         BookingStatus status,
         BookingSource source,
         List<BookingAddonResponse> addons

@@ -1,6 +1,8 @@
 let availableAddons = [];
 let selectedAddons = new Set(); // Set<Number> — stores numeric addon IDs
 let selectedCar = null;
+// "INCLUDED" | "UNLIMITED" — read from URL so a browser refresh preserves the choice
+const mileageOption = new URLSearchParams(window.location.search).get("mileageOption") || "INCLUDED";
 
 document.addEventListener("DOMContentLoaded", () => {
   loadAddonPage();
@@ -109,7 +111,10 @@ function renderSummary() {
   const baseTotal = Number(selectedCar.totalPrice || 0);
   const rentalDays = selectedCar.priceBreakdown?.rentalDays || 1;
   const addonsTotal = calculateAddonsTotal(rentalDays);
-  const finalTotal = baseTotal + addonsTotal;
+  const unlimitedKmCharge = mileageOption === "UNLIMITED"
+    ? Number(selectedCar.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays
+    : 0;
+  const finalTotal = baseTotal + addonsTotal + unlimitedKmCharge;
 
   setText("summaryCarName", carName || "Car");
   setText("summaryCarSubtitle", `${selectedCar.segment || ""} ${selectedCar.vehicleType || ""}`.trim() || "or similar");
@@ -142,24 +147,35 @@ function renderAddedFeatures(rentalDays) {
   const container = document.getElementById("summaryAddedFeatures");
   if (!container) return;
 
-  if (selectedAddons.size === 0) {
-    container.innerHTML = "No add-ons selected yet.";
-    return;
+  const lines = [];
+
+  if (mileageOption === "UNLIMITED") {
+    const charge = Number(selectedCar.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays;
+    lines.push(`
+      <div class="d-flex justify-between mb-8">
+        <span>✓ Unlimited kilometers</span>
+        <strong>${formatMoney(charge)}</strong>
+      </div>
+    `);
   }
 
-  container.innerHTML = Array.from(selectedAddons).map(addonId => {
+  Array.from(selectedAddons).forEach(addonId => {
     const addon = availableAddons.find(a => a.id === addonId);
-    if (!addon) return "";
+    if (!addon) return;
     const price = addon.pricingType === "DAILY"
       ? Number(addon.price) * rentalDays
       : Number(addon.price);
-    return `
+    lines.push(`
       <div class="d-flex justify-between mb-8">
         <span>✓ ${escapeHtml(addon.name)}</span>
         <strong>${formatMoney(price)}</strong>
       </div>
-    `;
-  }).join("");
+    `);
+  });
+
+  container.innerHTML = lines.length > 0
+    ? lines.join("")
+    : "No add-ons selected yet.";
 }
 
 // ── Booking form modal ──────────────────────────────────────────────────────
@@ -240,7 +256,8 @@ async function submitBooking() {
     dropoffDateTime: params.get("dropoffDateTime"),
     pickupLocation: params.get("pickupLocation"),
     dropoffLocation: params.get("dropoffLocation"),
-    addonIds: Array.from(selectedAddons)
+    addonIds: Array.from(selectedAddons),
+    mileageOption
   };
 
   try {
@@ -318,14 +335,22 @@ function renderAddonsPriceModal() {
 
   const rentalDays = selectedCar.priceBreakdown.rentalDays || 1;
 
-  const addonLines = Array.from(selectedAddons).map(addonId => {
+  // Build addon lines — unlimited km treated as a line item so it shows in price modal
+  const addonLines = [];
+
+  if (mileageOption === "UNLIMITED") {
+    const charge = Number(selectedCar.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays;
+    addonLines.push({ name: "Unlimited kilometers", totalPrice: charge.toFixed(2) });
+  }
+
+  Array.from(selectedAddons).map(addonId => {
     const addon = availableAddons.find(a => a.id === addonId);
     if (!addon) return null;
     const totalPrice = addon.pricingType === "DAILY"
       ? Number(addon.price) * rentalDays
       : Number(addon.price);
     return { name: addon.name, totalPrice: totalPrice.toFixed(2) };
-  }).filter(Boolean);
+  }).filter(Boolean).forEach(line => addonLines.push(line));
 
   document.body.insertAdjacentHTML(
     "beforeend",

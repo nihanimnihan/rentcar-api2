@@ -1,5 +1,6 @@
 package com.rentcar.api.dto.booking;
 
+import com.rentcar.api.domain.booking.MileageOption;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -38,6 +39,9 @@ public record CreateBookingRequest(
         String dropoffLocation,
 
         // nullable — no add-ons selected is valid
-        List<Long> addonIds
+        List<Long> addonIds,
+
+        // nullable — defaults to INCLUDED when not provided
+        MileageOption mileageOption
 ) {
 }

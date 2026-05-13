@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", function () {
   loadCars();
 });
 
+// Module-level maps so selectMileageOption can access car data without DOM hacks
+const carCache = {};       // carId -> CarDetailResponse
+const mileageOptions = {}; // carId -> "INCLUDED" | "UNLIMITED"
+
 async function loadCars() {
   const params = new URLSearchParams(window.location.search);
   const apiUrl = "/api/cars/search?" + params.toString();
@@ -191,6 +195,7 @@ async function showCarDetail(carId) {
     }
 
     const car = await response.json();
+    carCache[carId] = car; // keep for live mileage total updates
 
     document.querySelectorAll(".car-card-selected")
       .forEach(el => el.classList.remove("car-card-selected"));
@@ -273,7 +278,7 @@ function buildDetailHtml(car, carId) {
                 name="mileage-${carId}"
                 value="limited"
                 checked
-                onchange="selectMileageOption(this)">
+                onchange="selectMileageOption(this, ${carId})">
 
               <span class="rentcar-radio"></span>
 
@@ -290,7 +295,7 @@ function buildDetailHtml(car, carId) {
                 type="radio"
                 name="mileage-${carId}"
                 value="unlimited"
-                onchange="selectMileageOption(this)">
+                onchange="selectMileageOption(this, ${carId})">
 
               <span class="rentcar-radio"></span>
 
@@ -306,7 +311,7 @@ function buildDetailHtml(car, carId) {
               <div>
                 <div class="rentcar-detail-price">
                   €${dailyPrice}<span>/ day</span>
-                  <strong>€${totalPrice} total</strong>
+                  <strong id="detail-total-${carId}">€${totalPrice} total</strong>
                 </div>
 
                 <button type="button" class="rentcar-price-details" onclick="openPriceDetailsModal('price-modal-${carId}')">
@@ -328,14 +333,43 @@ function buildDetailHtml(car, carId) {
   `;
 }
 
-function selectMileageOption(input) {
-  const detail = input.closest(".inline-car-detail");
+function selectMileageOption(input, carId) {
+  const isUnlimited = input.value === "unlimited";
+  mileageOptions[carId] = isUnlimited ? "UNLIMITED" : "INCLUDED";
 
+  // Toggle selected card styling
+  const detail = input.closest(".inline-car-detail");
   detail
     .querySelectorAll(".rentcar-choice-card")
     .forEach(card => card.classList.remove("is-selected"));
-
   input.closest(".rentcar-choice-card").classList.add("is-selected");
+
+  const car = carCache[carId];
+  if (!car) return;
+
+  const baseTotal = Number(car.totalPrice || 0);
+  const rentalDays = car.priceBreakdown?.rentalDays || 1;
+  const unlimitedKmDailyPrice = Number(car.priceBreakdown?.unlimitedKmDailyPrice || 0);
+  const unlimitedCharge = isUnlimited ? unlimitedKmDailyPrice * rentalDays : 0;
+
+  // Update live total in the detail panel
+  const totalEl = document.getElementById(`detail-total-${carId}`);
+  if (totalEl) totalEl.textContent = `€${(baseTotal + unlimitedCharge).toFixed(2)} total`;
+
+  // Rebuild the "Price details" modal so its total stays in sync with the live display.
+  // The modal is rendered once at build time — without this it would show the base price
+  // even after the user selects Unlimited kilometers.
+  const existingModal = detail.querySelector(`#price-modal-${carId}`);
+  if (existingModal) {
+    const addonLines = isUnlimited
+      ? [{ name: "Unlimited kilometers", totalPrice: (unlimitedKmDailyPrice * rentalDays).toFixed(2) }]
+      : [];
+    existingModal.insertAdjacentHTML(
+      "afterend",
+      buildPriceDetailsModalHtml(`price-modal-${carId}`, car.priceBreakdown, addonLines)
+    );
+    existingModal.remove();
+  }
 }
 
 window.selectMileageOption = selectMileageOption;
@@ -445,6 +479,7 @@ window.closePriceDetails = closePriceDetails;
 function goToAddons(carId) {
   const params = new URLSearchParams(window.location.search);
   params.set("carId", carId);
+  params.set("mileageOption", mileageOptions[carId] || "INCLUDED");
 
   window.location.href = `/addons.html?${params.toString()}`;
 }

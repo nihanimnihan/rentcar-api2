@@ -110,6 +110,13 @@ public class Booking {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unlimitedKmPriceSnapshot;
 
+    // Selected mileage option — INCLUDED (default) or UNLIMITED.
+    // When UNLIMITED the unlimited-km surcharge is already baked into totalPrice.
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MileageOption mileageOption = MileageOption.INCLUDED;
+
     @Builder.Default
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<BookingAddon> bookingAddons = new ArrayList<>();

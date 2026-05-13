@@ -220,6 +220,57 @@ class BookingPricingIntegrationTest {
         assertThat(totalPrice).isEqualTo(carRentalTotal + addonTotal, org.assertj.core.api.Assertions.within(0.02));
     }
 
+    // ── Mileage option: UNLIMITED ────────────────────────────────────────────────
+
+    @Test
+    void unlimitedMileage_isPersistedInBookingResponse() throws Exception {
+        String body = bookingBodyWithMileage(1, daysFromNow(200), daysFromNow(201), "UNLIMITED");
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mileageOption").value("UNLIMITED"));
+    }
+
+    @Test
+    void unlimitedMileage_totalIsHigherThanIncluded() throws Exception {
+        // Same car, same duration (1 day) — different date windows to avoid overlap
+        String includedBody = bookingBodyWithMileage(1, daysFromNow(210), daysFromNow(211), "INCLUDED");
+        String unlimitedBody = bookingBodyWithMileage(1, daysFromNow(212), daysFromNow(213), "UNLIMITED");
+
+        MvcResult includedResult = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(includedBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        MvcResult unlimitedResult = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(unlimitedBody))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        double includedTotal = ((Number) com.jayway.jsonpath.JsonPath
+                .read(includedResult.getResponse().getContentAsString(), "$.totalPrice"))
+                .doubleValue();
+        double unlimitedTotal = ((Number) com.jayway.jsonpath.JsonPath
+                .read(unlimitedResult.getResponse().getContentAsString(), "$.totalPrice"))
+                .doubleValue();
+
+        assertThat(unlimitedTotal).isGreaterThan(includedTotal);
+    }
+
+    @Test
+    void noMileageOption_defaultsToIncluded() throws Exception {
+        // body without mileageOption field at all
+        String body = bookingBody(1, daysFromNow(220), daysFromNow(221));
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mileageOption").value("INCLUDED"));
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────────
 
     private String daysFromNow(int days) {
@@ -255,5 +306,21 @@ class BookingPricingIntegrationTest {
                   "addonIds": [%d]
                 }
                 """.formatted(carId, pickup, dropoff, addonId);
+    }
+
+    private String bookingBodyWithMileage(long carId, String pickup, String dropoff, String mileageOption) {
+        return """
+                {
+                  "carId": %d,
+                  "customerName": "Test User",
+                  "customerEmail": "mileage-test@example.com",
+                  "customerPhone": "+34600000020",
+                  "pickupDateTime": "%s",
+                  "dropoffDateTime": "%s",
+                  "pickupLocation": "City Centre",
+                  "dropoffLocation": "City Centre",
+                  "mileageOption": "%s"
+                }
+                """.formatted(carId, pickup, dropoff, mileageOption);
     }
 }
