@@ -1,167 +1,115 @@
 document.addEventListener("DOMContentLoaded", function () {
   const DEFAULT_LOCATION = "BCN Airport T1";
 
-  const pickupInput = document.getElementById("pickupLocation");
-  const dropoffInput = document.getElementById("dropoffLocation");
-
+  const pickupInput    = document.getElementById("pickupLocation");
+  const dropoffInput   = document.getElementById("dropoffLocation");
   const pickupDateText = document.getElementById("pickupDateText");
   const dropoffDateText = document.getElementById("dropoffDateText");
-
-  const pickupHourInput = document.getElementById("pickupHour");
+  const pickupHourInput  = document.getElementById("pickupHour");
   const dropoffHourInput = document.getElementById("dropoffHour");
 
-  if (pickupInput && !pickupInput.value.trim()) pickupInput.value = DEFAULT_LOCATION;
+  if (pickupInput  && !pickupInput.value.trim())  pickupInput.value  = DEFAULT_LOCATION;
   if (dropoffInput && !dropoffInput.value.trim()) dropoffInput.value = DEFAULT_LOCATION;
 
-  function formatIso(date) {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${year}-${month}-${day}`;
+  function isoFromDate(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
   }
 
-  function formatDisplay(date) {
-    return date.toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "numeric",
-      month: "short"
-    });
+  function displayFromIso(isoDate) {
+    const date = new Date(isoDate + 'T00:00:00');
+    if (isNaN(date.getTime())) return isoDate;
+    return date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
   }
 
-  // Default to tomorrow / day-after-tomorrow so users start with bookable dates.
-  // "Today" often fails the backend 1-hour-ahead validation and causes confusion.
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const dayAfterTomorrow = new Date(today);
-  dayAfterTomorrow.setDate(today.getDate() + 2);
-
-  const todayIso = formatIso(today);
-
-  let pickupDate = formatIso(tomorrow);
-  let dropoffDate = formatIso(dayAfterTomorrow);
+  // Defaults: tomorrow (pickup) and day-after-tomorrow (dropoff).
+  // car-list.js will overwrite these with URL params on cars.html.
+  const today          = new Date();
+  const tomorrow       = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const dayAfterTomorrow = new Date(today); dayAfterTomorrow.setDate(today.getDate() + 2);
 
   if (pickupDateText) {
-    pickupDateText.innerText = formatDisplay(tomorrow);
-    pickupDateText.setAttribute("data-date", pickupDate);
+    pickupDateText.innerText = displayFromIso(isoFromDate(tomorrow));
+    pickupDateText.setAttribute('data-date', isoFromDate(tomorrow));
   }
-
   if (dropoffDateText) {
-    dropoffDateText.innerText = formatDisplay(dayAfterTomorrow);
-    dropoffDateText.setAttribute("data-date", dropoffDate);
+    dropoffDateText.innerText = displayFromIso(isoFromDate(dayAfterTomorrow));
+    dropoffDateText.setAttribute('data-date', isoFromDate(dayAfterTomorrow));
   }
 
-  // Disable past calendar cells before attaching click listeners so they are
-  // excluded by the :not(.-dark) selector inside initSingleDatePicker.
-  disablePastCalendarCells(todayIso);
+  // Identify pickup / dropoff calendar wrappers by DOM order.
+  // index.html and cars.html both have pickup first, dropoff second.
+  const calendarEls       = document.querySelectorAll('.js-calendar-el');
+  const pickupCalendarEl  = calendarEls[0] || null;
+  const dropoffCalendarEl = calendarEls[1] || null;
 
-  setTimeout(() => {
-    initSingleDatePicker("pickupDateText", (isoDate) => {
-      pickupDate = isoDate;
-    });
+  // ── Pickup selected ──────────────────────────────────────────────────────
+  if (pickupCalendarEl) {
+    pickupCalendarEl.addEventListener('rentcar:date-selected', function (e) {
+      const newPickupIso     = e.detail.isoDate;
+      const currentDropoffIso = dropoffDateText ? dropoffDateText.getAttribute('data-date') : null;
 
-    initSingleDatePicker("dropoffDateText", (isoDate) => {
-      dropoffDate = isoDate;
-    });
-  }, 300);
+      // If new pickup is on/after current dropoff, advance dropoff by one day.
+      if (currentDropoffIso && currentDropoffIso <= newPickupIso) {
+        const d = new Date(newPickupIso + 'T00:00:00');
+        d.setDate(d.getDate() + 1);
+        const newDropoffIso = isoFromDate(d);
 
-  function disablePastCalendarCells(minIso) {
-    document.querySelectorAll(".js-calendar-el .elCalendar__sell:not(.-dark)").forEach(cell => {
-      try {
-        const iso = buildIsoDate(cell);
-        if (iso < minIso) {
-          cell.classList.add("-dark");
-          cell.style.pointerEvents = "none";
-          cell.style.opacity = "0.35";
+        if (dropoffDateText) {
+          dropoffDateText.innerText = displayFromIso(newDropoffIso);
+          dropoffDateText.setAttribute('data-date', newDropoffIso);
         }
-      } catch (_) {
-        // ignore cells that can't be parsed
+
+        // Visually mark the new dropoff date in the dropoff calendar
+        if (dropoffCalendarEl && window.RentCarDatePicker) {
+          window.RentCarDatePicker.markDateInCalendar(dropoffCalendarEl, newDropoffIso);
+        }
       }
     });
   }
 
-  function initSingleDatePicker(textElementId, onSelect) {
-    const textElement = document.getElementById(textElementId);
-    if (!textElement) return;
+  // ── Dropoff selected ─────────────────────────────────────────────────────
+  if (dropoffCalendarEl) {
+    dropoffCalendarEl.addEventListener('rentcar:date-selected', function (e) {
+      const newDropoffIso    = e.detail.isoDate;
+      const currentPickupIso = pickupDateText ? pickupDateText.getAttribute('data-date') : null;
 
-    const calendarWrapper = textElement.closest(".js-calendar-el");
-    if (!calendarWrapper) return;
+      // Reject dropoff that is not after pickup — revert to the previous value.
+      if (currentPickupIso && newDropoffIso <= currentPickupIso) {
+        const prevDropoffIso = dropoffDateText ? dropoffDateText.getAttribute('data-date') : null;
 
-    const cells = calendarWrapper.querySelectorAll(".elCalendar__sell:not(.-dark)");
+        // Revert display text (calendarInteraction2 already updated it)
+        if (prevDropoffIso && dropoffDateText) {
+          dropoffDateText.innerText = displayFromIso(prevDropoffIso);
+          dropoffDateText.setAttribute('data-date', prevDropoffIso);
+        }
 
-    cells.forEach((cell) => {
-      cell.addEventListener("click", function (event) {
-        event.stopPropagation();
-
-        const isoDate = buildIsoDate(cell);
-
-        // Safety net: reject past dates even if the DOM check above was bypassed
-        if (isoDate < todayIso) return;
-
-        calendarWrapper.querySelectorAll(".-is-active, .-is-in-path").forEach((el) => {
-          el.classList.remove("-is-active", "-is-in-path");
-        });
-
-        cell.classList.add("-is-active");
-
-        textElement.innerText = buildDisplayDate(cell);
-        textElement.setAttribute("data-date", isoDate);
-
-        onSelect(isoDate);
-
-        const popup = calendarWrapper.querySelector(".searchMenu-date__field");
-        popup?.classList.remove("-is-active");
-        calendarWrapper.classList.remove("-is-dd-wrap-active");
-      });
+        // Re-mark the old date in the calendar
+        if (prevDropoffIso && dropoffCalendarEl && window.RentCarDatePicker) {
+          window.RentCarDatePicker.markDateInCalendar(dropoffCalendarEl, prevDropoffIso);
+        }
+      }
     });
   }
 
-  function buildIsoDate(cell) {
-    const monthMap = {
-      jan: "01", feb: "02", mar: "03", apr: "04",
-      may: "05", jun: "06", jul: "07", aug: "08",
-      sep: "09", oct: "10", nov: "11", dec: "12"
-    };
-
-    const day = cell.querySelector(".js-date").innerText.trim().padStart(2, "0");
-    const month = monthMap[cell.getAttribute("data-month").toLowerCase()];
-
-    const monthNumber = Number(month);
-    const currentMonth = new Date().getMonth() + 1;
-    let year = new Date().getFullYear();
-
-    if (monthNumber < currentMonth) {
-      year += 1;
-    }
-
-    return `${year}-${month}-${day}`;
-  }
-
-  function buildDisplayDate(cell) {
-    const week = cell.getAttribute("data-week");
-    const day = cell.querySelector(".js-date").innerText.trim();
-    const month = cell.getAttribute("data-month");
-    return `${week} ${day} ${month}`;
-  }
-
+  // ── Search button ─────────────────────────────────────────────────────────
   const searchButton = document.getElementById("searchCarsButton");
   if (!searchButton) return;
 
   searchButton.addEventListener("click", function () {
-    const pickupLocation = pickupInput?.value.trim() || DEFAULT_LOCATION;
+    const pickupLocation  = pickupInput?.value.trim()  || DEFAULT_LOCATION;
     const dropoffLocation = dropoffInput?.value.trim() || DEFAULT_LOCATION;
-
-    const selectedPickupDate = pickupDateText?.getAttribute("data-date") || pickupDate;
-    const selectedDropoffDate = dropoffDateText?.getAttribute("data-date") || dropoffDate;
-
-    const pickupHour = pickupHourInput?.value || "10:00";
+    const selectedPickupDate  = pickupDateText?.getAttribute('data-date')  || isoFromDate(tomorrow);
+    const selectedDropoffDate = dropoffDateText?.getAttribute('data-date') || isoFromDate(dayAfterTomorrow);
+    const pickupHour  = pickupHourInput?.value  || "10:00";
     const dropoffHour = dropoffHourInput?.value || "10:00";
 
     const params = new URLSearchParams({
       pickupLocation,
       dropoffLocation,
-      pickupDateTime: `${selectedPickupDate}T${pickupHour}`,
-      dropoffDateTime: `${selectedDropoffDate}T${dropoffHour}`
+      pickupDateTime:  selectedPickupDate  + 'T' + pickupHour,
+      dropoffDateTime: selectedDropoffDate + 'T' + dropoffHour
     });
 
     const newUrl = "/cars.html?" + params.toString();
@@ -169,9 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (isCarsPage) {
       window.history.pushState({}, "", newUrl);
       fillHeaderBookingSummary();
-      if (typeof loadCars === "function") {
-        loadCars();
-      }
+      if (typeof loadCars === "function") loadCars();
       document.getElementById("carsSearchDrawer")?.classList.remove("is-active");
     } else {
       window.location.href = newUrl;

@@ -1,5 +1,6 @@
 package com.rentcar.api.exception;
 
+import com.rentcar.api.exception.InvalidSearchDateException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -103,6 +104,17 @@ public class GlobalExceptionHandler {
                         "error", "Conflict",
                         "message", ex.getMessage(),
                         "bookingId", ex.getCustomerId()
+                ));
+    }
+
+    @ExceptionHandler(InvalidSearchDateException.class)
+    public ResponseEntity<?> handleInvalidSearchDateException(InvalidSearchDateException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "error", "Invalid search dates",
+                        "message", ex.getMessage()
                 ));
     }
 

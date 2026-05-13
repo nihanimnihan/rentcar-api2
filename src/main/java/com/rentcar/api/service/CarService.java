@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.rentcar.api.exception.InvalidSearchDateException;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -58,6 +61,15 @@ public class CarService {
     }
 
     public List<Car> searchCars(CarSearchRequest request) {
+        if (request.pickupDateTime() != null) {
+            if (request.pickupDateTime().isBefore(LocalDateTime.now())) {
+                throw new InvalidSearchDateException("Pickup date must not be in the past");
+            }
+            if (request.dropoffDateTime() != null
+                    && !request.dropoffDateTime().isAfter(request.pickupDateTime())) {
+                throw new InvalidSearchDateException("Return date must be after pickup date");
+            }
+        }
         if (request.pickupDateTime() != null && request.dropoffDateTime() != null) {
             return carRepository.searchAvailableCars(
                     request.pickupDateTime(),

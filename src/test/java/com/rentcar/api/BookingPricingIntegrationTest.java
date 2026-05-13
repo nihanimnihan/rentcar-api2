@@ -271,6 +271,41 @@ class BookingPricingIntegrationTest {
                 .andExpect(jsonPath("$.mileageOption").value("INCLUDED"));
     }
 
+    // ── Car search date validation ───────────────────────────────────────────────
+
+    @Test
+    void searchCars_withPastPickupDate_returns400() throws Exception {
+        String past = LocalDateTime.now().minusDays(1).format(FMT);
+        String future = LocalDateTime.now().plusDays(2).format(FMT);
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/cars/search")
+                        .param("pickupDateTime", past)
+                        .param("dropoffDateTime", future))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid search dates"));
+    }
+
+    @Test
+    void searchCars_withDropoffBeforePickup_returns400() throws Exception {
+        String pickup  = daysFromNow(5);
+        String dropoff = daysFromNow(3);
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/cars/search")
+                        .param("pickupDateTime", pickup)
+                        .param("dropoffDateTime", dropoff))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid search dates"));
+    }
+
+    @Test
+    void searchCars_withValidDates_returns200() throws Exception {
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/cars/search")
+                        .param("pickupDateTime", daysFromNow(10))
+                        .param("dropoffDateTime", daysFromNow(12)))
+                .andExpect(status().isOk());
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────────
 
     private String daysFromNow(int days) {

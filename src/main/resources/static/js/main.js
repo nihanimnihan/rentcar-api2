@@ -1777,93 +1777,72 @@ function calendarInteraction() {
 
 function calendarInteraction2() {
   const target = document.querySelectorAll('.js-calendar-el')
-  if (!target) return
+  if (!target.length) return
 
-  target.forEach(elTarget => {
+  target.forEach(function(elTarget) {
     const gridCells = elTarget.querySelectorAll('.elCalendar__body > *')
+    const firstDate  = elTarget.querySelector('.js-first-date')
 
-    const firstDate = elTarget.querySelector('.js-first-date')
-    const lastDate = elTarget.querySelector('.js-last-date')
+    gridCells.forEach(function(el) {
+      el.addEventListener('click', function() {
+        // Skip cells already marked as disabled by the vendor or by date-picker.js
+        if (el.classList.contains('-dark')) return
 
-    let completeState = false
-    let firstItem = false
-    let lastItem = false
+        // Clear previous selection within this calendar only
+        elTarget.querySelectorAll('.-is-active, .-is-in-path').forEach(function(item) {
+          item.classList.remove('-is-active', '-is-in-path')
+        })
 
-    gridCells.forEach((el, i) => {
-      el.addEventListener('click', () => {
         el.classList.add('-is-active')
 
-        if (firstItem && getIndex(firstItem) > getIndex(el)) {
-          lastItem = firstItem
-          firstItem = el
+        const isoDate = buildIsoDate(el)
+
+        // Update the display text and data-date on the calendar trigger element
+        if (firstDate) {
+          firstDate.innerHTML = el.getAttribute('data-week') + ' ' +
+            el.querySelector('.js-date').innerHTML.trim() + ' ' +
+            el.getAttribute('data-month')
+          firstDate.setAttribute('data-date', isoDate)
         }
 
-        if (firstItem && !lastItem) {
-          lastItem = el
-        }
-        
-        if (!firstItem) {
-          firstItem = el
-        }
-        
-        if (completeState) {
-          firstItem = false
-          lastItem = false
-          
-          const array = elTarget.querySelectorAll('.-is-active')
-          array.forEach(el2 => {
-            el2.classList.remove('-is-active')
-          })
-          
-          const array2 = elTarget.querySelectorAll('.-is-in-path')
-          array2.forEach(el2 => {
-            el2.classList.remove('-is-in-path')
-          })
+        // Close the date picker popup
+        var popup = elTarget.querySelector('.searchMenu-date__field')
+        if (popup) popup.classList.remove('-is-active')
+        elTarget.classList.remove('-is-dd-wrap-active')
 
-          completeState = false
-
-        } else if (firstItem && lastItem) {
-          const iterationCount = Math.abs(getIndex(firstItem) - getIndex(lastItem))
-    
-          for (let l = 1; l < iterationCount; l++) {
-            const item = elTarget.querySelector(`[data-index="${ getIndex(firstItem) + l }"]`)
-            item.classList.add('-is-in-path')
-          }
-
-          firstDate.innerHTML = `${firstItem.getAttribute('data-week')} ${firstItem.querySelector('.js-date').innerHTML} ${firstItem.getAttribute('data-month')}`
-          lastDate.innerHTML = `${lastItem.getAttribute('data-week')} ${lastItem.querySelector('.js-date').innerHTML} ${lastItem.getAttribute('data-month')}`
-          firstDate.setAttribute("data-date", buildIsoDate(firstItem))
-          lastDate.setAttribute("data-date", buildIsoDate(lastItem))
-          completeState = true
-        }
+        // Notify app-level code (main-search.js) that a date was picked.
+        // bubbles:true so listeners on the wrapper element receive it.
+        elTarget.dispatchEvent(new CustomEvent('rentcar:date-selected', {
+          detail: { isoDate: isoDate },
+          bubbles: true
+        }))
       })
     })
   })
-function buildIsoDate(element) {
-  const monthMap = {
-    jan: "01",
-    feb: "02",
-    mar: "03",
-    apr: "04",
-    may: "05",
-    jun: "06",
-    jul: "07",
-    aug: "08",
-    sep: "09",
-    oct: "10",
-    nov: "11",
-    dec: "12"
-  };
 
-  const day = element.querySelector(".js-date").innerHTML.trim().padStart(2, "0");
-  const month = monthMap[element.getAttribute("data-month").toLowerCase()];
-  const year = new Date().getFullYear();
+  // Signal that all calendar click handlers are registered and cells exist.
+  // date-picker.js listens for this event to run post-init work.
+  window.dispatchEvent(new CustomEvent('rentcar:calendar-ready'))
 
-  return `${year}-${month}-${day}`;
-}
-  function getIndex(element) {
-    return parseInt(element.getAttribute('data-index'))
+  // Resolve year correctly: if month number < current month, it's next year.
+  function buildIsoDate(element) {
+    var monthMap = {
+      jan: '01', feb: '02', mar: '03', apr: '04',
+      may: '05', jun: '06', jul: '07', aug: '08',
+      sep: '09', oct: '10', nov: '11', dec: '12'
+    }
+    var day   = element.querySelector('.js-date').innerHTML.trim().padStart(2, '0')
+    var key   = element.getAttribute('data-month').toLowerCase()
+    var month = monthMap[key]
+    var monthNumber  = parseInt(month, 10)
+    var currentMonth = new Date().getMonth() + 1
+    var year  = new Date().getFullYear()
+    if (monthNumber < currentMonth) year += 1
+    return year + '-' + month + '-' + day
   }
+
+  // Expose so date-picker.js can reuse it for initial-state marking
+  window.buildCalendarIsoDate = buildIsoDate
 }
 
 
