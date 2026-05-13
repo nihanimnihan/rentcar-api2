@@ -13,11 +13,13 @@ import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.PaymentRepository;
 import com.rentcar.api.util.AppClock;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -28,7 +30,9 @@ public class PaymentService {
 
     @Transactional
     public void createPendingPayment(Booking booking) {
-        paymentRepository.save(buildPendingPayment(booking));
+        Payment saved = paymentRepository.save(buildPendingPayment(booking));
+        log.debug("Pending payment created: paymentId={} bookingId={} amount={}",
+                saved.getId(), booking.getId(), booking.getTotalPrice());
     }
 
     public List<Payment> getPayments() {
@@ -43,14 +47,18 @@ public class PaymentService {
             // Money was collected — issue a full refund before cancelling.
             PaymentResult result = paymentProvider.refund(payment);
             if (!result.successful()) {
+                log.warn("Refund failed for paymentId={} bookingId={} — manual intervention required",
+                        payment.getId(), booking.getId());
                 // Throw so the transaction rolls back: booking stays un-cancelled
                 // until the refund issue is resolved manually.
                 throw new RefundFailedException(payment.getId());
             }
             payment.setStatus(PaymentStatus.REFUNDED);
+            log.info("Payment refunded: paymentId={} bookingId={}", payment.getId(), booking.getId());
         } else {
             // PENDING or FAILED — no money was collected, just void the record.
             payment.setStatus(PaymentStatus.CANCELLED);
+            log.info("Payment voided (no charge): paymentId={} bookingId={}", payment.getId(), booking.getId());
         }
 
         paymentRepository.save(payment);
@@ -62,6 +70,7 @@ public class PaymentService {
 
         // Guard: if a previous attempt already succeeded, do not charge again.
         if (payment.getStatus() == PaymentStatus.PAID) {
+            log.warn("Double-payment attempt blocked: bookingId={} paymentId={}", booking.getId(), payment.getId());
             throw new InvalidBookingStateException(
                     "Booking " + booking.getId() + " has already been paid (payment " + payment.getId() + ")");
         }
@@ -73,8 +82,11 @@ public class PaymentService {
         if (result.successful()) {
             payment.setStatus(PaymentStatus.PAID);
             payment.setPaidAt(appClock.nowUtc());
+            log.info("Payment succeeded: paymentId={} bookingId={} ref={}",
+                    payment.getId(), booking.getId(), result.providerReference());
         } else {
             payment.setStatus(PaymentStatus.FAILED);
+            log.warn("Payment failed: paymentId={} bookingId={}", payment.getId(), booking.getId());
         }
 
         return paymentRepository.save(payment);

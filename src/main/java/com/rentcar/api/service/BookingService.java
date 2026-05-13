@@ -22,6 +22,7 @@ import com.rentcar.api.repository.AddonRepository;
 import com.rentcar.api.repository.BookingAddonRepository;
 import com.rentcar.api.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ import java.math.RoundingMode;
 import com.rentcar.api.util.BusinessTimezone;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -61,6 +63,8 @@ public class BookingService {
                 );
 
         if (overlaps) {
+            log.warn("Car {} is not available for pickup={} dropoff={} — overlapping booking exists",
+                    request.carId(), request.pickupDateTime(), request.dropoffDateTime());
             throw new CarNotAvailableException(request.carId());
         }
 
@@ -129,6 +133,9 @@ public class BookingService {
         }
 
         paymentService.createPendingPayment(savedBooking);
+        log.info("Booking created: id={} carId={} customerId={} rentalDays={} mileage={} total={}",
+                savedBooking.getId(), car.getId(), customer.getId(),
+                price.rentalDays(), mileageOption, savedBooking.getTotalPrice());
         return savedBooking;
     }
 
@@ -149,6 +156,7 @@ public class BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         Booking savedBooking = bookingRepository.save(booking);
         paymentService.cancelPaymentForBooking(savedBooking);
+        log.info("Booking cancelled: id={}", id);
         return savedBooking;
     }
 
@@ -176,7 +184,10 @@ public class BookingService {
         } else {
             booking.setStatus(BookingStatus.FAILED);
         }
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        log.info("Payment completed: bookingId={} bookingStatus={} paymentStatus={}",
+                bookingId, saved.getStatus(), payment.getStatus());
+        return saved;
     }
 
     private void validateDates(CreateBookingRequest request) {

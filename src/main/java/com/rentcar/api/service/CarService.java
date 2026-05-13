@@ -3,6 +3,7 @@ package com.rentcar.api.service;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.dto.car.CarSearchRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import com.rentcar.api.exception.CarNotFoundException;
 import com.rentcar.api.repository.CarRepository;
@@ -15,6 +16,7 @@ import com.rentcar.api.exception.InvalidSearchDateException;
 import com.rentcar.api.util.BusinessTimezone;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CarService {
@@ -72,6 +74,9 @@ public class CarService {
     }
 
     public List<Car> searchCars(CarSearchRequest request) {
+        log.debug("Car search: pickup={} dropoff={} vehicleType={} segment={} transmission={} fuelType={}",
+                request.pickupDateTime(), request.dropoffDateTime(),
+                request.vehicleType(), request.segment(), request.transmission(), request.fuelType());
         if (request.pickupDateTime() != null) {
             if (request.pickupDateTime().isBefore(businessTimezone.nowBusinessLocal())) {
                 throw new InvalidSearchDateException("Pickup date must not be in the past");
@@ -82,7 +87,7 @@ public class CarService {
             }
         }
         if (request.pickupDateTime() != null && request.dropoffDateTime() != null) {
-            return carRepository.searchAvailableCars(
+            List<Car> results = carRepository.searchAvailableCars(
                     request.pickupDateTime(),
                     request.dropoffDateTime(),
                     request.vehicleType(),
@@ -93,8 +98,10 @@ public class CarService {
                     request.minBags(),
                     request.minDriverAge()
             );
+            log.debug("Car search returned {} available cars", results.size());
+            return results;
         }
-        return carRepository.searchCarsWithoutDateFilter(
+        List<Car> results = carRepository.searchCarsWithoutDateFilter(
                 request.vehicleType(),
                 request.segment(),
                 request.transmission(),
@@ -103,5 +110,7 @@ public class CarService {
                 request.minBags(),
                 request.minDriverAge()
         );
+        log.debug("Car search (no dates) returned {} cars", results.size());
+        return results;
     }
 }
