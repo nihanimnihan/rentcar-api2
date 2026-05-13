@@ -1,161 +1,121 @@
 package com.rentcar.api.exception;
 
-import com.rentcar.api.exception.InvalidSearchDateException;
 import com.rentcar.api.util.AppClock;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
     private final AppClock appClock;
 
-    @ExceptionHandler(CarNotAvailableException.class)
-    public ResponseEntity<?> handleCarNotAvailableException(CarNotAvailableException ex) {
+    // ── 404 Not Found ──────────────────────────────────────────────────────────
 
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Car not available error",
-                        "message", ex.getMessage()
-                ));
-    }
-
-    @ExceptionHandler(InvalidBookingDateException.class)
-    public ResponseEntity<?> handleInvalidBookingDateException(InvalidBookingDateException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Invalid booking date error",
-                        "message", ex.getMessage()
-                ));
+    @ExceptionHandler(CarNotFoundException.class)
+    public ResponseEntity<?> handleCarNotFoundException(CarNotFoundException ex) {
+        return notFound(ex.getMessage());
     }
 
     @ExceptionHandler(BookingNotFoundException.class)
     public ResponseEntity<?> handleBookingNotFoundException(BookingNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Not found",
-                        "message", ex.getMessage()
-                ));
+        return notFound(ex.getMessage());
     }
 
     @ExceptionHandler(AddonNotFoundException.class)
     public ResponseEntity<?> handleAddonNotFoundException(AddonNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Not found",
-                        "message", ex.getMessage()
-                ));
-    }
-
-    @ExceptionHandler(CarNotFoundException.class)
-    public ResponseEntity<?> handleCarNotFoundException(CarNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Not found",
-                        "message", ex.getMessage(),
-                        "carId", ex.getCarId()
-                ));
-    }
-
-    @ExceptionHandler(RefundFailedException.class)
-    public ResponseEntity<?> handleRefundFailedException(RefundFailedException ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Refund failed",
-                        "message", ex.getMessage(),
-                        "paymentId", ex.getPaymentId()
-                ));
-    }
-
-    @ExceptionHandler(BookingCannotBeCancelledException.class)
-    public ResponseEntity<?> handleBookingCannotBeCancelledException(BookingCannotBeCancelledException ex) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Conflict",
-                        "message", ex.getMessage(),
-                        "bookingId", ex.getBookingId()
-                ));
+        return notFound(ex.getMessage());
     }
 
     @ExceptionHandler(CustomerNotFoundException.class)
-    public ResponseEntity<?> handleCustomerNotFoundForBookingException(CustomerNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Conflict",
-                        "message", ex.getMessage(),
-                        "bookingId", ex.getCustomerId()
-                ));
+    public ResponseEntity<?> handleCustomerNotFoundException(CustomerNotFoundException ex) {
+        return notFound(ex.getMessage());
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<?> handlePaymentNotFoundException(PaymentNotFoundException ex) {
+        return notFound(ex.getMessage());
+    }
+
+    // ── 400 Bad Request ────────────────────────────────────────────────────────
+
+    @ExceptionHandler(InvalidBookingDateException.class)
+    public ResponseEntity<?> handleInvalidBookingDateException(InvalidBookingDateException ex) {
+        return error(HttpStatus.BAD_REQUEST, "Invalid booking dates", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidSearchDateException.class)
     public ResponseEntity<?> handleInvalidSearchDateException(InvalidSearchDateException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Invalid search dates",
-                        "message", ex.getMessage()
-                ));
-    }
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<?> handleBadRequestException(Exception ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Bad Request",
-                        "message", ex.getMessage()
-                ));
+        return error(HttpStatus.BAD_REQUEST, "Invalid search dates", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Validation error",
-                        "message", ex.getBindingResult().getFieldError() != null
-                                ? ex.getBindingResult().getFieldError().getDefaultMessage()
-                                : "Validation failed"
-                ));
+        String message = ex.getBindingResult().getFieldError() != null
+                ? ex.getBindingResult().getFieldError().getDefaultMessage()
+                : "Validation failed";
+        return error(HttpStatus.BAD_REQUEST, "Validation error", message);
     }
 
+    // ── 409 Conflict ──────────────────────────────────────────────────────────
+
+    @ExceptionHandler(CarNotAvailableException.class)
+    public ResponseEntity<?> handleCarNotAvailableException(CarNotAvailableException ex) {
+        return error(HttpStatus.CONFLICT, "Car not available", ex.getMessage());
+    }
+
+    @ExceptionHandler(BookingCannotBeCancelledException.class)
+    public ResponseEntity<?> handleBookingCannotBeCancelledException(BookingCannotBeCancelledException ex) {
+        return error(HttpStatus.CONFLICT, "Booking cannot be cancelled", ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidBookingStateException.class)
+    public ResponseEntity<?> handleInvalidBookingStateException(InvalidBookingStateException ex) {
+        return error(HttpStatus.CONFLICT, "Invalid booking state", ex.getMessage());
+    }
+
+    // ── 500 Internal Server Error ─────────────────────────────────────────────
+
+    @ExceptionHandler(RefundFailedException.class)
+    public ResponseEntity<?> handleRefundFailedException(RefundFailedException ex) {
+        // Log with full detail — operations team must investigate.
+        log.error("Refund failed for paymentId={} — manual intervention required", ex.getPaymentId(), ex);
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Refund failed",
+                "The refund could not be processed. Our team has been notified.");
+    }
+
+    /**
+     * Catch-all for any unhandled exception.
+     * IMPORTANT: the internal exception message is never forwarded to the client —
+     * it may contain Hibernate details, stack information, or sensitive DB data.
+     * Log at ERROR so it is visible in production logs for investigation.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex) {
+        log.error("Unhandled exception: {}", ex.getMessage(), ex);
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error",
+                "An unexpected error occurred. Please try again later.");
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                        "timestamp", appClock.nowUtc(),
-                        "error", "Internal server error",
-                        "message", ex.getMessage() != null ? ex.getMessage() : "Unexpected error occurred"
-                ));
+    // ── helpers ───────────────────────────────────────────────────────────────
+
+    private ResponseEntity<?> notFound(String message) {
+        return error(HttpStatus.NOT_FOUND, "Not found", message);
+    }
+
+    private ResponseEntity<?> error(HttpStatus status, String error, String message) {
+        return ResponseEntity.status(status).body(Map.of(
+                "timestamp", appClock.nowUtc(),
+                "error", error,
+                "message", message
+        ));
     }
 }
