@@ -25,9 +25,10 @@ function buildPriceDetailsModalHtml(modalId, price, addonLines = []) {
 
   addonLines.forEach(addon => {
     if (Number(addon.totalPrice) > 0) {
+      const safeName = typeof escapeHtml === "function" ? escapeHtml(String(addon.name)) : String(addon.name);
       feeRows.push(`
         <div class="rentcar-price-row-line">
-          <span>${addon.name}</span>
+          <span>${safeName}</span>
           <strong>€${addon.totalPrice}</strong>
         </div>
       `);
