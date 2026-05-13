@@ -1644,7 +1644,7 @@ const Calendar = (function() {
                     <div class="elCalendar__body">
                       ${month.firstDates.map(el => `
                         <div
-                          data-index="${globalIndexUp()}" data-week="${el.weekDay}" data-month="${month.monthName.slice(0, 3)}"
+                          data-index="${globalIndexUp()}" data-week="${el.weekDay}" data-month="${month.monthName.slice(0, 3)}" data-year="${startMonth + i > 12 ? startYear + 1 : startYear}"
                           class="elCalendar__sell -dark"
                         >
                           <span class="js-date">
@@ -1655,7 +1655,7 @@ const Calendar = (function() {
         
                       ${month.initialMonthArray.map(el => `
                         <div
-                          data-index="${globalIndexUp()}" data-week="${el.weekDay}" data-month="${month.monthName.slice(0, 3)}"
+                          data-index="${globalIndexUp()}" data-week="${el.weekDay}" data-month="${month.monthName.slice(0, 3)}" data-year="${startMonth + i > 12 ? startYear + 1 : startYear}"
                           class="elCalendar__sell"
                         >
                           <span class="js-date">
@@ -1824,7 +1824,7 @@ function calendarInteraction2() {
   // date-picker.js listens for this event to run post-init work.
   window.dispatchEvent(new CustomEvent('rentcar:calendar-ready'))
 
-  // Resolve year correctly: if month number < current month, it's next year.
+  // Year is read from data-year (set at render time) — no inference needed.
   function buildIsoDate(element) {
     var monthMap = {
       jan: '01', feb: '02', mar: '03', apr: '04',
@@ -1834,10 +1834,7 @@ function calendarInteraction2() {
     var day   = element.querySelector('.js-date').innerHTML.trim().padStart(2, '0')
     var key   = element.getAttribute('data-month').toLowerCase()
     var month = monthMap[key]
-    var monthNumber  = parseInt(month, 10)
-    var currentMonth = new Date().getMonth() + 1
-    var year  = new Date().getFullYear()
-    if (monthNumber < currentMonth) year += 1
+    var year  = element.getAttribute('data-year') || new Date().getFullYear()
     return year + '-' + month + '-' + day
   }
 

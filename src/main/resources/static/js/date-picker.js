@@ -64,6 +64,7 @@
     var parts = isoDate.split('-');
     if (parts.length !== 3) return;
 
+    var yearNum   = parseInt(parts[0], 10);
     var monthNum  = parseInt(parts[1], 10);
     var dayNum    = parseInt(parts[2], 10);  // strips leading zero for text comparison
     var monthAbbr = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'][monthNum - 1];
@@ -74,8 +75,10 @@
     var target = null;
 
     cells.forEach(function (cell) {
-      var jsDate = cell.querySelector('.js-date');
-      if (jsDate && parseInt(jsDate.textContent.trim(), 10) === dayNum) {
+      var jsDate   = cell.querySelector('.js-date');
+      var cellYear = parseInt(cell.getAttribute('data-year'), 10);
+      if (jsDate && parseInt(jsDate.textContent.trim(), 10) === dayNum &&
+          (isNaN(cellYear) || cellYear === yearNum)) {
         target = cell;
       }
     });
