@@ -23,6 +23,8 @@ public record BookingResponse(
         BigDecimal carRentalTotal,
         BigDecimal addonTotal,
         BigDecimal totalPrice,
+        int includedKmSnapshot,
+        BigDecimal unlimitedKmPriceSnapshot,
         BookingStatus status,
         BookingSource source,
         List<BookingAddonResponse> addons

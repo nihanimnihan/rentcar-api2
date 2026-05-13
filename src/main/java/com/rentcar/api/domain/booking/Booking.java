@@ -101,6 +101,15 @@ public class Booking {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal addonCharge = BigDecimal.ZERO;
 
+    // Mileage snapshot — records the km allowance and unlimited-km price that
+    // were applicable at booking time so historical bookings are not affected
+    // by future config changes.
+    @Column(nullable = false)
+    private int includedKmSnapshot;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal unlimitedKmPriceSnapshot;
+
     @Builder.Default
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<BookingAddon> bookingAddons = new ArrayList<>();

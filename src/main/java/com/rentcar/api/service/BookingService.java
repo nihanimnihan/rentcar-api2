@@ -93,6 +93,8 @@ public class BookingService {
                 .tax(price.tax())
                 .addonCharge(addonCharge)
                 .totalPrice(price.totalPrice().add(addonCharge))
+                .includedKmSnapshot(price.includedKm())
+                .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
                 .status(BookingStatus.PENDING)
                 .source(BookingSource.WEB)
                 .build();

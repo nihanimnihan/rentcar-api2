@@ -1,5 +1,6 @@
 package com.rentcar.api;
 
+import com.rentcar.api.config.MileageProperties;
 import com.rentcar.api.config.PricingProperties;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.car.FuelType;
@@ -36,7 +37,12 @@ class PricingServiceTest {
                 new PricingProperties.DiscountTier(14, BigDecimal.valueOf(15)),
                 new PricingProperties.DiscountTier(28, BigDecimal.valueOf(25))
         ));
-        pricingService = new PricingService(props);
+        MileageProperties mileageProps = new MileageProperties(
+                300, 150, 7,
+                new BigDecimal("0.10"),
+                new BigDecimal("4.70")
+        );
+        pricingService = new PricingService(props, new com.rentcar.api.service.MileageService(mileageProps));
     }
 
     // ── Discount tiers ──────────────────────────────────────────────────────────

@@ -14,6 +14,8 @@ public record PriceBreakdown(
         BigDecimal tax,
         BigDecimal totalPrice,
         BigDecimal addonsTotal,
-        List<AddonPriceLine> addonLines
+        List<AddonPriceLine> addonLines,
+        int includedKm,
+        BigDecimal unlimitedKmDailyPrice
 ) {
 }

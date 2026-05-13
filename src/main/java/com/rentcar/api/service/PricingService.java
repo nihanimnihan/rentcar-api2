@@ -24,6 +24,7 @@ public class PricingService {
     private static final BigDecimal ONE_WAY_FEE = BigDecimal.valueOf(25);
 
     private final PricingProperties pricingProperties;
+    private final MileageService mileageService;
 
     public PriceBreakdown calculate(Car car, CarSearchRequest request) {
         int rentalDays = calculateRentalDays(request.pickupDateTime(), request.dropoffDateTime());
@@ -45,6 +46,9 @@ public class PricingService {
         BigDecimal tax = money(subtotal.multiply(TAX_RATE));
         BigDecimal totalPrice = money(subtotal.add(tax));
 
+        int includedKm = mileageService.calculateIncludedKm(rentalDays);
+        BigDecimal unlimitedKmDailyPrice = mileageService.calculateUnlimitedKmDailyPrice(effectiveDailyPrice);
+
         return new PriceBreakdown(
                 rentalDays,
                 baseDailyPrice,
@@ -56,7 +60,9 @@ public class PricingService {
                 tax,
                 totalPrice,
                 null,
-                null
+                null,
+                includedKm,
+                unlimitedKmDailyPrice
         );
     }
 

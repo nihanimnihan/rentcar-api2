@@ -278,8 +278,8 @@ function buildDetailHtml(car, carId) {
               <span class="rentcar-radio"></span>
 
               <div class="rentcar-choice-content">
-                <div class="rentcar-choice-title">3,420 km</div>
-                <div class="rentcar-choice-sub">+$0.25 / for every additional km</div>
+                <div class="rentcar-choice-title">${car.priceBreakdown?.includedKm != null ? Number(car.priceBreakdown.includedKm).toLocaleString("en") + " km" : "—"}</div>
+                <div class="rentcar-choice-sub">+€0.25 / for every additional km</div>
               </div>
 
               <div class="rentcar-choice-price">Included</div>
@@ -299,7 +299,7 @@ function buildDetailHtml(car, carId) {
                 <div class="rentcar-choice-sub">All kilometers are included in the price</div>
               </div>
 
-              <div class="rentcar-choice-price">+ $ 5.77 / day</div>
+              <div class="rentcar-choice-price">${car.priceBreakdown?.unlimitedKmDailyPrice != null ? "+ €" + Number(car.priceBreakdown.unlimitedKmDailyPrice).toFixed(2) + " / day" : "—"}</div>
             </label>
 
             <div class="rentcar-detail-action-row">

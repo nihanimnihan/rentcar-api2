@@ -20,3 +20,9 @@ rentcar:
         discount-percentage: 15
       - min-days: 28
         discount-percentage: 25
+  mileage:
+    daily-km-base: 300          # km/day for days 1..baseDayThreshold
+    km-per-extra-day: 150       # km/day for each day beyond baseDayThreshold
+    base-day-threshold: 7       # boundary between full-rate and reduced-rate days
+    unlimited-km-percentage: 0.10          # 10% of effective daily price
+    unlimited-km-min-daily-price: 4.70     # floor — never charge less than this

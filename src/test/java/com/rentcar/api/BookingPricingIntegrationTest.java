@@ -52,7 +52,46 @@ class BookingPricingIntegrationTest {
                 .andExpect(jsonPath("$.carRentalTotal").exists())
                 .andExpect(jsonPath("$.addonTotal").exists())
                 .andExpect(jsonPath("$.totalPrice").exists())
-                .andExpect(jsonPath("$.rentalDays").exists());
+                .andExpect(jsonPath("$.rentalDays").exists())
+                .andExpect(jsonPath("$.includedKmSnapshot").isNumber())
+                .andExpect(jsonPath("$.unlimitedKmPriceSnapshot").isNumber());
+    }
+
+    @Test
+    void oneDayBooking_includedKmSnapshot_is300() throws Exception {
+        String body = bookingBody(1, daysFromNow(32), daysFromNow(33));
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rentalDays").value(1))
+                .andExpect(jsonPath("$.includedKmSnapshot").value(300));
+    }
+
+    @Test
+    void sevenDayBooking_includedKmSnapshot_is2100() throws Exception {
+        String body = bookingBody(1, daysFromNow(160), daysFromNow(167));
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rentalDays").value(7))
+                .andExpect(jsonPath("$.includedKmSnapshot").value(2100));
+    }
+
+    @Test
+    void unlimitedKmPriceSnapshot_isGreaterThanFloor() throws Exception {
+        String body = bookingBody(1, daysFromNow(170), daysFromNow(171));
+        MvcResult result = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andReturn();
+        double unlimitedKmPrice = ((Number) com.jayway.jsonpath.JsonPath
+                .read(result.getResponse().getContentAsString(), "$.unlimitedKmPriceSnapshot"))
+                .doubleValue();
+        // Must be >= 4.70 (the configured floor)
+        assertThat(unlimitedKmPrice).isGreaterThanOrEqualTo(4.70);
     }
 
     // ── No discount for 1–2 days ────────────────────────────────────────────────
