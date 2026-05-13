@@ -19,7 +19,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import jakarta.validation.constraints.FutureOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +26,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,14 +59,13 @@ public class Booking {
     private Customer customer;
 
     @Column(nullable = false)
-    @FutureOrPresent
     private LocalDateTime pickupDateTime;
 
     @Column(nullable = false)
     private LocalDateTime dropoffDateTime;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(nullable = false)
     private int rentalDays;
@@ -135,7 +134,7 @@ public class Booking {
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
         if (this.addonCharge == null) {
             this.addonCharge = BigDecimal.ZERO;
         }

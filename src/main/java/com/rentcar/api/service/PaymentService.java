@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -71,7 +71,7 @@ public class PaymentService {
 
         if (result.successful()) {
             payment.setStatus(PaymentStatus.PAID);
-            payment.setPaidAt(LocalDateTime.now());
+            payment.setPaidAt(Instant.now());
         } else {
             payment.setStatus(PaymentStatus.FAILED);
         }

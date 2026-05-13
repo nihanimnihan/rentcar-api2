@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
+import com.rentcar.api.util.AppTimezone;
 import java.util.List;
 
 @Service
@@ -185,7 +185,7 @@ public class BookingService {
         if (!request.dropoffDateTime().isAfter(request.pickupDateTime())) {
             throw new InvalidBookingDateException("End date must be after start date");
         }
-        if (request.pickupDateTime().isBefore(LocalDateTime.now().plusHours(1))) {
+        if (request.pickupDateTime().isBefore(AppTimezone.nowBusiness().plusHours(1))) {
             throw new InvalidBookingDateException("Pickup must be at least 1 hour from now");
         }
     }

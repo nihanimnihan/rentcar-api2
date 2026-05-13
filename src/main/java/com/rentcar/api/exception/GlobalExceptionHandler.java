@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Car not available error",
                         "message", ex.getMessage()
                 ));
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Invalid booking date error",
                         "message", ex.getMessage()
                 ));
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Not found",
                         "message", ex.getMessage()
                 ));
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Not found",
                         "message", ex.getMessage()
                 ));
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Not found",
                         "message", ex.getMessage(),
                         "carId", ex.getCarId()
@@ -76,7 +76,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Refund failed",
                         "message", ex.getMessage(),
                         "paymentId", ex.getPaymentId()
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Conflict",
                         "message", ex.getMessage(),
                         "bookingId", ex.getBookingId()
@@ -100,7 +100,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Conflict",
                         "message", ex.getMessage(),
                         "bookingId", ex.getCustomerId()
@@ -112,7 +112,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Invalid search dates",
                         "message", ex.getMessage()
                 ));
@@ -124,7 +124,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Bad Request",
                         "message", ex.getMessage()
                 ));
@@ -135,7 +135,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Validation error",
                         "message", ex.getBindingResult().getFieldError() != null
                                 ? ex.getBindingResult().getFieldError().getDefaultMessage()
@@ -149,7 +149,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
-                        "timestamp", LocalDateTime.now(),
+                        "timestamp", Instant.now(),
                         "error", "Internal server error",
                         "message", ex.getMessage() != null ? ex.getMessage() : "Unexpected error occurred"
                 ));

@@ -6,7 +6,7 @@ import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.dto.booking.BookingResponse;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record PaymentResponse(
         Long id,
@@ -16,7 +16,7 @@ public record PaymentResponse(
         PaymentChannel channel,
         PaymentStatus status,
         String providerReference,
-        LocalDateTime paidAt,
+        Instant paidAt,
         Long bookingId
 ) {
 
