@@ -28,22 +28,32 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Default to tomorrow / day-after-tomorrow so users start with bookable dates.
+  // "Today" often fails the backend 1-hour-ahead validation and causes confusion.
   const today = new Date();
-  const tomorrow = new Date();
+  const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(today.getDate() + 2);
 
-  let pickupDate = formatIso(today);
-  let dropoffDate = formatIso(tomorrow);
+  const todayIso = formatIso(today);
+
+  let pickupDate = formatIso(tomorrow);
+  let dropoffDate = formatIso(dayAfterTomorrow);
 
   if (pickupDateText) {
-    pickupDateText.innerText = formatDisplay(today);
+    pickupDateText.innerText = formatDisplay(tomorrow);
     pickupDateText.setAttribute("data-date", pickupDate);
   }
 
   if (dropoffDateText) {
-    dropoffDateText.innerText = formatDisplay(tomorrow);
+    dropoffDateText.innerText = formatDisplay(dayAfterTomorrow);
     dropoffDateText.setAttribute("data-date", dropoffDate);
   }
+
+  // Disable past calendar cells before attaching click listeners so they are
+  // excluded by the :not(.-dark) selector inside initSingleDatePicker.
+  disablePastCalendarCells(todayIso);
 
   setTimeout(() => {
     initSingleDatePicker("pickupDateText", (isoDate) => {
@@ -54,6 +64,21 @@ document.addEventListener("DOMContentLoaded", function () {
       dropoffDate = isoDate;
     });
   }, 300);
+
+  function disablePastCalendarCells(minIso) {
+    document.querySelectorAll(".js-calendar-el .elCalendar__sell:not(.-dark)").forEach(cell => {
+      try {
+        const iso = buildIsoDate(cell);
+        if (iso < minIso) {
+          cell.classList.add("-dark");
+          cell.style.pointerEvents = "none";
+          cell.style.opacity = "0.35";
+        }
+      } catch (_) {
+        // ignore cells that can't be parsed
+      }
+    });
+  }
 
   function initSingleDatePicker(textElementId, onSelect) {
     const textElement = document.getElementById(textElementId);
@@ -68,13 +93,17 @@ document.addEventListener("DOMContentLoaded", function () {
       cell.addEventListener("click", function (event) {
         event.stopPropagation();
 
+        const isoDate = buildIsoDate(cell);
+
+        // Safety net: reject past dates even if the DOM check above was bypassed
+        if (isoDate < todayIso) return;
+
         calendarWrapper.querySelectorAll(".-is-active, .-is-in-path").forEach((el) => {
           el.classList.remove("-is-active", "-is-in-path");
         });
 
         cell.classList.add("-is-active");
 
-        const isoDate = buildIsoDate(cell);
         textElement.innerText = buildDisplayDate(cell);
         textElement.setAttribute("data-date", isoDate);
 

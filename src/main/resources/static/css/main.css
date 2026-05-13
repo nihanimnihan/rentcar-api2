@@ -12895,6 +12895,19 @@ table.table-5 td {
   background: #fff;
 }
 
+/* BUG 4+5: Section headings rendered by addons.js — spacing + typography */
+.rentcar-addon-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #050b2c;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.rentcar-addon-section-title--more {
+  margin-top: 40px;
+}
+
 @media (max-width: 768px) {
   .rentcar-addon-card {
     flex-direction: column;

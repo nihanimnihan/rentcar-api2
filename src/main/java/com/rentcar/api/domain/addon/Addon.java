@@ -48,6 +48,10 @@ public class Addon {
     @Column
     private String imageUrl;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean recommended = false;
+
     @Column(nullable = false)
     private boolean active;
 

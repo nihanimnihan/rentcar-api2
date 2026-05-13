@@ -45,20 +45,34 @@ function renderAddonCards(addons) {
     return;
   }
 
-  container.innerHTML = addons.map(addon => {
-    const priceLabel = addon.pricingType === "DAILY"
-      ? `€${Number(addon.price).toFixed(2)} / day`
-      : `€${Number(addon.price).toFixed(2)} / one-time`;
+  const recommended = addons.filter(a => a.recommended);
+  const more = addons.filter(a => !a.recommended);
 
-    const iconHtml = addon.imageUrl
-      ? `<img src="${addon.imageUrl}" alt="${escapeHtml(addon.name)}"
-             style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
-      : `<i class="icon-user text-28"></i>`;
+  const parts = [];
 
+  if (recommended.length > 0) {
+    parts.push(`<h2 class="rentcar-addon-section-title">Recommended add-ons for your trip</h2>`);
+    parts.push(...recommended.map(addon => renderAddonCard(addon, true)));
+  }
+
+  if (more.length > 0) {
+    parts.push(`<h2 class="rentcar-addon-section-title rentcar-addon-section-title--more">More add-ons for you</h2>`);
+    parts.push(...more.map(addon => renderAddonCard(addon, false)));
+  }
+
+  container.innerHTML = parts.join("");
+}
+
+function renderAddonCard(addon, isRecommended) {
+  const priceLabel = addon.pricingType === "DAILY"
+    ? `€${Number(addon.price).toFixed(2)} / day`
+    : `€${Number(addon.price).toFixed(2)} / one-time`;
+
+  if (isRecommended && addon.imageUrl) {
     return `
       <div class="rentcar-addon-card" data-addon-id="${addon.id}">
-        <div class="rentcar-addon-icon">
-          ${iconHtml}
+        <div class="rentcar-addon-image">
+          <img src="${addon.imageUrl}" alt="${escapeHtml(addon.name)}">
         </div>
         <div class="rentcar-addon-content">
           <div class="d-flex justify-between items-start">
@@ -77,7 +91,35 @@ function renderAddonCards(addons) {
         </div>
       </div>
     `;
-  }).join("");
+  }
+
+  const iconHtml = addon.imageUrl
+    ? `<img src="${addon.imageUrl}" alt="${escapeHtml(addon.name)}"
+           style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
+    : `<i class="icon-user text-28"></i>`;
+
+  return `
+    <div class="rentcar-addon-card" data-addon-id="${addon.id}">
+      <div class="rentcar-addon-icon">
+        ${iconHtml}
+      </div>
+      <div class="rentcar-addon-content">
+        <div class="d-flex justify-between items-start">
+          <div>
+            <h3 class="text-20 fw-700">${escapeHtml(addon.name)}</h3>
+            <div class="text-15 text-light-1">${escapeHtml(addon.description || "")}</div>
+          </div>
+          <i class="icon-info text-18"></i>
+        </div>
+        <div class="d-flex justify-between items-center mt-20">
+          <div class="text-16 fw-700">${priceLabel}</div>
+          <button type="button" class="rentcar-addon-button" onclick="toggleAddon(${addon.id})">
+            Add <span>+</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function toggleAddon(addonId) {

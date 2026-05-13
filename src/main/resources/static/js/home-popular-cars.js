@@ -9,6 +9,10 @@ async function loadPopularCars() {
         return;
     }
 
+    // Build search params once — read current homepage state if available,
+    // fall back to safe defaults so cars.html never opens with empty parameters.
+    const searchParamsStr = buildSearchParamsStr();
+
     try {
         const response = await fetch("/api/cars/popular");
 
@@ -20,7 +24,7 @@ async function loadPopularCars() {
 
         container.innerHTML = cars
             .slice(0, 4)
-            .map(renderPopularCarCard)
+            .map(car => renderPopularCarCard(car, searchParamsStr))
             .join("");
 
     } catch (error) {
@@ -29,7 +33,43 @@ async function loadPopularCars() {
     }
 }
 
-function renderPopularCarCard(car) {
+/**
+ * Reads the current homepage search state from the DOM inputs.
+ * Falls back to BCN Airport T1 + tomorrow/day-after-tomorrow at 10:00
+ * so popular-car links always open cars.html with valid parameters.
+ */
+function buildSearchParamsStr() {
+    const DEFAULT_LOCATION = "BCN Airport T1";
+
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(today.getDate() + 2);
+
+    function isoDate(d) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    const pickupLocation = document.getElementById("pickupLocation")?.value?.trim() || DEFAULT_LOCATION;
+    const dropoffLocation = document.getElementById("dropoffLocation")?.value?.trim() || DEFAULT_LOCATION;
+
+    // pickupDateText carries a data-date attribute set by main-search.js
+    const pickupDate = document.getElementById("pickupDateText")?.getAttribute("data-date") || isoDate(tomorrow);
+    const dropoffDate = document.getElementById("dropoffDateText")?.getAttribute("data-date") || isoDate(dayAfter);
+
+    const pickupHour = document.getElementById("pickupHour")?.value || "10:00";
+    const dropoffHour = document.getElementById("dropoffHour")?.value || "10:00";
+
+    return new URLSearchParams({
+        pickupLocation,
+        dropoffLocation,
+        pickupDateTime: `${pickupDate}T${pickupHour}`,
+        dropoffDateTime: `${dropoffDate}T${dropoffHour}`,
+    }).toString();
+}
+
+function renderPopularCarCard(car, searchParamsStr) {
     const imageUrl = car.imageUrl || "img/cars/1.png";
     const location = car.location || car.pickupLocation || "Barcelona";
     const category = car.category || "Car";
@@ -41,7 +81,7 @@ function renderPopularCarCard(car) {
 
     return `
         <div class="col-xl-3 col-lg-4 col-md-6">
-            <a href="cars.html" class="carCard -type-1 d-block rounded-4">
+            <a href="cars.html?${searchParamsStr}" class="carCard -type-1 d-block rounded-4">
                 <div class="carCard__image">
                     <div class="cardImage ratio border-light ratio-3:2">
                         <div class="cardImage__content">

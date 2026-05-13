@@ -10,6 +10,21 @@ const mileageOptions = {}; // carId -> "INCLUDED" | "UNLIMITED"
 
 async function loadCars() {
   const params = new URLSearchParams(window.location.search);
+
+  // Validate dates from URL before hitting the API.  Invalid/past dates produce
+  // confusing empty results or backend errors — show a clear message instead.
+  const pickupStr = params.get("pickupDateTime");
+  const dropoffStr = params.get("dropoffDateTime");
+  const dateError = validateSearchDates(pickupStr, dropoffStr);
+  if (dateError) {
+    document.getElementById("carsList").innerHTML = `
+      <div class="col-12">
+        <div class="text-15 text-red-1">${dateError}</div>
+      </div>
+    `;
+    return;
+  }
+
   const apiUrl = "/api/cars/search?" + params.toString();
 
   try {
@@ -35,6 +50,31 @@ async function loadCars() {
 }
 
 window.loadCars = loadCars;
+
+/**
+ * Returns an error string if dates are missing, invalid, or in the past.
+ * Returns null when dates are acceptable for a car search.
+ */
+function validateSearchDates(pickupStr, dropoffStr) {
+  if (!pickupStr || !dropoffStr) return null; // no dates = filter-less search, that's fine
+
+  const pickup = new Date(pickupStr);
+  const dropoff = new Date(dropoffStr);
+
+  if (isNaN(pickup.getTime()) || isNaN(dropoff.getTime())) {
+    return "Invalid date/time in search parameters. Please go back and search again.";
+  }
+
+  if (pickup < new Date()) {
+    return "Pickup date is in the past. Please go back and choose a future date.";
+  }
+
+  if (dropoff <= pickup) {
+    return "Return date must be after the pickup date. Please go back and adjust your dates.";
+  }
+
+  return null;
+}
 
 function renderCars(cars) {
   const carsList = document.getElementById("carsList");

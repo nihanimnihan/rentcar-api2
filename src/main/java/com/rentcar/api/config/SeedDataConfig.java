@@ -114,6 +114,7 @@ public class SeedDataConfig {
                             .price(new BigDecimal("19.00"))
                             .pricingType(AddonPricingType.DAILY)
                             .imageUrl("img/addons/additional-driver.jpg")
+                            .recommended(true)
                             .active(true)
                             .build(),
                     Addon.builder()
@@ -121,6 +122,7 @@ public class SeedDataConfig {
                             .description("Rear-facing, forward-facing, and booster seats available")
                             .price(new BigDecimal("15.00"))
                             .pricingType(AddonPricingType.DAILY)
+                            .recommended(false)
                             .active(true)
                             .build(),
                     Addon.builder()
@@ -129,6 +131,7 @@ public class SeedDataConfig {
                             .price(new BigDecimal("12.00"))
                             .pricingType(AddonPricingType.DAILY)
                             .imageUrl("img/addons/gps.jpg")
+                            .recommended(true)
                             .active(true)
                             .build(),
                     Addon.builder()
@@ -136,6 +139,7 @@ public class SeedDataConfig {
                             .description("Full coverage with zero excess")
                             .price(new BigDecimal("25.00"))
                             .pricingType(AddonPricingType.DAILY)
+                            .recommended(false)
                             .active(true)
                             .build(),
                     Addon.builder()
@@ -143,6 +147,7 @@ public class SeedDataConfig {
                             .description("For winter driving in mountain areas")
                             .price(new BigDecimal("30.00"))
                             .pricingType(AddonPricingType.ONE_TIME)
+                            .recommended(false)
                             .active(true)
                             .build(),
                     Addon.builder()
@@ -151,6 +156,7 @@ public class SeedDataConfig {
                             .price(new BigDecimal("35.00"))
                             .pricingType(AddonPricingType.ONE_TIME)
                             .imageUrl("img/addons/refueling.jpg")
+                            .recommended(true)
                             .active(true)
                             .build()
             ));
