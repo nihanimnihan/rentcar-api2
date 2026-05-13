@@ -3,14 +3,10 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:rentcardb
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  h2:
-    console:
-      enabled: true
+    url: jdbc:postgresql://localhost:5432/rentcar
+    username: rentcar
+    password: rentcar
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
