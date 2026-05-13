@@ -1,3 +1,10 @@
 spring:
   profiles:
     active: dev
+
+# Default admin credentials — overridden by each profile-specific yaml.
+# Prod profile replaces these with ${ADMIN_USERNAME} / ${ADMIN_PASSWORD} env vars.
+rentcar:
+  admin:
+    username: admin
+    password: change-me

@@ -113,6 +113,7 @@ public class SeedDataConfig {
                             .description("Allow an extra driver on the rental")
                             .price(new BigDecimal("19.00"))
                             .pricingType(AddonPricingType.DAILY)
+                            .imageUrl("img/addons/additional-driver.jpg")
                             .active(true)
                             .build(),
                     Addon.builder()
@@ -127,6 +128,7 @@ public class SeedDataConfig {
                             .description("Portable GPS device for your trip")
                             .price(new BigDecimal("12.00"))
                             .pricingType(AddonPricingType.DAILY)
+                            .imageUrl("img/addons/gps.jpg")
                             .active(true)
                             .build(),
                     Addon.builder()
@@ -141,6 +143,14 @@ public class SeedDataConfig {
                             .description("For winter driving in mountain areas")
                             .price(new BigDecimal("30.00"))
                             .pricingType(AddonPricingType.ONE_TIME)
+                            .active(true)
+                            .build(),
+                    Addon.builder()
+                            .name("Refueling Service")
+                            .description("Return the car without refueling — we handle it for you")
+                            .price(new BigDecimal("35.00"))
+                            .pricingType(AddonPricingType.ONE_TIME)
+                            .imageUrl("img/addons/refueling.jpg")
                             .active(true)
                             .build()
             ));

@@ -45,6 +45,9 @@ public class Addon {
     @Column(nullable = false)
     private AddonPricingType pricingType;
 
+    @Column
+    private String imageUrl;
+
     @Column(nullable = false)
     private boolean active;
 

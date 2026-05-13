@@ -44,7 +44,7 @@ class AddonIntegrationTest {
         // All seeded addons are active=true, so the list should not be empty
         mockMvc.perform(get("/api/addons/active"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(5));
+                .andExpect(jsonPath("$.length()").value(6));
     }
 
     // ── Admin CRUD ──────────────────────────────────────────────────────────────

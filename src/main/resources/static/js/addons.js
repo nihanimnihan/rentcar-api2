@@ -48,10 +48,15 @@ function renderAddonCards(addons) {
       ? `€${Number(addon.price).toFixed(2)} / day`
       : `€${Number(addon.price).toFixed(2)} / one-time`;
 
+    const iconHtml = addon.imageUrl
+      ? `<img src="${addon.imageUrl}" alt="${escapeHtml(addon.name)}"
+             style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
+      : `<i class="icon-user text-28"></i>`;
+
     return `
       <div class="rentcar-addon-card" data-addon-id="${addon.id}">
         <div class="rentcar-addon-icon">
-          <i class="icon-user text-28"></i>
+          ${iconHtml}
         </div>
         <div class="rentcar-addon-content">
           <div class="d-flex justify-between items-start">

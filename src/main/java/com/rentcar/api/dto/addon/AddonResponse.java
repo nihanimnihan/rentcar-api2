@@ -8,6 +8,7 @@ public record AddonResponse(
         String description,
         BigDecimal price,
         String pricingType,
+        String imageUrl,
         boolean active
 ) {
 }

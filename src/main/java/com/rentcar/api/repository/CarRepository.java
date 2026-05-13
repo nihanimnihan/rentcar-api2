@@ -35,15 +35,9 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     List<Car> findPopularCars();
 
     /**
-     * Single query covering all search filters + availability check.
-     *
-     * Availability: excludes cars with a PENDING or CONFIRMED booking whose window
-     * overlaps [pickupDateTime, dropoffDateTime]. Standard overlap formula:
-     *   existing.pickup < requested.dropoff AND existing.dropoff > requested.pickup
-     *
-     * All filter parameters are optional (null skips that predicate).
-     * Date parameters are optional together — if either is null the availability
-     * subquery is skipped and the car is shown regardless of bookings.
+     * Search with availability date filter.
+     * Both pickupDateTime and dropoffDateTime are required (non-null).
+     * Excludes cars with an overlapping PENDING or CONFIRMED booking.
      */
     @Query("""
         SELECT c FROM Car c
@@ -55,7 +49,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
         AND (:minSeats      IS NULL OR c.seats         >= :minSeats)
         AND (:minBags       IS NULL OR c.bags          >= :minBags)
         AND (:minDriverAge  IS NULL OR c.minDriverAge  <= :minDriverAge)
-        AND (:pickupDateTime IS NULL OR :dropoffDateTime IS NULL OR NOT EXISTS (
+        AND NOT EXISTS (
             SELECT b FROM Booking b
             WHERE b.car = c
             AND b.status IN (
@@ -64,12 +58,37 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             )
             AND b.pickupDateTime  < :dropoffDateTime
             AND b.dropoffDateTime > :pickupDateTime
-        ))
+        )
         ORDER BY c.dailyPrice ASC
     """)
     List<Car> searchAvailableCars(
             @Param("pickupDateTime")  LocalDateTime pickupDateTime,
             @Param("dropoffDateTime") LocalDateTime dropoffDateTime,
+            @Param("vehicleType")     VehicleType vehicleType,
+            @Param("segment")         VehicleSegment segment,
+            @Param("transmission")    TransmissionType transmission,
+            @Param("fuelType")        FuelType fuelType,
+            @Param("minSeats")        Integer minSeats,
+            @Param("minBags")         Integer minBags,
+            @Param("minDriverAge")    Integer minDriverAge
+    );
+
+    /**
+     * Search without date availability filter (used when dates are not provided).
+     */
+    @Query("""
+        SELECT c FROM Car c
+        WHERE c.active = true
+        AND (:vehicleType   IS NULL OR c.vehicleType   = :vehicleType)
+        AND (:segment       IS NULL OR c.segment       = :segment)
+        AND (:transmission  IS NULL OR c.transmission  = :transmission)
+        AND (:fuelType      IS NULL OR c.fuelType      = :fuelType)
+        AND (:minSeats      IS NULL OR c.seats         >= :minSeats)
+        AND (:minBags       IS NULL OR c.bags          >= :minBags)
+        AND (:minDriverAge  IS NULL OR c.minDriverAge  <= :minDriverAge)
+        ORDER BY c.dailyPrice ASC
+    """)
+    List<Car> searchCarsWithoutDateFilter(
             @Param("vehicleType")     VehicleType vehicleType,
             @Param("segment")         VehicleSegment segment,
             @Param("transmission")    TransmissionType transmission,

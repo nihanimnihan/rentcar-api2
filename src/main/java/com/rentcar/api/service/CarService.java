@@ -58,9 +58,20 @@ public class CarService {
     }
 
     public List<Car> searchCars(CarSearchRequest request) {
-        return carRepository.searchAvailableCars(
-                request.pickupDateTime(),
-                request.dropoffDateTime(),
+        if (request.pickupDateTime() != null && request.dropoffDateTime() != null) {
+            return carRepository.searchAvailableCars(
+                    request.pickupDateTime(),
+                    request.dropoffDateTime(),
+                    request.vehicleType(),
+                    request.segment(),
+                    request.transmission(),
+                    request.fuelType(),
+                    request.minSeats(),
+                    request.minBags(),
+                    request.minDriverAge()
+            );
+        }
+        return carRepository.searchCarsWithoutDateFilter(
                 request.vehicleType(),
                 request.segment(),
                 request.transmission(),
