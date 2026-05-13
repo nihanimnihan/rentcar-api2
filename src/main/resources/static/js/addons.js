@@ -14,7 +14,7 @@ async function loadAddonPage() {
   const carId = params.get("carId");
 
   if (!carId) {
-    console.error("carId is missing from URL");
+    showPageError("No car selected. Please go back and choose a vehicle.");
     return;
   }
 
@@ -24,16 +24,55 @@ async function loadAddonPage() {
       fetch("/api/addons/active")
     ]);
 
+    if (!carRes.ok) {
+      const status = carRes.status;
+      if (status === 404) {
+        showPageError("This car is no longer available. Please go back and choose another vehicle.");
+      } else {
+        showPageError("Failed to load car details. Please try again.");
+      }
+      console.error("Car detail fetch failed:", status);
+      return;
+    }
+
+    if (!addonsRes.ok) {
+      console.error("Add-ons fetch failed:", addonsRes.status);
+      // Non-fatal: continue without add-ons rather than blocking the whole page
+      availableAddons = [];
+    } else {
+      availableAddons = await addonsRes.json();
+    }
+
     selectedCar = await carRes.json();
-    availableAddons = await addonsRes.json();
   } catch (err) {
     console.error("Failed to load page data:", err);
+    showPageError("Failed to load page. Please check your connection and try again.");
     return;
   }
 
   renderAddonCards(availableAddons);
   renderSummary();
   renderAddonsPriceModal();
+}
+
+function showPageError(message) {
+  const container = document.getElementById("addonsList");
+  if (container) {
+    container.innerHTML = `
+      <div style="padding:40px 0;text-align:center">
+        <p class="text-16 text-danger mb-20">${escapeHtml(message)}</p>
+        <a href="cars.html${window.location.search}" class="button h-50 px-30 bg-dark-1 text-white rounded-8 fw-600">
+          Back to search
+        </a>
+      </div>
+    `;
+  }
+  // Disable continue button — there is nothing to book
+  const continueBtn = document.getElementById("continueButton");
+  if (continueBtn) {
+    continueBtn.disabled = true;
+    continueBtn.style.opacity = "0.4";
+  }
 }
 
 function renderAddonCards(addons) {
