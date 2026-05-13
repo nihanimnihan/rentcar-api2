@@ -70,7 +70,7 @@ function buildSearchParamsStr() {
 }
 
 function renderPopularCarCard(car, searchParamsStr) {
-    const imgSrc      = safeSrc(car.imageUrl, "img/cars/1.png");
+    const imgSrc      = safeSrc(car.imageUrl, "img/lists/car/1/1.png");
     const location    = escapeHtml(car.location || car.pickupLocation || "Barcelona");
     const category    = escapeHtml(car.category || "Car");
     const name        = `${escapeHtml(car.brand || "")} ${escapeHtml(car.model || "")}`.trim() || "Car";

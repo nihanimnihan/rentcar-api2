@@ -270,6 +270,8 @@ window.showCarDetail = showCarDetail;
 
 function removeExistingDetail() {
   document.querySelectorAll(".inline-car-detail").forEach(el => el.remove());
+  // Clean up any price modals appended to body when a detail panel was open
+  document.querySelectorAll('[id^="price-modal-"]').forEach(el => el.remove());
 }
 
 function buildDetailHtml(car, carId) {
@@ -365,7 +367,7 @@ function buildDetailHtml(car, carId) {
                   <strong id="detail-total-${carId}">€${totalPrice} total</strong>
                 </div>
 
-                <button type="button" class="rentcar-price-details" onclick="openPriceDetailsModal('price-modal-${carId}')">
+                <button type="button" class="rentcar-price-details" onclick="openCarPriceModal(${carId})">
                   Price details
                 </button>
               </div>
@@ -377,10 +379,7 @@ function buildDetailHtml(car, carId) {
           </div>
 
         </div>
-
       </div>
-      ${buildPriceDetailsModalHtml(`price-modal-${carId}`, car.priceBreakdown)}
-    </div>
   `;
 }
 
@@ -406,24 +405,37 @@ function selectMileageOption(input, carId) {
   // Update live total in the detail panel
   const totalEl = document.getElementById(`detail-total-${carId}`);
   if (totalEl) totalEl.textContent = `€${(baseTotal + unlimitedCharge).toFixed(2)} total`;
-
-  // Rebuild the "Price details" modal so its total stays in sync with the live display.
-  // The modal is rendered once at build time — without this it would show the base price
-  // even after the user selects Unlimited kilometers.
-  const existingModal = detail.querySelector(`#price-modal-${carId}`);
-  if (existingModal) {
-    const addonLines = isUnlimited
-      ? [{ name: "Unlimited kilometers", totalPrice: (unlimitedKmDailyPrice * rentalDays).toFixed(2) }]
-      : [];
-    existingModal.insertAdjacentHTML(
-      "afterend",
-      buildPriceDetailsModalHtml(`price-modal-${carId}`, car.priceBreakdown, addonLines)
-    );
-    existingModal.remove();
-  }
 }
 
 window.selectMileageOption = selectMileageOption;
+
+/**
+ * Build the price details modal fresh and append it to document.body so it
+ * inherits no card-container styles — identical rendering to the addons.html modal.
+ * Always reflects the currently selected mileage option.
+ */
+function openCarPriceModal(carId) {
+  const car = carCache[carId];
+  if (!car?.priceBreakdown) return;
+
+  // Remove stale modal for this car (e.g. from a previous open)
+  document.getElementById(`price-modal-${carId}`)?.remove();
+
+  const rentalDays = car.priceBreakdown.rentalDays || 1;
+  const addonLines = [];
+  if (mileageOptions[carId] === "UNLIMITED") {
+    const charge = Number(car.priceBreakdown.unlimitedKmDailyPrice || 0) * rentalDays;
+    addonLines.push({ name: "Unlimited kilometers", totalPrice: charge.toFixed(2) });
+  }
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    buildPriceDetailsModalHtml(`price-modal-${carId}`, car.priceBreakdown, addonLines)
+  );
+  openPriceDetailsModal(`price-modal-${carId}`);
+}
+
+window.openCarPriceModal = openCarPriceModal;
 
 function fillCarsPageSearchFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -520,12 +532,6 @@ function findRowEndCard(card) {
 
   return card;
 }
-
-function closePriceDetails(carId) {
-  document.getElementById(`price-modal-${carId}`)?.classList.remove("is-active");
-}
-
-window.closePriceDetails = closePriceDetails;
 
 function goToAddons(carId) {
   const params = new URLSearchParams(window.location.search);

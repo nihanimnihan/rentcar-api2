@@ -199,7 +199,7 @@ function renderSummary() {
 
   setText("summaryCarName", carName || "Car");
   setText("summaryCarSubtitle", `${selectedCar.segment || ""} ${selectedCar.vehicleType || ""}`.trim() || "or similar");
-  setImage("summaryCarImage", selectedCar.imageUrl || "img/cars/1.png", carName);
+  setImage("summaryCarImage", selectedCar.imageUrl || "img/lists/car/1/1.png", carName);
 
   setText("summaryPickupLocation", params.get("pickupLocation") || "-");
   setText("summaryDropoffLocation", params.get("dropoffLocation") || "-");
@@ -449,7 +449,7 @@ function setText(id, value) {
 function setImage(id, src, alt) {
   const el = document.getElementById(id);
   if (el) {
-    el.src = safeSrc(src, "img/cars/1.png");
+    el.src = safeSrc(src, "img/lists/car/1/1.png");
     el.alt = alt || "car image";
   }
 }
