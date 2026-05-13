@@ -13,4 +13,9 @@ public class FakePaymentProvider implements PaymentProvider {
     public PaymentResult pay(Payment payment, String paymentMethodId) {
         return new PaymentResult(true, "FAKE-" + payment.getId());
     }
+
+    @Override
+    public PaymentResult refund(Payment payment) {
+        return new PaymentResult(true, "FAKE-REFUND-" + payment.getId());
+    }
 }

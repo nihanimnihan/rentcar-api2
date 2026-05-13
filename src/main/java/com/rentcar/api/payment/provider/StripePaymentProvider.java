@@ -6,7 +6,9 @@ import com.stripe.Stripe;
 import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
 import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.RefundCreateParams;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,23 @@ public class StripePaymentProvider implements PaymentProvider {
             return new PaymentResult(false, null);
         } catch (StripeException e) {
             log.error("Stripe error for payment {}: {}", payment.getId(), e.getMessage(), e);
+            return new PaymentResult(false, null);
+        }
+    }
+
+    @Override
+    public PaymentResult refund(Payment payment) {
+        RefundCreateParams params = RefundCreateParams.builder()
+                .setPaymentIntent(payment.getProviderReference())
+                .build();
+
+        try {
+            Refund refund = Refund.create(params);
+            boolean succeeded = "succeeded".equals(refund.getStatus());
+            log.info("Stripe Refund {} for payment {}: status={}", refund.getId(), payment.getId(), refund.getStatus());
+            return new PaymentResult(succeeded, refund.getId());
+        } catch (StripeException e) {
+            log.error("Stripe refund error for payment {}: {}", payment.getId(), e.getMessage(), e);
             return new PaymentResult(false, null);
         }
     }

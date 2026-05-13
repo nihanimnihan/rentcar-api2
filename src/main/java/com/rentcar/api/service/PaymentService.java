@@ -6,6 +6,7 @@ import com.rentcar.api.domain.payment.PaymentChannel;
 import com.rentcar.api.domain.payment.PaymentMethod;
 import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.exception.PaymentNotFoundException;
+import com.rentcar.api.exception.RefundFailedException;
 import com.rentcar.api.payment.model.PaymentResult;
 import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.PaymentRepository;
@@ -44,7 +45,21 @@ public class PaymentService {
     @Transactional
     public void cancelPaymentForBooking(Booking booking) {
         Payment payment = getLatestPaymentForBooking(booking);
-        payment.setStatus(PaymentStatus.CANCELLED);
+
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            // Money was collected — issue a full refund before cancelling.
+            PaymentResult result = paymentProvider.refund(payment);
+            if (!result.successful()) {
+                // Throw so the transaction rolls back: booking stays un-cancelled
+                // until the refund issue is resolved manually.
+                throw new RefundFailedException(payment.getId());
+            }
+            payment.setStatus(PaymentStatus.REFUNDED);
+        } else {
+            // PENDING or FAILED — no money was collected, just void the record.
+            payment.setStatus(PaymentStatus.CANCELLED);
+        }
+
         paymentRepository.save(payment);
     }
 

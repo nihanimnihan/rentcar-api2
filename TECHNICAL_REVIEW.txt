@@ -1,0 +1,1004 @@
+================================================================================
+  RENTCAR API — DEEP TECHNICAL REVIEW
+  Date: 2026-05-13
+  Reviewer: GitHub Copilot (Senior Engineer / Backend Architect / QA)
+================================================================================
+
+This review covers: potential bugs, hidden edge cases, NullPointer risks, race
+conditions, broken business validations, date/time issues, API contract problems,
+DTO mapping issues, transaction boundaries, security, performance, memory issues,
+code duplication, dead code, and frontend integration.
+
+================================================================================
+  CRITICAL ISSUES
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+[C-1] RACE CONDITION + NO TRANSACTION BOUNDARIES ON BOOKING CREATION
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Critical
+
+FILE:
+  src/main/java/com/rentcar/api/service/BookingService.java — createBooking(),
+  cancelBooking(), completePayment()
+
+PROBLEM:
+  Zero @Transactional annotations exist anywhere in the entire service layer.
+  In createBooking(), the availability overlap check and the booking INSERT are
+  not atomic. Two concurrent requests for the same car on overlapping dates will
+  BOTH pass the existsByCarAndStatus...() check, then BOTH successfully save a
+  Booking row. Classic TOCTOU (Time-Of-Check-Time-Of-Use) race condition.
+
+  Additionally, if paymentService.createPendingOnlinePayment() throws after
+  bookingRepository.save() completes, you have a Booking row with no Payment
+  record. If the JVM crashes between those two calls, same result. No rollback
+  ever happens.
+
+  Same problem in cancelBooking(): booking status is set to CANCELLED and saved,
+  then cancelPaymentForBooking() is called. If that second call fails, you have a
+  CANCELLED booking with an ACTIVE payment record.
+
+RISK:
+  Double bookings for the same car on the same dates in production under any
+  meaningful concurrent load. Bookings stranded without payment records. Data
+  corruption with no recovery path.
+
+RECOMMENDED FIX:
+  Add @Transactional to all state-mutating service methods:
+
+    @Transactional
+    public Booking createBooking(CreateBookingRequest request) { ... }
+
+    @Transactional
+    public Booking cancelBooking(Long id) { ... }
+
+    @Transactional
+    public Booking completePayment(Long bookingId) { ... }
+
+  For the double-booking race condition specifically, also add a DB-level guard.
+  Option A — pessimistic locking (lock the car row before the overlap check):
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Car> findById(Long id);
+
+  Option B — unique partial index in a Flyway migration:
+
+    CREATE UNIQUE INDEX uq_booking_car_overlap
+      ON bookings (car_id, pickup_date_time, dropoff_date_time)
+      WHERE status IN ('PENDING', 'CONFIRMED');
+
+OPTIONAL REFACTOR:
+  Add @Version (Long version) to the Booking entity for optimistic locking as a
+  baseline guard against stale-state updates.
+
+────────────────────────────────────────────────────────────────────────────────
+[C-2] StripePaymentProvider.pay() RETURNS NULL — NPE IN PRODUCTION
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Critical
+
+FILE:
+  src/main/java/com/rentcar/api/payment/provider/StripePaymentProvider.java
+
+PROBLEM:
+  The production payment provider returns null from pay():
+
+    @Override
+    public PaymentResult pay(Payment payment) {
+        // Stripe call
+        return null;  // <-- THIS
+    }
+
+  In PaymentService.processLatestPaymentForBooking():
+
+    PaymentResult result = paymentProvider.pay(payment);
+    payment.setProviderReference(result.providerReference()); // NPE: result is null
+    if (result.successful()) { ... }                          // never reached
+
+  Every single payment attempt in production explodes with a NullPointerException.
+  The generic exception handler catches it and returns 500. The payment record
+  stays in PENDING state forever.
+
+RISK:
+  100% of production payment calls crash. Customers see a 500 error. Bookings
+  get stuck in PENDING. Revenue is zero.
+
+RECOMMENDED FIX:
+  Implement the actual Stripe SDK integration. At absolute minimum, until it is
+  implemented, fail fast with a clear error — not a silent NPE:
+
+    @Override
+    public PaymentResult pay(Payment payment) {
+        throw new UnsupportedOperationException(
+            "Stripe payment provider is not yet implemented");
+    }
+
+────────────────────────────────────────────────────────────────────────────────
+[C-3] WRONG SPRING PROFILE PROPERTY — APP MAY NOT START
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Critical
+
+FILE:
+  src/main/resources/application.yaml
+
+PROBLEM:
+  The application.yaml contains:
+
+    spring:
+      active:
+        profiles: dev
+
+  This resolves to property "spring.active.profiles" which Spring does NOT
+  recognise. The correct property is "spring.profiles.active".
+
+  Because the dev profile is never activated via this file, neither
+  FakePaymentProvider (@Profile "dev") nor StripePaymentProvider (@Profile "prod")
+  is registered as a Spring bean. PaymentService requires a PaymentProvider
+  bean. Spring context will fail to start with:
+
+    "No qualifying bean of type 'PaymentProvider' available"
+
+  Tests pass only because they use @ActiveProfiles("dev") directly.
+
+RISK:
+  Application fails to start in any environment that relies solely on this config
+  file without an explicit --spring.profiles.active CLI argument.
+
+RECOMMENDED FIX:
+  src/main/resources/application.yaml:
+
+    spring:
+      profiles:
+        active: dev
+
+────────────────────────────────────────────────────────────────────────────────
+[C-4] CANCELLATION NEVER TRIGGERS A REFUND
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Critical
+
+FILE:
+  src/main/java/com/rentcar/api/service/BookingService.java — cancelBooking()
+  src/main/java/com/rentcar/api/service/PaymentService.java — cancelPaymentForBooking()
+
+PROBLEM:
+  cancelPaymentForBooking() sets payment.status = CANCELLED in the local DB and
+  saves. It never calls the payment provider to issue a refund. If a customer has
+  already paid (PaymentStatus.PAID), cancelling the booking silently marks the
+  payment record as CANCELLED in your DB while the customer's money is already
+  gone and no refund is ever sent to their card.
+
+RISK:
+  Financial loss for customers. Legal liability. Chargebacks. Regulatory exposure
+  depending on jurisdiction.
+
+RECOMMENDED FIX:
+  Check payment status before cancellation. If PAID, trigger a provider refund:
+
+    public void cancelPaymentForBooking(Booking booking) {
+        Payment payment = getLatestPaymentForBooking(booking);
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            paymentProvider.refund(payment); // add refund() to PaymentProvider interface
+        }
+        payment.setStatus(PaymentStatus.CANCELLED);
+        paymentRepository.save(payment);
+    }
+
+  Also add refund() to the PaymentProvider interface and implement it in both
+  FakePaymentProvider and StripePaymentProvider.
+
+================================================================================
+  HIGH ISSUES
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+[H-1] NO AUTHENTICATION OR AUTHORIZATION ON ANY ENDPOINT
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: High
+
+FILE:
+  src/main/java/com/rentcar/api/controller/PaymentController.java
+  src/main/java/com/rentcar/api/controller/BookingController.java
+  src/main/java/com/rentcar/api/controller/CarController.java
+
+PROBLEM:
+  Zero authentication or authorization exists anywhere. Any anonymous HTTP client
+  can:
+
+  - GET /api/payments       — dumps ALL payment records from ALL customers
+                              (amounts, methods, provider references, booking IDs).
+                              Full PII and financial data exposure.
+  - POST /api/bookings/{id}/cancel         — cancel any booking by guessing an ID (IDOR)
+  - POST /api/bookings/{id}/payments/process — trigger payment on any booking
+  - GET  /api/bookings/{id}                — read any booking by ID
+
+RISK:
+  Complete data breach. Competitor scrapes all payment data. Malicious actor
+  cancels all pending bookings. Regulatory fines (GDPR).
+
+RECOMMENDED FIX:
+  Add Spring Security (spring-boot-starter-security). Protect all mutating
+  endpoints and sensitive reads behind authentication. GET /api/payments must be
+  admin-only or removed from the public API entirely. For an MVP, even HTTP Basic
+  Auth or a static API key is far better than no auth.
+
+────────────────────────────────────────────────────────────────────────────────
+[H-2] SEARCH RETURNS ALREADY-BOOKED CARS + FULL TABLE SCAN
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: High
+
+FILE:
+  src/main/java/com/rentcar/api/service/CarService.java — searchCars()
+  src/main/java/com/rentcar/api/repository/CarRepository.java
+
+PROBLEM:
+  searchCars() calls carRepository.findByActiveTrue() (full table scan, loads
+  ALL active car entities into JVM memory), then filters in Java. It does NOT
+  check availability against the requested pickup/dropoff dates.
+
+  A car already confirmed-booked for July 10-15 will still appear in search
+  results for July 10-15. The user selects it, proceeds through the addon page,
+  enters customer details, and only when they hit createBooking() do they get a
+  CarNotAvailableException — after wasting several minutes.
+
+RISK:
+  Terrible UX. At scale: full table scan + full entity hydration of every car in
+  the fleet on every search request.
+
+RECOMMENDED FIX:
+  Move filtering to the database and include availability check:
+
+    @Query("""
+        SELECT c FROM Car c WHERE c.active = true
+        AND (:vehicleType IS NULL OR c.vehicleType = :vehicleType)
+        AND NOT EXISTS (
+            SELECT 1 FROM Booking b WHERE b.car = c
+            AND b.status IN ('PENDING', 'CONFIRMED')
+            AND b.pickupDateTime < :dropoff
+            AND b.dropoffDateTime > :pickup
+        )
+    """)
+    List<Car> findAvailableCars(
+        @Param("pickup") LocalDateTime pickup,
+        @Param("dropoff") LocalDateTime dropoff,
+        @Param("vehicleType") VehicleType vehicleType
+        // ... other filter params
+    );
+
+────────────────────────────────────────────────────────────────────────────────
+[H-3] @OneToOne CONSTRAINT VS RETRY INTENT — DESIGN CONTRADICTION
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: High
+
+FILE:
+  src/main/java/com/rentcar/api/domain/payment/Payment.java
+  src/main/java/com/rentcar/api/repository/PaymentRepository.java
+
+PROBLEM:
+  Payment has @OneToOne on booking_id. Hibernate DDL creates a UNIQUE constraint
+  on the booking_id column. However, PaymentRepository declares:
+
+    findTopByBookingOrderByCreatedAtDesc(Booking booking)
+
+  This "findTop" + "OrderBy" pattern implies there could be multiple payments per
+  booking (as in: find the latest one). If a payment fails and a retry is needed,
+  creating a second Payment for the same booking will throw a DB unique constraint
+  violation — because @OneToOne allows exactly one.
+
+RISK:
+  Payment retry flows are impossible at the DB level. Any retry attempt crashes
+  with DataIntegrityViolationException with no graceful handling.
+
+RECOMMENDED FIX:
+  Pick one design and be consistent:
+  A) One payment per booking: change @OneToOne to @ManyToOne (OneToMany from
+     Booking side), remove the unique constraint, keep findTopBy*.
+  B) True one-to-one: replace findTopBy* with findByBooking(), add explicit
+     unique = true on @JoinColumn to make intent clear in code.
+
+────────────────────────────────────────────────────────────────────────────────
+[H-4] getOrCreateCustomer() IS NOT ATOMIC — DUPLICATE CUSTOMERS IN PRODUCTION
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: High
+
+FILE:
+  src/main/java/com/rentcar/api/service/CustomerService.java
+
+PROBLEM:
+  findByEmailAndPhone() then save() is a non-atomic check-then-act. Two
+  concurrent booking requests from the same person (same email+phone) will both
+  find no existing record and both insert a new Customer row. The Customer entity
+  has no @UniqueConstraint on email or (email, phone), so the DB allows duplicates
+  silently.
+
+  Also: if found by email+phone but the provided name is different from the stored
+  name, the new name is silently ignored. Customer's name is never updated.
+
+RISK:
+  Duplicate customer records. Fragmented booking history. Customer support can
+  not find all bookings for one person. Name never updates.
+
+RECOMMENDED FIX:
+  Add a DB unique constraint:
+
+    @Table(name = "customers", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"email", "phone"})
+    })
+
+  Then use insert-on-conflict pattern:
+
+    try {
+        return customerRepository.save(newCustomer);
+    } catch (DataIntegrityViolationException e) {
+        return customerRepository.findByEmailAndPhone(email, phone).orElseThrow();
+    }
+
+  For the name staleness bug: update fullName on the existing record if it differs.
+
+────────────────────────────────────────────────────────────────────────────────
+[H-5] FAILED BOOKINGS HAVE NO PAYMENT RETRY PATH
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: High
+
+FILE:
+  src/main/java/com/rentcar/api/service/BookingService.java — completePayment()
+
+PROBLEM:
+  completePayment() rejects any booking that is not PENDING:
+
+    if (booking.getStatus() != BookingStatus.PENDING) {
+        throw new InvalidBookingStateException("Only pending bookings can complete payment");
+    }
+
+  If the payment provider returns unsuccessful (transient network blip, card
+  decline), booking status is set to FAILED. The customer cannot retry. They must
+  create an entirely new booking, re-running the availability check. The car might
+  have been taken in the interim.
+
+RISK:
+  Lost conversions. Customers abandon after transient failures. No way to recover
+  without starting over.
+
+RECOMMENDED FIX:
+  Allow retry from FAILED status:
+
+    if (booking.getStatus() != BookingStatus.PENDING
+            && booking.getStatus() != BookingStatus.FAILED) {
+        throw new InvalidBookingStateException(...);
+    }
+    // reset to PENDING before processing
+    booking.setStatus(BookingStatus.PENDING);
+
+  Also create a new Payment record for each retry attempt (requires fixing [H-3]
+  first to move from @OneToOne to @ManyToOne).
+
+────────────────────────────────────────────────────────────────────────────────
+[H-6] ADDON SELECTION FLOW IS ENTIRELY COSMETIC — NEVER PERSISTED
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: High
+
+FILE:
+  src/main/resources/static/js/addons.js
+
+PROBLEM:
+  Users select addons (GPS, additional driver, child seat, refueling), see a
+  running total update, and click "Next." There is no API call anywhere in
+  addons.js to submit the booking. The CreateBookingRequest DTO has no addon
+  fields. goToAddons() in car-list.js just navigates to addons.html.
+
+  The selected addons, the customer details, and the booking creation itself are
+  all missing. The "Next" button on the addons page goes nowhere meaningful.
+  Addon selections are thrown away entirely.
+
+RISK:
+  Customers believe they have reserved GPS and a child seat. They show up at the
+  rental counter. The operator has no record of any of it. Chargebacks, complaints,
+  reputational damage.
+
+RECOMMENDED FIX:
+  Either:
+  A) Add a "Complete Booking" form to the addons page that POSTs to
+     POST /api/bookings with car ID, customer details, dates, and selected addons.
+     Add addon fields to CreateBookingRequest. Store addons in the DB.
+  B) Remove the addon page entirely and mark it "coming soon" — do not show
+     a broken checkout flow to real customers.
+
+────────────────────────────────────────────────────────────────────────────────
+[H-7] MULTIPLE BUGS IN GlobalExceptionHandler
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: High
+
+FILE:
+  src/main/java/com/rentcar/api/exception/GlobalExceptionHandler.java
+
+PROBLEM:
+  Three distinct bugs:
+
+  1. InvalidBookingStateException has NO handler. Thrown from completePayment()
+     when booking is not in the right state. Falls through to the generic Exception
+     handler and returns 500 INTERNAL_SERVER_ERROR — a client error masquerading
+     as a server error.
+
+  2. InvalidBookingDateException is mapped to 409 CONFLICT. A bad date from the
+     client is a 400 BAD REQUEST, not a conflict between two resources.
+
+  3. CustomerNotFoundException handler puts the customer ID under the wrong key:
+
+       "bookingId", ex.getCustomerId()   // copy-paste bug — key is "bookingId"
+                                         // but the value is a customer ID
+
+RISK:
+  Clients cannot correctly handle errors programmatically. Monitoring fires 500
+  alerts for client errors. Wrong field name in response causes frontend bugs.
+
+RECOMMENDED FIX:
+  Add a handler for InvalidBookingStateException returning 422 UNPROCESSABLE_ENTITY.
+  Change InvalidBookingDateException handler to return 400 BAD_REQUEST.
+  Fix the CustomerNotFoundException response key from "bookingId" to "customerId".
+
+================================================================================
+  MEDIUM ISSUES
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+[M-1] BookingResponse.dailyPrice IS ALWAYS NULL — MAPSTRUCT SILENT IGNORE
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/java/com/rentcar/api/mapper/BookingMapper.java
+  src/main/java/com/rentcar/api/dto/booking/BookingResponse.java
+
+PROBLEM:
+  BookingResponse declares a dailyPrice field. The Booking entity has no
+  getDailyPrice() method — it has baseDailyPrice and discountedDailyPrice.
+  MapStruct silently leaves dailyPrice = null (default unmappedTargetPolicy is
+  IGNORE). Every BookingResponse returned from BookingMapper has dailyPrice: null.
+
+RISK:
+  Booking confirmation screen shows no price. Silent data loss, no compile error.
+
+RECOMMENDED FIX:
+  Map explicitly and enable strict policy to catch this class of bug at compile time:
+
+    @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.ERROR)
+    public interface BookingMapper {
+        @Mapping(source = "discountedDailyPrice", target = "dailyPrice")
+        BookingResponse toResponse(Booking booking);
+    }
+
+  Apply ReportingPolicy.ERROR to all mapper interfaces.
+
+────────────────────────────────────────────────────────────────────────────────
+[M-2] SeedDataConfig RUNS IN PRODUCTION
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/java/com/rentcar/api/config/SeedDataConfig.java
+
+PROBLEM:
+  SeedDataConfig is @Configuration with no @Profile restriction. It executes on
+  every startup in every environment including production. It runs carRepository
+  .count() on every restart. If the cars table is ever empty in prod (accidental
+  delete, new deployment on a fresh DB), it silently inserts 3 hardcoded test
+  cars into the live database.
+
+RISK:
+  Unexpected test data in production. Unnecessary DB query on every startup.
+
+RECOMMENDED FIX:
+  Restrict to non-production profiles:
+
+    @Configuration
+    @Profile({"dev", "local-postgres"})
+    public class SeedDataConfig { ... }
+
+  For production, use Flyway migration scripts with proper seed data (see [M-4]).
+
+────────────────────────────────────────────────────────────────────────────────
+[M-3] ALL LocalDateTime — NO TIMEZONE HANDLING ANYWHERE
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  All entities, DTOs, and service classes throughout the codebase.
+
+PROBLEM:
+  Every timestamp uses LocalDateTime with no timezone context. LocalDateTime.now()
+  uses the JVM's default timezone. If the server runs in UTC (as AWS instances
+  do by default) but the service operates in Europe/Madrid (Barcelona, UTC+1/+2),
+  a booking for "10:00 AM Barcelona time" is stored as "10:00" with no zone, and
+  "now" validation uses UTC. Daylight saving transitions cause 1-hour errors.
+  Also: Payment.paidAt and Booking.createdAt use LocalDateTime.now() in @PrePersist
+  — these are never comparable across environments with different JVM timezones.
+
+RISK:
+  Bookings display wrong times. Validation logic breaks at DST boundaries.
+  Different behaviour in dev (developer's laptop timezone) vs prod (UTC server).
+
+RECOMMENDED FIX:
+  Use OffsetDateTime or ZonedDateTime in all entities and DTOs.
+  Store in UTC, display in the operational timezone (e.g., Europe/Madrid).
+  Replace all LocalDateTime.now() calls with a Clock dependency for testability:
+
+    private final Clock clock;
+    LocalDateTime.now(clock);  // injectable, mockable in tests
+
+────────────────────────────────────────────────────────────────────────────────
+[M-4] NO DATABASE MIGRATION TOOL — ENTIRE SCHEMA MANAGED BY HIBERNATE DDL
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/resources/application-local-postgres.yaml  (ddl-auto: update)
+  src/main/resources/application-dev.yaml              (ddl-auto: create-drop)
+  src/main/resources/application-prod.yaml             (ddl-auto: validate)
+  pom.xml (no Flyway/Liquibase dependency)
+
+PROBLEM:
+  The entire schema lifecycle is managed by Hibernate's DDL generation. This means:
+  - ddl-auto: update can ADD columns but cannot reliably rename or drop them.
+  - ddl-auto: create-drop destroys all dev data on every restart.
+  - ddl-auto: validate (prod) will crash the app at startup if the schema is out
+    of sync with entity definitions — no incremental migration path.
+  - No audit trail of what changed when.
+
+RISK:
+  Schema drift between environments. No reproducible migration path to production.
+  Breaking deployments when entities change. Data loss in dev.
+
+RECOMMENDED FIX:
+  Add Flyway to pom.xml:
+
+    <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+    </dependency>
+
+  Set ddl-auto: validate in all profiles. Write V1__init.sql with CREATE TABLE
+  statements matching your current Hibernate-generated schema.
+
+────────────────────────────────────────────────────────────────────────────────
+[M-5] isPremiumLocation() STRING MATCHING IS FRAGILE AND EXPLOITABLE
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/java/com/rentcar/api/service/PricingService.java
+
+PROBLEM:
+  Premium location detection uses substring matching:
+
+    return normalizedLocation.contains("airport") ||
+           normalizedLocation.contains("t1") ||
+           normalizedLocation.contains("t2");
+
+  "t1" matches any location string containing "t1": "street 12", "gate t12",
+  or any city name with "t1" in it. "t2" is even worse. Also "t12" contains "t1"
+  so it would also trigger the premium fee. Any user who types a location string
+  containing "t1" or "t2" accidentally gets charged a premium location fee.
+
+RISK:
+  Customers overcharged or undercharged based on accidental substring matches.
+  Easy to craft a string that avoids or triggers premium fees.
+
+RECOMMENDED FIX:
+  Use an explicit allowlist of canonical location codes:
+
+    private static final Set<String> PREMIUM_LOCATION_CODES = Set.of(
+        "bcn airport t1", "bcn airport t2", "mad t1", "mad t4"
+    );
+
+    private boolean isPremiumLocation(String location) {
+        return location != null &&
+               PREMIUM_LOCATION_CODES.contains(location.toLowerCase().trim());
+    }
+
+────────────────────────────────────────────────────────────────────────────────
+[M-6] XSS VIA DIRECT innerHTML INJECTION OF API DATA IN FRONTEND
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/resources/static/js/car-list.js — renderCars(), buildDetailHtml()
+  src/main/resources/static/js/home-popular-cars.js — renderPopularCarCard()
+  src/main/resources/static/js/addons.js
+
+PROBLEM:
+  API data is directly interpolated into innerHTML strings without escaping:
+
+    carsList.innerHTML = cars.map(car => `
+        <h3>${car.brand} ${car.model}</h3>
+        <img src="${car.imageUrl}" alt="${car.brand}">
+    `).join("");
+
+  If car.brand or car.model contains HTML tags or JavaScript event handlers
+  (set via the admin seed, a compromised DB, or a future admin API), this is
+  stored XSS. Every user loading the car list would execute arbitrary JavaScript.
+
+RISK:
+  Stored XSS. Session hijacking. Credential theft. Any admin-side DB access
+  becomes a vehicle for injecting JavaScript into all user browsers.
+
+RECOMMENDED FIX:
+  Escape all user-supplied string values before inserting into HTML:
+
+    function escapeHtml(str) {
+        return String(str ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+  Use textContent for text nodes where possible and only set attributes via
+  setAttribute() rather than string interpolation.
+
+────────────────────────────────────────────────────────────────────────────────
+[M-7] renderSummary() DEFINED TWICE IN addons.js — DEAD CODE
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/resources/static/js/addons.js
+
+PROBLEM:
+  renderSummary is defined twice: once as an inner function inside loadAddonPage()
+  (lines 45–74) and again as a module-level function (lines 98–125). They have
+  identical implementations. toggleAddon() calls the module-level renderSummary().
+  The inner version inside loadAddonPage() is never callable from outside that
+  function — it is completely dead code.
+
+RISK:
+  Future modifications to one copy won't propagate to the other. Silent divergence.
+  Maintenance confusion.
+
+RECOMMENDED FIX:
+  Delete the inner renderSummary definition inside loadAddonPage() entirely.
+
+────────────────────────────────────────────────────────────────────────────────
+[M-8] layout.js FETCHES car-filters PARTIAL ON EVERY PAGE UNNECESSARILY
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/resources/static/js/layout.js
+
+PROBLEM:
+  layout.js registers 4 separate DOMContentLoaded listeners. The listener that
+  fetches /partials/car-filters.html runs on every page including index.html,
+  which has no car-filters-placeholder element. This causes:
+  - An unnecessary network request on every page load.
+  - A no-op innerHTML assignment (or silent failure).
+  - No error handling on the fetch — uncaught promise rejection if it fails.
+
+RISK:
+  Wasted network requests. Console errors. Race condition if initCarFilters() is
+  called before the DOM element exists on pages that do have it.
+
+RECOMMENDED FIX:
+  Guard the fetch with an element existence check:
+
+    const placeholder = document.getElementById("car-filters-placeholder");
+    if (placeholder) {
+        fetch("/partials/car-filters.html")
+            .then(r => r.text())
+            .then(html => { placeholder.innerHTML = html; ... })
+            .catch(err => console.error("Filters failed to load:", err));
+    }
+
+  Consolidate all four DOMContentLoaded listeners into one.
+
+────────────────────────────────────────────────────────────────────────────────
+[M-9] PRICE CALCULATION LOGIC IN CarController — VIOLATES LAYERED ARCHITECTURE
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/java/com/rentcar/api/controller/CarController.java
+
+PROBLEM:
+  CarController directly calls PricingService and performs BigDecimal arithmetic:
+
+    response.setDailyPrice(
+        price.totalPrice().divide(BigDecimal.valueOf(price.rentalDays()),
+                                  2, RoundingMode.HALF_UP));
+
+  This business logic is duplicated between getCarById() and searchCars() and
+  bypasses CarService entirely. Controllers should not perform calculations.
+
+RISK:
+  Code duplication → divergence bugs. Business logic is untestable without HTTP
+  context. Violates the stated layered architecture.
+
+RECOMMENDED FIX:
+  Move price enrichment into CarService:
+
+    public CarDetailResponse getCarDetail(Long id, CarSearchRequest request) {
+        Car car = getActiveCarById(id);
+        PriceBreakdown price = pricingService.calculate(car, request);
+        // build and return enriched response here
+    }
+
+  Controller calls service, service returns the fully enriched DTO.
+
+────────────────────────────────────────────────────────────────────────────────
+[M-10] CarResponse USES Object FOR ENUM FIELDS — OPAQUE API CONTRACT
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/java/com/rentcar/api/dto/car/CarResponse.java
+
+PROBLEM:
+  segment, vehicleType, transmission, fuelType are all typed as Object:
+
+    private Object segment;
+    private Object vehicleType;
+    private Object transmission;
+    private Object fuelType;
+
+  MapStruct maps the enum value to Object at runtime and Jackson serializes it.
+  It works, but the DTO contract is completely opaque. No IDE completion, no type
+  safety, no documentation value, and refactoring enums produces no compile errors.
+
+RECOMMENDED FIX:
+  Use the actual enum types:
+
+    private VehicleSegment segment;
+    private VehicleType vehicleType;
+    private TransmissionType transmission;
+    private FuelType fuelType;
+
+────────────────────────────────────────────────────────────────────────────────
+[M-11] getPopularCars() SLICES IN JAVA — LIMIT SHOULD BE IN SQL
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/java/com/rentcar/api/service/CarService.java — getPopularCars()
+  src/main/java/com/rentcar/api/repository/CarRepository.java — findPopularCars()
+
+PROBLEM:
+  findPopularCars() fetches ALL cars from the DB sorted by booking count. Then:
+
+    return cars.subList(0, Math.min(cars.size(), POPULAR_CARS_LIMIT));
+
+  The DB transfers every car row to the JVM, and Java discards all but 4.
+  Also, CarController.getPopularCars() never calls PricingService, so
+  CarResponse.totalPrice is null for all popular car cards.
+
+RECOMMENDED FIX:
+  Add LIMIT to the JPQL query:
+
+    @Query("... order by count(b.id) desc limit 4")
+    List<Car> findPopularCars();
+
+  Remove the Java subList call. Compute and set totalPrice in the controller or
+  service before returning.
+
+────────────────────────────────────────────────────────────────────────────────
+[M-12] NO PAGINATION ON LIST ENDPOINTS
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Medium
+
+FILE:
+  src/main/java/com/rentcar/api/controller/CarController.java
+  src/main/java/com/rentcar/api/controller/PaymentController.java
+
+PROBLEM:
+  GET /api/cars, GET /api/cars/search, and GET /api/payments all return
+  unbounded result sets with no pagination parameters. As data grows, these
+  endpoints will degrade and eventually OOM the JVM or timeout.
+
+RECOMMENDED FIX:
+  Add Pageable support to all list endpoints:
+
+    @GetMapping
+    public Page<CarResponse> getCars(Pageable pageable) {
+        return carService.getActiveCars(pageable).map(carMapper::toResponse);
+    }
+
+================================================================================
+  LOW ISSUES
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+[L-1] findByCarIdAndStatusIn IS DEAD CODE — NEVER CALLED
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  src/main/java/com/rentcar/api/repository/BookingRepository.java
+
+PROBLEM:
+  findByCarIdAndStatusIn(Long carId, List<BookingStatus> statuses) is declared
+  but never invoked anywhere in the codebase.
+
+RECOMMENDED FIX:
+  Remove it.
+
+────────────────────────────────────────────────────────────────────────────────
+[L-2] HAND-ROLLED HEALTH ENDPOINT INSTEAD OF SPRING BOOT ACTUATOR
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  src/main/java/com/rentcar/api/health/HealthController.java
+
+PROBLEM:
+  The custom GET /api/health returns {"status": "ok"} unconditionally. It does
+  not check DB connectivity, payment provider reachability, or anything useful.
+  Spring Boot Actuator provides /actuator/health with automatic DB health checks
+  and is not a dependency in this project.
+
+RECOMMENDED FIX:
+  Add spring-boot-starter-actuator to pom.xml. Remove HealthController.
+  Configure actuator exposure:
+
+    management.endpoints.web.exposure.include=health,info
+
+────────────────────────────────────────────────────────────────────────────────
+[L-3] H2 IN RUNTIME SCOPE — SHIPS IN PRODUCTION ARTIFACT
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  pom.xml
+
+PROBLEM:
+  H2 is declared with <scope>runtime</scope>. It ships in the production JAR,
+  adds ~2.5MB to the artifact, and serves no purpose in production.
+
+RECOMMENDED FIX:
+  Change to <scope>test</scope>.
+
+────────────────────────────────────────────────────────────────────────────────
+[L-4] ZERO LOGGING IN SERVICE LAYER
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  All service classes: BookingService, PaymentService, CustomerService,
+  PricingService, CarService.
+
+PROBLEM:
+  No SLF4J/Logback calls anywhere in the service layer. In production there is
+  no audit trail for: booking creation, payment processing, payment failures,
+  cancellations, or any business logic decision. When something goes wrong in
+  production (and it will), there is nothing to debug with.
+
+RECOMMENDED FIX:
+  Add @Slf4j (Lombok) to every service class. Log at INFO on every state
+  transition, WARN on business rejections, ERROR on unexpected failures:
+
+    log.info("Creating booking: carId={}, customerEmail={}, pickup={}, dropoff={}",
+             request.carId(), request.customerEmail(),
+             request.pickupDateTime(), request.dropoffDateTime());
+
+    log.info("Payment processed: bookingId={}, status={}, ref={}",
+             booking.getId(), payment.getStatus(), result.providerReference());
+
+    log.warn("Payment failed: bookingId={}", bookingId);
+
+────────────────────────────────────────────────────────────────────────────────
+[L-5] GENERIC EXCEPTION HANDLER LEAKS INTERNAL ERROR MESSAGES TO CLIENTS
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  src/main/java/com/rentcar/api/exception/GlobalExceptionHandler.java
+
+PROBLEM:
+  The catch-all handler returns ex.getMessage() directly in the HTTP response:
+
+    "message", ex.getMessage() != null ? ex.getMessage() : "Unexpected error occurred"
+
+  ex.getMessage() for unhandled exceptions can expose SQL query text, internal
+  class names, stack frame hints, or configuration details.
+
+RECOMMENDED FIX:
+  Log the full exception server-side, return a sanitized message to clients:
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGenericException(Exception ex) {
+        log.error("Unexpected error", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", "An unexpected error occurred. Please try again later."));
+    }
+
+────────────────────────────────────────────────────────────────────────────────
+[L-6] YEAR INFERENCE IN buildIsoDate() IS UNRELIABLE
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  src/main/resources/static/js/main-search.js — buildIsoDate()
+
+PROBLEM:
+  Year is inferred from month comparison alone:
+
+    if (monthNumber < currentMonth) { year += 1; }
+
+  This breaks for multi-year calendar ranges. If the calendar widget displays
+  months spanning more than one future year, the logic assumes any month earlier
+  than the current month belongs to next year — which is wrong if the date is
+  two or more years out.
+
+RECOMMENDED FIX:
+  Store the full ISO date (YYYY-MM-DD) in the calendar cell's data-date attribute
+  and read it directly. Eliminate all year inference logic.
+
+────────────────────────────────────────────────────────────────────────────────
+[L-7] addons.js LOADS CAR DETAIL WITH NO ERROR HANDLING
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  src/main/resources/static/js/addons.js — loadAddonPage()
+
+PROBLEM:
+  The API fetch on the addons page has no error handling:
+
+    const response = await fetch(`/api/cars/${carId}${window.location.search}`);
+    selectedCar = await response.json();  // no response.ok check
+
+  If the fetch returns a 404 or 500, response.json() parses the error body and
+  selectedCar ends up as an error object. The page renders silently with wrong
+  data or nothing at all. The user has no feedback.
+
+RECOMMENDED FIX:
+    if (!response.ok) {
+        document.getElementById("summaryCarName").textContent = "Car unavailable";
+        console.error("Failed to load car detail:", response.status);
+        return;
+    }
+
+────────────────────────────────────────────────────────────────────────────────
+[L-8] DOCKER-COMPOSE HARDCODES PLAIN-TEXT CREDENTIALS
+────────────────────────────────────────────────────────────────────────────────
+SEVERITY: Low
+
+FILE:
+  docker-compose.yml
+  src/main/resources/application-local-postgres.yaml
+
+PROBLEM:
+  Both files hardcode database credentials in plain text (user: rentcar,
+  password: rentcar). These are committed to version control.
+
+RISK:
+  If this repository is ever made public or the credentials are reused
+  for a staging/production environment, the credentials are compromised.
+
+RECOMMENDED FIX:
+  Use environment variables in docker-compose.yml:
+
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  Reference .env file (git-ignored). Never commit passwords to source control.
+
+================================================================================
+  SUMMARY
+================================================================================
+
+  Priority order for fixing before any production traffic:
+
+  1. [C-3] Fix spring.profiles.active typo — app may not even start
+  2. [C-1] Add @Transactional to all service methods + locking on availability check
+  3. [C-2] Implement StripePaymentProvider (or throw, not return null)
+  4. [C-4] Add refund call in cancellation flow
+  5. [H-1] Add authentication/authorization (Spring Security)
+  6. [H-6] Either implement addon booking submission or remove the addon page
+  7. [H-7] Fix GlobalExceptionHandler bugs (missing handler, wrong status codes, wrong key)
+  8. [M-1] Fix BookingResponse.dailyPrice mapping (always null)
+  9. [H-2] Fix searchCars() to filter by availability in the DB query
+  10. [H-4] Add unique constraint on Customer email+phone + atomic upsert
+
+  After stabilising:
+  [M-3] Timezone handling, [M-4] Flyway migrations, [M-6] XSS escaping,
+  [H-3] Payment OneToOne/OneToMany decision, [H-5] Retry path for FAILED bookings.
+
+================================================================================
+  END OF REVIEW
+================================================================================

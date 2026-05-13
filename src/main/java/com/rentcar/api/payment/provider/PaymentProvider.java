@@ -5,4 +5,5 @@ import com.rentcar.api.payment.model.PaymentResult;
 
 public interface PaymentProvider {
     PaymentResult pay(Payment payment, String paymentMethodId);
+    PaymentResult refund(Payment payment);
 }
