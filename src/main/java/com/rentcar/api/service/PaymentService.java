@@ -26,17 +26,8 @@ public class PaymentService {
     private final PaymentProvider paymentProvider;
 
     @Transactional
-    public void createPendingOnlinePayment(Booking savedBooking) {
-        Payment payment = Payment.builder()
-                .booking(savedBooking)
-                .amount(savedBooking.getTotalPrice())
-                .currencyCode("EUR")
-                .method(PaymentMethod.CARD)
-                .channel(PaymentChannel.ONLINE)
-                .status(PaymentStatus.PENDING)
-                .build();
-
-        paymentRepository.save(payment);
+    public void createPendingPayment(Booking booking) {
+        paymentRepository.save(buildPendingPayment(booking));
     }
 
     public List<Payment> getPayments() {
@@ -91,5 +82,16 @@ public class PaymentService {
     private Payment getLatestPaymentForBooking(Booking booking) {
         return paymentRepository.findTopByBookingOrderByCreatedAtDesc(booking)
                 .orElseThrow(() -> new PaymentNotFoundException(booking.getId()));
+    }
+
+    private Payment buildPendingPayment(Booking booking) {
+        return Payment.builder()
+                .booking(booking)
+                .amount(booking.getTotalPrice())
+                .currencyCode("EUR")
+                .method(PaymentMethod.CARD)
+                .channel(PaymentChannel.ONLINE)
+                .status(PaymentStatus.PENDING)
+                .build();
     }
 }

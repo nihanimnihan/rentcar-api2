@@ -47,6 +47,17 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(AddonNotFoundException.class)
+    public ResponseEntity<?> handleAddonNotFoundException(AddonNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now(),
+                        "error", "Not found",
+                        "message", ex.getMessage()
+                ));
+    }
+
     @ExceptionHandler(CarNotFoundException.class)
     public ResponseEntity<?> handleCarNotFoundException(CarNotFoundException ex) {
         return ResponseEntity

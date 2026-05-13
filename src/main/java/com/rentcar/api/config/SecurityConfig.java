@@ -74,10 +74,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/bookings/*/payments/process").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/checkout").permitAll()
 
+                        // ── Public API — add-ons list (must come BEFORE the admin rule below) ─
+                        .requestMatchers(HttpMethod.GET, "/api/addons/active").permitAll()
+
                         // ── Admin-only ──────────────────────────────────────────────────────
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/customers/**").hasRole("ADMIN")
+                        .requestMatchers("/api/addons/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/cars/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/cars/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/cars/**").hasRole("ADMIN")

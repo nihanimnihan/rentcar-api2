@@ -1,5 +1,8 @@
 package com.rentcar.api.service;
 
+import com.rentcar.api.domain.addon.Addon;
+import com.rentcar.api.domain.addon.AddonPricingType;
+import com.rentcar.api.domain.addon.BookingAddon;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
@@ -14,11 +17,15 @@ import com.rentcar.api.exception.BookingNotFoundException;
 import com.rentcar.api.exception.CarNotAvailableException;
 import com.rentcar.api.exception.InvalidBookingDateException;
 import com.rentcar.api.exception.InvalidBookingStateException;
+import com.rentcar.api.repository.AddonRepository;
+import com.rentcar.api.repository.BookingAddonRepository;
 import com.rentcar.api.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -31,6 +38,8 @@ public class BookingService {
     private final PaymentService paymentService;
     private final PricingService pricingService;
     private final CarService carService;
+    private final AddonRepository addonRepository;
+    private final BookingAddonRepository bookingAddonRepository;
 
     @Transactional
     public Booking createBooking(CreateBookingRequest request) {
@@ -55,6 +64,18 @@ public class BookingService {
 
         PriceBreakdown price = pricingService.calculate(car, request.pickupLocation(), request.dropoffLocation(), request.pickupDateTime(), request.dropoffDateTime());
 
+        // Resolve add-ons (ignore inactive ones; requesting a non-existent ID is silently skipped)
+        List<Long> requestedAddonIds = request.addonIds() == null ? List.of() : request.addonIds();
+        List<Addon> addons = requestedAddonIds.isEmpty()
+                ? List.of()
+                : addonRepository.findAllById(requestedAddonIds).stream()
+                        .filter(Addon::isActive)
+                        .toList();
+
+        BigDecimal addonCharge = addons.stream()
+                .map(addon -> computeAddonPrice(addon, price.rentalDays()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         Customer customer = customerService.getOrCreateCustomer(request.customerName(), request.customerEmail(), request.customerPhone());
 
         Booking booking = Booking.builder()
@@ -69,13 +90,28 @@ public class BookingService {
                 .oneWayFee(price.oneWayFee())
                 .premiumLocationFee(price.premiumLocationFee())
                 .tax(price.tax())
-                .totalPrice(price.totalPrice())
+                .addonCharge(addonCharge)
+                .totalPrice(price.totalPrice().add(addonCharge))
                 .status(BookingStatus.PENDING)
                 .source(BookingSource.WEB)
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
-        paymentService.createPendingOnlinePayment(savedBooking);
+
+        // Snapshot each add-on's name and price at booking time so future price
+        // changes on the Addon entity cannot retroactively alter this booking's total.
+        for (Addon addon : addons) {
+            BookingAddon ba = BookingAddon.builder()
+                    .booking(savedBooking)
+                    .addon(addon)
+                    .addonName(addon.getName())
+                    .priceAtBooking(computeAddonPrice(addon, price.rentalDays()))
+                    .build();
+            bookingAddonRepository.save(ba);
+            savedBooking.getBookingAddons().add(ba);
+        }
+
+        paymentService.createPendingPayment(savedBooking);
         return savedBooking;
     }
 
@@ -105,8 +141,15 @@ public class BookingService {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
-        if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new InvalidBookingStateException("Only pending bookings can complete payment");
+        if (booking.getStatus() == BookingStatus.FAILED) {
+            // Previous attempt failed — create a fresh PENDING payment and reset the
+            // booking so processLatestPaymentForBooking picks up the new record.
+            // The old FAILED payment row is preserved for audit history.
+            paymentService.createPendingPayment(booking);
+            booking.setStatus(BookingStatus.PENDING);
+        } else if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new InvalidBookingStateException(
+                    "Payment can only be processed for bookings in PENDING or FAILED status");
         }
 
         Payment payment = paymentService.processLatestPaymentForBooking(booking, paymentMethodId);
@@ -129,6 +172,15 @@ public class BookingService {
         if (request.pickupDateTime().isBefore(LocalDateTime.now().plusHours(1))) {
             throw new InvalidBookingDateException("Pickup must be at least 1 hour from now");
         }
+    }
+
+    private BigDecimal computeAddonPrice(Addon addon, int rentalDays) {
+        if (addon.getPricingType() == AddonPricingType.DAILY) {
+            return addon.getPrice()
+                    .multiply(BigDecimal.valueOf(rentalDays))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+        return addon.getPrice().setScale(2, RoundingMode.HALF_UP);
     }
 
 }

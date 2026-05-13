@@ -1,10 +1,13 @@
 package com.rentcar.api.config;
 
+import com.rentcar.api.domain.addon.Addon;
+import com.rentcar.api.domain.addon.AddonPricingType;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.car.FuelType;
 import com.rentcar.api.domain.car.TransmissionType;
 import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
+import com.rentcar.api.repository.AddonRepository;
 import com.rentcar.api.repository.CarRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -12,12 +15,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 public class SeedDataConfig {
 
     private final CarRepository carRepository;
+    private final AddonRepository addonRepository;
 
     @Bean
     CommandLineRunner seedCars() {
@@ -92,6 +97,53 @@ public class SeedDataConfig {
                             .minDriverAge(21)
                             .build()
             );
+        };
+    }
+
+    @Bean
+    CommandLineRunner seedAddons() {
+        return args -> {
+            if (addonRepository.count() > 0) {
+                return;
+            }
+
+            addonRepository.saveAll(List.of(
+                    Addon.builder()
+                            .name("Additional Driver")
+                            .description("Allow an extra driver on the rental")
+                            .price(new BigDecimal("19.00"))
+                            .pricingType(AddonPricingType.DAILY)
+                            .active(true)
+                            .build(),
+                    Addon.builder()
+                            .name("Child Seat")
+                            .description("Rear-facing, forward-facing, and booster seats available")
+                            .price(new BigDecimal("15.00"))
+                            .pricingType(AddonPricingType.DAILY)
+                            .active(true)
+                            .build(),
+                    Addon.builder()
+                            .name("GPS Navigation")
+                            .description("Portable GPS device for your trip")
+                            .price(new BigDecimal("12.00"))
+                            .pricingType(AddonPricingType.DAILY)
+                            .active(true)
+                            .build(),
+                    Addon.builder()
+                            .name("Full Insurance")
+                            .description("Full coverage with zero excess")
+                            .price(new BigDecimal("25.00"))
+                            .pricingType(AddonPricingType.DAILY)
+                            .active(true)
+                            .build(),
+                    Addon.builder()
+                            .name("Snow Chains")
+                            .description("For winter driving in mountain areas")
+                            .price(new BigDecimal("30.00"))
+                            .pricingType(AddonPricingType.ONE_TIME)
+                            .active(true)
+                            .build()
+            ));
         };
     }
 }

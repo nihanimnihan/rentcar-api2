@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record CreateBookingRequest(
 
@@ -34,6 +35,9 @@ public record CreateBookingRequest(
         String pickupLocation,
 
         @NotNull
-        String dropoffLocation
+        String dropoffLocation,
+
+        // nullable — no add-ons selected is valid
+        List<Long> addonIds
 ) {
 }
