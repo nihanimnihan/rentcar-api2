@@ -70,14 +70,16 @@ function buildSearchParamsStr() {
 }
 
 function renderPopularCarCard(car, searchParamsStr) {
-    const imageUrl = car.imageUrl || "img/cars/1.png";
-    const location = car.location || car.pickupLocation || "Barcelona";
-    const category = car.category || "Car";
-    const name = `${car.brand || ""} ${car.model || ""}`.trim() || "Car";
-    const seats = car.seats || "-";
-    const bags = car.bags || "-";
-    const transmission = car.transmission || "-";
-    const dailyPrice = car.dailyPrice || car.pricePerDay || "-";
+    const imgSrc      = safeSrc(car.imageUrl, "img/cars/1.png");
+    const location    = escapeHtml(car.location || car.pickupLocation || "Barcelona");
+    const category    = escapeHtml(car.category || "Car");
+    const name        = `${escapeHtml(car.brand || "")} ${escapeHtml(car.model || "")}`.trim() || "Car";
+    const seats       = Number.isFinite(Number(car.seats))       ? Number(car.seats)       : "-";
+    const bags        = Number.isFinite(Number(car.bags))        ? Number(car.bags)        : "-";
+    const transmission = escapeHtml(car.transmission || "-");
+    const dailyPrice  = Number.isFinite(Number(car.dailyPrice))  ? Number(car.dailyPrice).toFixed(2)
+                      : Number.isFinite(Number(car.pricePerDay)) ? Number(car.pricePerDay).toFixed(2)
+                      : "-";
 
     return `
         <div class="col-xl-3 col-lg-4 col-md-6">
@@ -85,7 +87,7 @@ function renderPopularCarCard(car, searchParamsStr) {
                 <div class="carCard__image">
                     <div class="cardImage ratio border-light ratio-3:2">
                         <div class="cardImage__content">
-                            <img class="rounded-4 col-12" src="${imageUrl}" alt="${name}">
+                            <img class="rounded-4 col-12" src="${imgSrc}" alt="${name}">
                         </div>
                     </div>
                 </div>

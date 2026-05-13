@@ -112,19 +112,22 @@ function renderCars(cars) {
   if (filterCarsCount) filterCarsCount.textContent = cars.length;
 
   carsList.innerHTML = cars.map(car => {
-    const displayClass = car.displayClass || car.segment || "Standard";
-    const vehicleType = car.vehicleType || "";
-    const transmission = car.transmission || "";
-    const fuelType = car.fuelType || "";
+    const displayClass = escapeHtml(car.displayClass || car.segment || "Standard");
+    const vehicleType  = escapeHtml(car.vehicleType  || "");
+    const transmission = escapeHtml(car.transmission || "");
+    const fuelType     = escapeHtml(car.fuelType     || "");
 
-    const seats = car.seats || "-";
-    const doors = car.doors || 4;
-    const bags = car.bags || "-";
-    const minDriverAge = car.minDriverAge || 21;
+    const seats       = Number.isFinite(Number(car.seats))       ? Number(car.seats)       : "-";
+    const doors       = Number.isFinite(Number(car.doors))       ? Number(car.doors)       : 4;
+    const bags        = Number.isFinite(Number(car.bags))        ? Number(car.bags)        : "-";
+    const minDriverAge = Number.isFinite(Number(car.minDriverAge)) ? Number(car.minDriverAge) : 21;
     const hasAc = car.airConditioning !== false;
 
-    const dailyPrice = car.dailyPrice || "-";
-    const totalPrice = car.totalPrice || dailyPrice;
+    const dailyPrice = Number.isFinite(Number(car.dailyPrice)) ? Number(car.dailyPrice).toFixed(2) : "-";
+    const totalPrice = Number.isFinite(Number(car.totalPrice)) ? Number(car.totalPrice).toFixed(2) : dailyPrice;
+
+    const brandModel  = `${escapeHtml(car.brand || "")} ${escapeHtml(car.model || "")}`.trim();
+    const imgSrc      = safeSrc(car.imageUrl, "img/lists/car/1/1.png");
 
     return `
       <div class="col-lg-6 col-12" id="car-card-${car.id}">
@@ -133,7 +136,7 @@ function renderCars(cars) {
 
             <div>
               <h3 class="text-22 fw-600">
-                ${car.brand || ""} ${car.model || ""}
+                ${brandModel}
               </h3>
               <div class="rentcar-spec-list mt-10">
                 <span class="rentcar-spec-pill">${displayClass}</span>
@@ -147,8 +150,8 @@ function renderCars(cars) {
               <div class="cardImage__content">
                 <img
                   class="rounded-4 col-12"
-                  src="${car.imageUrl || "img/lists/car/1/1.png"}"
-                  alt="${car.brand || ""} ${car.model || ""}">
+                  src="${imgSrc}"
+                  alt="${brandModel}">
               </div>
             </div>
 
@@ -270,15 +273,16 @@ function removeExistingDetail() {
 }
 
 function buildDetailHtml(car, carId) {
-  const carName = `${car.brand || ""} ${car.model || ""}`.trim();
-  const displayClass = car.displayClass || car.segment || "Standard";
-  const transmission = car.transmission || "";
-  const seats = car.seats || "-";
-  const doors = car.doors || 4;
-  const bags = car.bags || "-";
-  const minDriverAge = car.minDriverAge || 21;
-  const dailyPrice = car.dailyPrice || "-";
-  const totalPrice = car.totalPrice || dailyPrice;
+  const carName      = `${escapeHtml(car.brand || "")} ${escapeHtml(car.model || "")}`.trim();
+  const displayClass = escapeHtml(car.displayClass || car.segment || "Standard");
+  const transmission = escapeHtml(car.transmission || "");
+  const seats        = Number.isFinite(Number(car.seats))        ? Number(car.seats)        : "-";
+  const doors        = Number.isFinite(Number(car.doors))        ? Number(car.doors)        : 4;
+  const bags         = Number.isFinite(Number(car.bags))         ? Number(car.bags)         : "-";
+  const minDriverAge = Number.isFinite(Number(car.minDriverAge)) ? Number(car.minDriverAge) : 21;
+  const dailyPrice   = Number.isFinite(Number(car.dailyPrice))   ? Number(car.dailyPrice).toFixed(2) : "-";
+  const totalPrice   = Number.isFinite(Number(car.totalPrice))   ? Number(car.totalPrice).toFixed(2) : dailyPrice;
+  const imgSrc       = safeSrc(car.imageUrl, "img/lists/car/1/1.png");
 
   return `
     <div class="col-12 inline-car-detail mt-20" id="car-detail-${carId}">
@@ -303,7 +307,7 @@ function buildDetailHtml(car, carId) {
 
             <div class="rentcar-detail-image-wrap">
               <img
-                src="${car.imageUrl || "img/lists/car/1/1.png"}"
+                src="${imgSrc}"
                 alt="${carName}">
             </div>
 

@@ -72,7 +72,7 @@ function renderAddonCard(addon, isRecommended) {
     return `
       <div class="rentcar-addon-card" data-addon-id="${addon.id}">
         <div class="rentcar-addon-image">
-          <img src="${addon.imageUrl}" alt="${escapeHtml(addon.name)}">
+          <img src="${safeSrc(addon.imageUrl, "")}" alt="${escapeHtml(addon.name)}">
         </div>
         <div class="rentcar-addon-content">
           <div class="d-flex justify-between items-start">
@@ -94,7 +94,7 @@ function renderAddonCard(addon, isRecommended) {
   }
 
   const iconHtml = addon.imageUrl
-    ? `<img src="${addon.imageUrl}" alt="${escapeHtml(addon.name)}"
+    ? `<img src="${safeSrc(addon.imageUrl, "")}" alt="${escapeHtml(addon.name)}"
            style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
     : `<i class="icon-user text-28"></i>`;
 
@@ -410,7 +410,7 @@ function setText(id, value) {
 function setImage(id, src, alt) {
   const el = document.getElementById(id);
   if (el) {
-    el.src = src;
+    el.src = safeSrc(src, "img/cars/1.png");
     el.alt = alt || "car image";
   }
 }
@@ -432,11 +432,7 @@ function formatDateTime(value) {
   });
 }
 
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.appendChild(document.createTextNode(str || ""));
-  return div.innerHTML;
-}
+// escapeHtml and safeSrc are provided by escape-html.js (loaded before this file)
 
 window.toggleAddon = toggleAddon;
 window.closeBookingModal = closeBookingModal;
