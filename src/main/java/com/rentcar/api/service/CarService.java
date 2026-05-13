@@ -58,31 +58,16 @@ public class CarService {
     }
 
     public List<Car> searchCars(CarSearchRequest request) {
-        return carRepository.findByActiveTrue()
-                .stream()
-                .filter(car -> matchesFilters(car, request))
-                .toList();
-    }
-
-    private boolean matchesFilters(Car car, CarSearchRequest request) {
-        if (request.vehicleType() != null && car.getVehicleType() != request.vehicleType()) {
-            return false;
-        }
-        if (request.segment() != null && car.getSegment() != request.segment()) {
-            return false;
-        }
-        if (request.transmission() != null && car.getTransmission() != request.transmission()) {
-            return false;
-        }
-        if (request.fuelType() != null && car.getFuelType() != request.fuelType()) {
-            return false;
-        }
-        if (request.minSeats() != null && car.getSeats() < request.minSeats()) {
-            return false;
-        }
-        if (request.minBags() != null && car.getBags() < request.minBags()) {
-            return false;
-        }
-        return request.minDriverAge() == null || car.getMinDriverAge() <= request.minDriverAge();
+        return carRepository.searchAvailableCars(
+                request.pickupDateTime(),
+                request.dropoffDateTime(),
+                request.vehicleType(),
+                request.segment(),
+                request.transmission(),
+                request.fuelType(),
+                request.minSeats(),
+                request.minBags(),
+                request.minDriverAge()
+        );
     }
 }
