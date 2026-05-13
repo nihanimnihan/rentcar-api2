@@ -5,6 +5,7 @@ import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentChannel;
 import com.rentcar.api.domain.payment.PaymentMethod;
 import com.rentcar.api.domain.payment.PaymentStatus;
+import com.rentcar.api.exception.InvalidBookingStateException;
 import com.rentcar.api.exception.PaymentNotFoundException;
 import com.rentcar.api.exception.RefundFailedException;
 import com.rentcar.api.payment.model.PaymentResult;
@@ -66,6 +67,12 @@ public class PaymentService {
     @Transactional
     public Payment processLatestPaymentForBooking(Booking booking, String paymentMethodId) {
         Payment payment = getLatestPaymentForBooking(booking);
+
+        // Guard: if a previous attempt already succeeded, do not charge again.
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            throw new InvalidBookingStateException(
+                    "Booking " + booking.getId() + " has already been paid (payment " + payment.getId() + ")");
+        }
 
         PaymentResult result = paymentProvider.pay(payment, paymentMethodId);
 
