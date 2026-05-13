@@ -100,7 +100,7 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking completePayment(Long bookingId) {
+    public Booking completePayment(Long bookingId, String paymentMethodId) {
         // Lock the booking row to prevent concurrent cancel + completePayment races.
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
@@ -109,7 +109,7 @@ public class BookingService {
             throw new InvalidBookingStateException("Only pending bookings can complete payment");
         }
 
-        Payment payment = paymentService.processLatestPaymentForBooking(booking);
+        Payment payment = paymentService.processLatestPaymentForBooking(booking, paymentMethodId);
 
         if (payment.getStatus() == PaymentStatus.PAID) {
             booking.setStatus(BookingStatus.CONFIRMED);

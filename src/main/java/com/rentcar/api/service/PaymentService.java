@@ -49,10 +49,10 @@ public class PaymentService {
     }
 
     @Transactional
-    public Payment processLatestPaymentForBooking(Booking booking) {
+    public Payment processLatestPaymentForBooking(Booking booking, String paymentMethodId) {
         Payment payment = getLatestPaymentForBooking(booking);
 
-        PaymentResult result = paymentProvider.pay(payment);
+        PaymentResult result = paymentProvider.pay(payment, paymentMethodId);
 
         payment.setProviderReference(result.providerReference());
 
