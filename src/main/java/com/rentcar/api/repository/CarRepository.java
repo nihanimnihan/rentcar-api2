@@ -6,6 +6,7 @@ import com.rentcar.api.domain.car.TransmissionType;
 import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -32,7 +33,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
         GROUP BY c
         ORDER BY count(b.id) DESC
     """)
-    List<Car> findPopularCars();
+    List<Car> findPopularCars(Pageable pageable);
 
     /**
      * Search with availability date filter.

@@ -3,6 +3,7 @@ package com.rentcar.api.service;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.dto.car.CarSearchRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
+import org.springframework.data.domain.PageRequest;
 import com.rentcar.api.exception.CarNotFoundException;
 import com.rentcar.api.repository.CarRepository;
 import lombok.RequiredArgsConstructor;
@@ -58,8 +59,7 @@ public class CarService {
     }
 
     public List<Car> getPopularCars() {
-        List<Car> cars = carRepository.findPopularCars();
-        return cars.subList(0, Math.min(cars.size(), POPULAR_CARS_LIMIT));
+        return carRepository.findPopularCars(PageRequest.of(0, POPULAR_CARS_LIMIT));
     }
 
     /**
