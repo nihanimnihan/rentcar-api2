@@ -14,3 +14,8 @@ spring:
 
 stripe:
   api-key: ${STRIPE_API_KEY}
+
+rentcar:
+  admin:
+    username: ${ADMIN_USERNAME}
+    password: ${ADMIN_PASSWORD}
