@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class FakePaymentProvider implements PaymentProvider {
 
     @Override
-    public PaymentResult pay(Payment payment) {
+    public PaymentResult pay(Payment payment, String paymentMethodId) {
         return new PaymentResult(true, "FAKE-" + payment.getId());
     }
 }
