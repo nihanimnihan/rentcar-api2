@@ -1,5 +1,9 @@
 package com.rentcar.api.dto.car;
 
+import com.rentcar.api.domain.car.FuelType;
+import com.rentcar.api.domain.car.TransmissionType;
+import com.rentcar.api.domain.car.VehicleSegment;
+import com.rentcar.api.domain.car.VehicleType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,16 +17,18 @@ public class CarResponse {
     private String model;
 
     private String imageUrl;
+    private String displayClass;
 
     private Integer seats;
     private Integer bags;
     private Integer doors;
     private Integer minDriverAge;
+    private Boolean airConditioning;
 
-    private Object segment;
-    private Object vehicleType;
-    private Object transmission;
-    private Object fuelType;
+    private VehicleSegment segment;
+    private VehicleType vehicleType;
+    private TransmissionType transmission;
+    private FuelType fuelType;
 
     private BigDecimal dailyPrice;
     private BigDecimal totalPrice;

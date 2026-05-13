@@ -310,6 +310,21 @@ class BookingPricingIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void carSearchResponse_enumFieldsSerializedAsStrings() throws Exception {
+        // [M-10] CarResponse must not expose enum fields as Object (null or object blob).
+        // Verifies transmission, fuelType, segment, vehicleType all come back as non-null strings.
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/cars/search")
+                        .param("pickupDateTime", daysFromNow(10))
+                        .param("dropoffDateTime", daysFromNow(12)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].transmission").isString())
+                .andExpect(jsonPath("$[0].fuelType").isString())
+                .andExpect(jsonPath("$[0].segment").isString())
+                .andExpect(jsonPath("$[0].vehicleType").isString());
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────────
 
     private String daysFromNow(int days) {
