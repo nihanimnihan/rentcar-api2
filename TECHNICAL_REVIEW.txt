@@ -777,7 +777,7 @@ RECOMMENDED FIX:
   service before returning.
 
 ────────────────────────────────────────────────────────────────────────────────
-[M-12] NO PAGINATION ON LIST ENDPOINTS
+[M-12] NO PAGINATION ON LIST ENDPOINTS (GELECEK_PROD)
 ────────────────────────────────────────────────────────────────────────────────
 SEVERITY: Medium
 

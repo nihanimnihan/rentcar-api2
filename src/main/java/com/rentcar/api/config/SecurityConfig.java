@@ -61,6 +61,8 @@ public class SecurityConfig {
                         // H2 console (dev profile only — harmless to permit in prod since
                         // h2-console is disabled there via application-prod.yaml)
                         .requestMatchers("/h2-console/**").permitAll()
+                        // Actuator health — public so load balancers / uptime monitors can probe
+                        .requestMatchers("/actuator/health").permitAll()
 
                         // ── Public API — car browsing ───────────────────────────────────────
                         .requestMatchers(HttpMethod.GET, "/api/cars/search", "/api/cars/popular").permitAll()
