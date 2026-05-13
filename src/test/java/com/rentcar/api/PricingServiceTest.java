@@ -30,19 +30,23 @@ class PricingServiceTest {
 
     @BeforeEach
     void setUp() {
-        PricingProperties props = new PricingProperties(List.of(
-                new PricingProperties.DiscountTier(1, BigDecimal.ZERO),
-                new PricingProperties.DiscountTier(3, BigDecimal.valueOf(5)),
-                new PricingProperties.DiscountTier(7, BigDecimal.valueOf(10)),
-                new PricingProperties.DiscountTier(14, BigDecimal.valueOf(15)),
-                new PricingProperties.DiscountTier(28, BigDecimal.valueOf(25))
-        ));
+        PricingProperties props = new PricingProperties(
+                List.of(
+                        new PricingProperties.DiscountTier(1, BigDecimal.ZERO),
+                        new PricingProperties.DiscountTier(3, BigDecimal.valueOf(5)),
+                        new PricingProperties.DiscountTier(7, BigDecimal.valueOf(10)),
+                        new PricingProperties.DiscountTier(14, BigDecimal.valueOf(15)),
+                        new PricingProperties.DiscountTier(28, BigDecimal.valueOf(25))
+                ),
+                List.of("BCN Airport T1", "BCN Airport T2")
+        );
         MileageProperties mileageProps = new MileageProperties(
                 300, 150, 7,
                 new BigDecimal("0.10"),
                 new BigDecimal("4.70")
         );
         pricingService = new PricingService(props, new com.rentcar.api.service.MileageService(mileageProps));
+        pricingService.init();
     }
 
     // ── Discount tiers ──────────────────────────────────────────────────────────
@@ -140,6 +144,50 @@ class PricingServiceTest {
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
+
+    // ── Premium location matching ─────────────────────────────────────────────
+
+    @Test
+    void premiumLocation_exactName_chargesFee() {
+        Car car = buildCar(BigDecimal.valueOf(100), VehicleSegment.ECONOMY, VehicleType.SEDAN);
+        PriceBreakdown price = pricingService.calculate(car, "BCN Airport T1", "BCN Airport T1",
+                BASE, BASE.plusDays(1));
+        assertThat(price.premiumLocationFee()).isGreaterThan(BigDecimal.ZERO);
+    }
+
+    @Test
+    void premiumLocation_caseInsensitive_chargesFee() {
+        Car car = buildCar(BigDecimal.valueOf(100), VehicleSegment.ECONOMY, VehicleType.SEDAN);
+        PriceBreakdown price = pricingService.calculate(car, "bcn airport t2", "bcn airport t2",
+                BASE, BASE.plusDays(1));
+        assertThat(price.premiumLocationFee()).isGreaterThan(BigDecimal.ZERO);
+    }
+
+    @Test
+    void premiumLocation_falsePositive_substringShouldNotTriggerFee() {
+        // "Hotel District T1" contains "t1" — old substring logic wrongly charged a fee
+        Car car = buildCar(BigDecimal.valueOf(100), VehicleSegment.ECONOMY, VehicleType.SEDAN);
+        PriceBreakdown price = pricingService.calculate(car, "Hotel District T1", "Hotel District T1",
+                BASE, BASE.plusDays(1));
+        assertThat(price.premiumLocationFee()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void premiumLocation_cityName_noFee() {
+        Car car = buildCar(BigDecimal.valueOf(100), VehicleSegment.ECONOMY, VehicleType.SEDAN);
+        PriceBreakdown price = pricingService.calculate(car, "Barcelona City", "Barcelona City",
+                BASE, BASE.plusDays(1));
+        assertThat(price.premiumLocationFee()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void premiumLocation_unknownAirportName_noFee() {
+        // Sending a crafted name that contains "airport" but is not on the canonical list
+        Car car = buildCar(BigDecimal.valueOf(100), VehicleSegment.ECONOMY, VehicleType.SEDAN);
+        PriceBreakdown price = pricingService.calculate(car, "Some Other Airport", "Some Other Airport",
+                BASE, BASE.plusDays(1));
+        assertThat(price.premiumLocationFee()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
 
     private PriceBreakdown calculate(int dailyPrice, int days) {
         Car car = buildCar(BigDecimal.valueOf(dailyPrice), VehicleSegment.ECONOMY, VehicleType.SEDAN);

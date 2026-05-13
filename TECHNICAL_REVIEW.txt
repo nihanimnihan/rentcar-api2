@@ -524,7 +524,7 @@ RECOMMENDED FIX:
     LocalDateTime.now(clock);  // injectable, mockable in tests
 
 ────────────────────────────────────────────────────────────────────────────────
-[M-4] NO DATABASE MIGRATION TOOL — ENTIRE SCHEMA MANAGED BY HIBERNATE DDL
+[M-4] NO DATABASE MIGRATION TOOL — ENTIRE SCHEMA MANAGED BY HIBERNATE DDL - (GELECEK_PROD)
 ────────────────────────────────────────────────────────────────────────────────
 SEVERITY: Medium
 

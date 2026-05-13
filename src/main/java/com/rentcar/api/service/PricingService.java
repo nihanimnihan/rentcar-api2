@@ -6,6 +6,7 @@ import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
 import com.rentcar.api.dto.car.CarSearchRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,15 @@ public class PricingService {
 
     private final PricingProperties pricingProperties;
     private final MileageService mileageService;
+
+    // Normalized (lowercased, trimmed) set of premium location names.
+    // Built once at startup from properties — exact match, never substring.
+    private Set<String> premiumLocationSet;
+
+    @PostConstruct
+    public void init() {
+        premiumLocationSet = pricingProperties.normalizedPremiumLocations();
+    }
 
     public PriceBreakdown calculate(Car car, CarSearchRequest request) {
         int rentalDays = calculateRentalDays(request.pickupDateTime(), request.dropoffDateTime());
@@ -110,8 +121,7 @@ public class PricingService {
 
     private boolean isPremiumLocation(String location) {
         if (location == null) return false;
-        String lower = location.toLowerCase();
-        return lower.contains("airport") || lower.contains("t1") || lower.contains("t2");
+        return premiumLocationSet.contains(location.trim().toLowerCase());
     }
 
     private BigDecimal getPremiumLocationRate(Car car) {

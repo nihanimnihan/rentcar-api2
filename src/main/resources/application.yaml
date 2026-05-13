@@ -33,6 +33,11 @@ rentcar:
         discount-percentage: 15
       - min-days: 28
         discount-percentage: 25
+    # Closed list of pickup locations that carry a premium location surcharge.
+    # Matching is exact (case-insensitive). Add new locations here — never use substring rules.
+    premium-locations:
+      - BCN Airport T1
+      - BCN Airport T2
   mileage:
     daily-km-base: 300          # km/day for days 1..baseDayThreshold
     km-per-extra-day: 150       # km/day for each day beyond baseDayThreshold
