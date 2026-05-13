@@ -11,6 +11,7 @@ import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +23,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentProvider paymentProvider;
 
+    @Transactional
     public void createPendingOnlinePayment(Booking savedBooking) {
         Payment payment = Payment.builder()
                 .booking(savedBooking)
@@ -39,12 +41,14 @@ public class PaymentService {
         return paymentRepository.findAll();
     }
 
+    @Transactional
     public void cancelPaymentForBooking(Booking booking) {
         Payment payment = getLatestPaymentForBooking(booking);
         payment.setStatus(PaymentStatus.CANCELLED);
         paymentRepository.save(payment);
     }
 
+    @Transactional
     public Payment processLatestPaymentForBooking(Booking booking) {
         Payment payment = getLatestPaymentForBooking(booking);
 

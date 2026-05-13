@@ -6,6 +6,7 @@ import com.rentcar.api.exception.CarNotFoundException;
 import com.rentcar.api.repository.CarRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +29,22 @@ public class CarService {
 
     public Car getActiveCarById(Long id) {
         Car car = getCarById(id);
+
+        if (!car.getActive()) {
+            throw new CarNotFoundException(id);
+        }
+        return car;
+    }
+
+    /**
+     * Fetches an active car using a PESSIMISTIC_WRITE lock.
+     * Must be called within an existing transaction.
+     * Use this method in booking creation to prevent double-booking races.
+     */
+    @Transactional
+    public Car getActiveCarByIdForUpdate(Long id) {
+        Car car = carRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new CarNotFoundException(id));
 
         if (!car.getActive()) {
             throw new CarNotFoundException(id);

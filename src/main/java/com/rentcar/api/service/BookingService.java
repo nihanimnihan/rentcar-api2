@@ -17,6 +17,7 @@ import com.rentcar.api.exception.InvalidBookingStateException;
 import com.rentcar.api.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,17 +32,21 @@ public class BookingService {
     private final PricingService pricingService;
     private final CarService carService;
 
+    @Transactional
     public Booking createBooking(CreateBookingRequest request) {
         validateDates(request);
 
-        Car car = carService.getActiveCarById(request.carId());
+        // Acquires a PESSIMISTIC_WRITE (SELECT FOR UPDATE) lock on the car row.
+        // Any concurrent createBooking() for the same car will block here until
+        // this transaction commits, making the overlap check + insert atomic.
+        Car car = carService.getActiveCarByIdForUpdate(request.carId());
 
         boolean overlaps = bookingRepository
                 .existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                         car,
                         List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED),
-                        request.dropoffDateTime(), // existing pickup <= new dropoff
-                        request.pickupDateTime()   // existing dropoff >= new pickup
+                        request.dropoffDateTime(),
+                        request.pickupDateTime()
                 );
 
         if (overlaps) {
@@ -78,8 +83,11 @@ public class BookingService {
         return bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
     }
 
+    @Transactional
     public Booking cancelBooking(Long id) {
-        Booking booking = bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
+        // Lock the booking row to prevent concurrent cancel + completePayment races.
+        Booking booking = bookingRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new BookingNotFoundException(id));
 
         if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.CONFIRMED) {
             throw new BookingCannotBeCancelledException(id);
@@ -91,20 +99,11 @@ public class BookingService {
         return savedBooking;
     }
 
-    private void validateDates(CreateBookingRequest request) {
-        if (request.pickupDateTime() == null || request.dropoffDateTime() == null) {
-            throw new InvalidBookingDateException("Start date and end date are required");
-        }
-        if (!request.dropoffDateTime().isAfter(request.pickupDateTime())) {
-            throw new InvalidBookingDateException("End date must be after start date");
-        }
-        if (request.pickupDateTime().isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new InvalidBookingDateException("Pickup must be at least 1 hour from now");
-        }
-    }
-
+    @Transactional
     public Booking completePayment(Long bookingId) {
-        Booking booking = getBookingById(bookingId);
+        // Lock the booking row to prevent concurrent cancel + completePayment races.
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new InvalidBookingStateException("Only pending bookings can complete payment");
@@ -118,6 +117,18 @@ public class BookingService {
             booking.setStatus(BookingStatus.FAILED);
         }
         return bookingRepository.save(booking);
+    }
+
+    private void validateDates(CreateBookingRequest request) {
+        if (request.pickupDateTime() == null || request.dropoffDateTime() == null) {
+            throw new InvalidBookingDateException("Start date and end date are required");
+        }
+        if (!request.dropoffDateTime().isAfter(request.pickupDateTime())) {
+            throw new InvalidBookingDateException("End date must be after start date");
+        }
+        if (request.pickupDateTime().isBefore(LocalDateTime.now().plusHours(1))) {
+            throw new InvalidBookingDateException("Pickup must be at least 1 hour from now");
+        }
     }
 
 }
