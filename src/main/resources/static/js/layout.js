@@ -1,10 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("partials/footer.html")
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById("footer-placeholder").innerHTML = html;
-    })
-    .catch(error => console.error("Footer could not be loaded:", error));
+  loadPartial("footer-placeholder", "partials/footer.html");
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -25,10 +20,13 @@ function loadPartial(elementId, filePath) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const filtersContainer = document.getElementById("car-filters-placeholder");
+  if (!filtersContainer) return;
+
   const response = await fetch("/partials/car-filters.html");
   const html = await response.text();
 
-  document.getElementById("car-filters-placeholder").innerHTML = html;
+  filtersContainer.innerHTML = html;
 
   if (typeof initCarFilters === "function") {
     initCarFilters();
