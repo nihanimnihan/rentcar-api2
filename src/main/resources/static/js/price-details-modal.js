@@ -51,7 +51,8 @@ function buildPriceDetailsModalHtml(modalId, price, addonLines = []) {
           <div class="rentcar-price-row-line">
             <span>
               ${price.rentalDays} rental day${price.rentalDays > 1 ? "s" : ""}
-              x €${price.discountedDailyPrice}
+              x €${price.effectiveDailyPrice}
+              ${Number(price.discountPercentage) > 0 ? `<span class="text-12 text-light-1"> (${price.discountPercentage}% off)</span>` : ""}
             </span>
             <strong>€${price.rentalCharge}</strong>
           </div>

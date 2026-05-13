@@ -8,3 +8,15 @@ rentcar:
   admin:
     username: admin
     password: change-me
+  pricing:
+    discount-tiers:
+      - min-days: 1
+        discount-percentage: 0
+      - min-days: 3
+        discount-percentage: 5
+      - min-days: 7
+        discount-percentage: 10
+      - min-days: 14
+        discount-percentage: 15
+      - min-days: 28
+        discount-percentage: 25

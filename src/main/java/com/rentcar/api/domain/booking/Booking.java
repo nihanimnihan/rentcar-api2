@@ -78,6 +78,9 @@ public class Booking {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal discountedDailyPrice;
 
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal discountPercentage;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal rentalCharge;
 

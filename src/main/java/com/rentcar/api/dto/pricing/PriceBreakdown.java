@@ -6,7 +6,8 @@ import java.util.List;
 public record PriceBreakdown(
         int rentalDays,
         BigDecimal baseDailyPrice,
-        BigDecimal discountedDailyPrice,
+        BigDecimal effectiveDailyPrice,
+        BigDecimal discountPercentage,
         BigDecimal rentalCharge,
         BigDecimal oneWayFee,
         BigDecimal premiumLocationFee,

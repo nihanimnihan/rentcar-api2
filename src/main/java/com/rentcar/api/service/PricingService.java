@@ -1,45 +1,83 @@
 package com.rentcar.api.service;
 
+import com.rentcar.api.config.PricingProperties;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
 import com.rentcar.api.dto.car.CarSearchRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class PricingService {
 
-    private static final BigDecimal TAX_RATE = BigDecimal.valueOf(0);
+    private static final BigDecimal TAX_RATE = BigDecimal.ZERO;
     private static final BigDecimal ONE_WAY_FEE = BigDecimal.valueOf(25);
+
+    private final PricingProperties pricingProperties;
 
     public PriceBreakdown calculate(Car car, CarSearchRequest request) {
         int rentalDays = calculateRentalDays(request.pickupDateTime(), request.dropoffDateTime());
 
         BigDecimal baseDailyPrice = money(car.getDailyPrice());
-        BigDecimal discountedDailyPrice = money(baseDailyPrice.multiply(getDurationMultiplier(rentalDays)));
+        BigDecimal discountPercentage = resolveDiscountPercentage(rentalDays);
 
-        BigDecimal rentalCharge = money(discountedDailyPrice.multiply(BigDecimal.valueOf(rentalDays)));
+        // multiplier = 1 - (discountPercentage / 100)
+        BigDecimal multiplier = BigDecimal.ONE.subtract(
+                discountPercentage.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
+
+        BigDecimal effectiveDailyPrice = money(baseDailyPrice.multiply(multiplier));
+        BigDecimal rentalCharge = money(effectiveDailyPrice.multiply(BigDecimal.valueOf(rentalDays)));
 
         BigDecimal oneWayFee = calculateOneWayFee(request.pickupLocation(), request.dropoffLocation());
         BigDecimal premiumLocationFee = calculatePremiumLocationFee(car, request.pickupLocation(), rentalCharge);
 
         BigDecimal subtotal = rentalCharge.add(oneWayFee).add(premiumLocationFee);
-
         BigDecimal tax = money(subtotal.multiply(TAX_RATE));
         BigDecimal totalPrice = money(subtotal.add(tax));
-        return new PriceBreakdown(rentalDays, baseDailyPrice, discountedDailyPrice, rentalCharge, oneWayFee, premiumLocationFee, tax, totalPrice, null, null);
+
+        return new PriceBreakdown(
+                rentalDays,
+                baseDailyPrice,
+                effectiveDailyPrice,
+                discountPercentage,
+                rentalCharge,
+                oneWayFee,
+                premiumLocationFee,
+                tax,
+                totalPrice,
+                null,
+                null
+        );
     }
 
-    public PriceBreakdown calculate(Car car, String pickupLocation, String dropoffLocation, LocalDateTime pickupDateTime, LocalDateTime dropoffDateTime) {
-        CarSearchRequest request = new CarSearchRequest(pickupLocation, dropoffLocation, pickupDateTime, dropoffDateTime, null, null, null, null, null, null, null);
+    public PriceBreakdown calculate(Car car, String pickupLocation, String dropoffLocation,
+                                    LocalDateTime pickupDateTime, LocalDateTime dropoffDateTime) {
+        CarSearchRequest request = new CarSearchRequest(
+                pickupLocation, dropoffLocation, pickupDateTime, dropoffDateTime,
+                null, null, null, null, null, null, null);
         return calculate(car, request);
+    }
+
+    /**
+     * Finds the highest-threshold tier whose minDays <= rentalDays.
+     * Tiers are configured in application properties — no hardcoded logic here.
+     */
+    private BigDecimal resolveDiscountPercentage(int rentalDays) {
+        return pricingProperties.discountTiers().stream()
+                .filter(tier -> rentalDays >= tier.minDays())
+                .max(Comparator.comparingInt(PricingProperties.DiscountTier::minDays))
+                .map(PricingProperties.DiscountTier::discountPercentage)
+                .orElse(BigDecimal.ZERO);
     }
 
     private int calculateRentalDays(LocalDateTime pickup, LocalDateTime dropoff) {
@@ -50,28 +88,11 @@ public class PricingService {
         return Math.max(1, (int) Math.ceil(hours / 24.0));
     }
 
-    private BigDecimal getDurationMultiplier(int rentalDays) {
-        if (rentalDays >= 14) {
-            return BigDecimal.valueOf(0.85);
-        }
-        if (rentalDays >= 7) {
-            return BigDecimal.valueOf(0.90);
-        }
-        if (rentalDays >= 3) {
-            return BigDecimal.valueOf(0.95);
-        }
-
-        return BigDecimal.ONE;
-    }
-
     private BigDecimal calculateOneWayFee(String pickupLocation, String dropoffLocation) {
         if (pickupLocation == null || dropoffLocation == null) {
             return BigDecimal.ZERO;
         }
-        if (pickupLocation.equalsIgnoreCase(dropoffLocation)) {
-            return BigDecimal.ZERO;
-        }
-        return ONE_WAY_FEE;
+        return pickupLocation.equalsIgnoreCase(dropoffLocation) ? BigDecimal.ZERO : ONE_WAY_FEE;
     }
 
     private BigDecimal calculatePremiumLocationFee(Car car, String pickupLocation, BigDecimal rentalCharge) {
@@ -82,17 +103,14 @@ public class PricingService {
     }
 
     private boolean isPremiumLocation(String location) {
-        if (location == null) {
-            return false;
-        }
-        String normalizedLocation = location.toLowerCase();
-        return normalizedLocation.contains("airport") || normalizedLocation.contains("t1") || normalizedLocation.contains("t2");
+        if (location == null) return false;
+        String lower = location.toLowerCase();
+        return lower.contains("airport") || lower.contains("t1") || lower.contains("t2");
     }
 
     private BigDecimal getPremiumLocationRate(Car car) {
         VehicleSegment segment = car.getSegment();
         VehicleType vehicleType = car.getVehicleType();
-
         if (segment == VehicleSegment.LUXURY || segment == VehicleSegment.PREMIUM) {
             return BigDecimal.valueOf(0.12);
         }
@@ -104,6 +122,5 @@ public class PricingService {
 
     private BigDecimal money(BigDecimal value) {
         return Objects.requireNonNullElse(value, BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
-
     }
 }

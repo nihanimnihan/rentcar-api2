@@ -1,8 +1,11 @@
 package com.rentcar.api.domain.addon;
 
+import com.rentcar.api.domain.addon.AddonPricingType;
 import com.rentcar.api.domain.booking.Booking;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,6 +45,10 @@ public class BookingAddon {
     // Snapshot — future Addon price/name changes must not alter historical totals
     @Column(nullable = false)
     private String addonName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AddonPricingType pricingTypeSnapshot;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal priceAtBooking;

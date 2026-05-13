@@ -85,7 +85,8 @@ public class BookingService {
                 .dropoffDateTime(request.dropoffDateTime())
                 .rentalDays(price.rentalDays())
                 .baseDailyPrice(price.baseDailyPrice())
-                .discountedDailyPrice(price.discountedDailyPrice())
+                .discountedDailyPrice(price.effectiveDailyPrice())
+                .discountPercentage(price.discountPercentage())
                 .rentalCharge(price.rentalCharge())
                 .oneWayFee(price.oneWayFee())
                 .premiumLocationFee(price.premiumLocationFee())
@@ -105,6 +106,7 @@ public class BookingService {
                     .booking(savedBooking)
                     .addon(addon)
                     .addonName(addon.getName())
+                    .pricingTypeSnapshot(addon.getPricingType())
                     .priceAtBooking(computeAddonPrice(addon, price.rentalDays()))
                     .build();
             bookingAddonRepository.save(ba);

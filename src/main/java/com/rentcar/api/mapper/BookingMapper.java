@@ -10,11 +10,15 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface BookingMapper {
 
-    @Mapping(target = "dailyPrice", source = "discountedDailyPrice")
+    @Mapping(target = "effectiveDailyPrice", source = "discountedDailyPrice")
+    @Mapping(target = "carRentalTotal", source = "rentalCharge")
+    @Mapping(target = "addonTotal", source = "addonCharge")
     @Mapping(target = "addons", source = "bookingAddons")
     BookingResponse toResponse(Booking booking);
 
     @Mapping(target = "addonId", source = "addon.id")
     @Mapping(target = "name", source = "addonName")
+    @Mapping(target = "pricingTypeSnapshot", expression = "java(bookingAddon.getPricingTypeSnapshot().name())")
+    @Mapping(target = "lineTotal", source = "priceAtBooking")
     BookingAddonResponse toAddonResponse(BookingAddon bookingAddon);
 }
