@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.rentcar.api.exception.InvalidSearchDateException;
 
-import com.rentcar.api.util.AppTimezone;
+import com.rentcar.api.util.BusinessTimezone;
 import java.util.List;
 
 @Service
@@ -21,6 +21,7 @@ public class CarService {
 
     private final CarRepository carRepository;
     private final PricingService pricingService;
+    private final BusinessTimezone businessTimezone;
 
     public List<Car> getActiveCars() {
         return carRepository.findByActiveTrue();
@@ -62,7 +63,7 @@ public class CarService {
 
     public List<Car> searchCars(CarSearchRequest request) {
         if (request.pickupDateTime() != null) {
-            if (request.pickupDateTime().isBefore(AppTimezone.nowBusiness())) {
+            if (request.pickupDateTime().isBefore(businessTimezone.nowBusinessLocal())) {
                 throw new InvalidSearchDateException("Pickup date must not be in the past");
             }
             if (request.dropoffDateTime() != null

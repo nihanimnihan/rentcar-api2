@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static com.rentcar.api.util.BusinessTimezone.ZONE;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -275,8 +277,10 @@ class BookingPricingIntegrationTest {
 
     @Test
     void searchCars_withPastPickupDate_returns400() throws Exception {
-        String past = LocalDateTime.now().minusDays(1).format(FMT);
-        String future = LocalDateTime.now().plusDays(2).format(FMT);
+        // Use ZONE (Europe/Madrid) so the past date is in the same reference frame
+        // the backend uses for validation — avoids a theoretical failure during DST transition.
+        String past = LocalDateTime.now(ZONE).minusDays(1).format(FMT);
+        String future = LocalDateTime.now(ZONE).plusDays(2).format(FMT);
         mockMvc.perform(
                 org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/cars/search")
                         .param("pickupDateTime", past)

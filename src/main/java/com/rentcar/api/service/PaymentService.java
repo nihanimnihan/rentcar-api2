@@ -11,11 +11,11 @@ import com.rentcar.api.exception.RefundFailedException;
 import com.rentcar.api.payment.model.PaymentResult;
 import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.PaymentRepository;
+import com.rentcar.api.util.AppClock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -24,6 +24,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentProvider paymentProvider;
+    private final AppClock appClock;
 
     @Transactional
     public void createPendingPayment(Booking booking) {
@@ -71,7 +72,7 @@ public class PaymentService {
 
         if (result.successful()) {
             payment.setStatus(PaymentStatus.PAID);
-            payment.setPaidAt(Instant.now());
+            payment.setPaidAt(appClock.nowUtc());
         } else {
             payment.setStatus(PaymentStatus.FAILED);
         }

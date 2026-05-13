@@ -43,6 +43,9 @@ public class Customer {
 
     @PrePersist
     public void prePersist() {
+        // Instant.now() is intentional: JPA lifecycle callbacks cannot receive Spring beans,
+        // so AppClock cannot be injected here. The JVM is pinned to UTC in RentcarApiApplication,
+        // making Instant.now() deterministic across all environments.
         this.createdAt = Instant.now();
     }
 }
