@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" data-x="html" data-x-toggle="html-overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/vendors.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>RentCar - Review your booking</title>
+</head>
+
+<body>
+<div id="preloader-placeholder"></div>
+
+<main>
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <section class="py-20 bg-dark-3">
+        <div class="container">
+            <div class="row justify-between items-center">
+
+                <div class="col-auto">
+                    <div class="d-flex items-center">
+                        <button type="button"
+                                onclick="history.back()"
+                                class="button -blue-1 size-40 rounded-full bg-white-10 mr-15 text-white">
+                            <i class="icon-arrow-left text-18"></i>
+                        </button>
+                        <a href="index.html" class="header-logo">
+                            <img src="img/general/logo-light.svg" alt="RentCar logo">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <div class="d-flex items-center x-gap-20">
+                        <button class="d-flex items-center text-14 text-white" data-x-click="lang">
+                            <img src="img/general/lang.png" alt="language" class="rounded-full mr-10" style="width:20px;height:20px">
+                            <span>English</span>
+                            <i class="icon-chevron-sm-down text-7 ml-10"></i>
+                        </button>
+                        <a href="signup.html"
+                           class="button px-30 fw-400 text-14 border-white -blue-1 h-50 text-white">
+                            Log In / Register
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Content ─────────────────────────────────────────────────────────── -->
+    <section class="layout-pt-md layout-pb-xl">
+        <div class="container">
+
+            <h1 class="text-32 fw-700 mb-30">Review your booking</h1>
+
+            <div class="row x-gap-30 y-gap-30">
+
+                <!-- Left: form ───────────────────────────────────────────── -->
+                <div class="col-lg-8" id="reviewFormColumn">
+
+                    <!-- Loading / error state -->
+                    <div id="reviewPageError" style="display:none; padding:40px 0; text-align:center">
+                        <p class="text-16 text-danger mb-20" id="reviewPageErrorMsg"></p>
+                        <a id="reviewBackLink" href="cars.html"
+                           class="button h-50 px-30 bg-dark-1 text-white rounded-8 fw-600">
+                            Back to search
+                        </a>
+                    </div>
+
+                    <!-- A: Driver details ──────────────────────────────── -->
+                    <div class="rentcar-review-card" id="driverSection">
+                        <h2 class="rentcar-review-section-title">Who will drive?</h2>
+
+                        <div class="row x-gap-15 y-gap-20">
+
+                            <div class="col-12">
+                                <div class="rentcar-field" id="field-email">
+                                    <label for="rfEmail">Email *</label>
+                                    <input id="rfEmail" type="email" autocomplete="email">
+                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="rentcar-field" id="field-firstName">
+                                    <label for="rfFirstName">First name *</label>
+                                    <input id="rfFirstName" type="text" autocomplete="given-name">
+                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="rentcar-field" id="field-lastName">
+                                    <label for="rfLastName">Last name *</label>
+                                    <input id="rfLastName" type="text" autocomplete="family-name">
+                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="rentcar-field" id="field-phone">
+                                    <label>Phone *</label>
+                                    <div class="rentcar-phone-row">
+                                        <select id="rfCountryCode" autocomplete="tel-country-code">
+                                            <option value="+1">🇺🇸 +1</option>
+                                            <option value="+34" selected>🇪🇸 +34</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+49">🇩🇪 +49</option>
+                                            <option value="+33">🇫🇷 +33</option>
+                                            <option value="+39">🇮🇹 +39</option>
+                                            <option value="+31">🇳🇱 +31</option>
+                                            <option value="+32">🇧🇪 +32</option>
+                                            <option value="+41">🇨🇭 +41</option>
+                                            <option value="+43">🇦🇹 +43</option>
+                                            <option value="+351">🇵🇹 +351</option>
+                                            <option value="+61">🇦🇺 +61</option>
+                                            <option value="+81">🇯🇵 +81</option>
+                                            <option value="+86">🇨🇳 +86</option>
+                                        </select>
+                                        <input id="rfPhone" type="tel" autocomplete="tel-national">
+                                    </div>
+                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="rentcar-field">
+                                    <label for="rfCompany">Company <span style="font-weight:400;text-transform:none">(optional)</span></label>
+                                    <input id="rfCompany" type="text" autocomplete="organization">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- B: Communication ───────────────────────────────── -->
+                    <div class="rentcar-review-card">
+                        <h2 class="rentcar-review-section-title">Communication preferences</h2>
+
+                        <label class="rentcar-radio-option">
+                            <input type="radio" name="rfWhatsapp" value="yes">
+                            <div>
+                                <strong>Yes</strong>, I want to receive automated WhatsApp messages about my rental.
+                            </div>
+                        </label>
+
+                        <label class="rentcar-radio-option">
+                            <input type="radio" name="rfWhatsapp" value="no" checked>
+                            <div>
+                                <strong>No</strong>, I don't want to receive WhatsApp messages.
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- C: Driver age ──────────────────────────────────── -->
+                    <div class="rentcar-review-card" id="field-ageConfirm">
+                        <h2 class="rentcar-review-section-title">Driver age</h2>
+
+                        <label class="rentcar-checkbox-option">
+                            <input type="checkbox" id="rfAgeConfirm">
+                            <div>
+                                I am <strong><span id="rfMinAge">21</span> years of age</strong> or older
+                            </div>
+                        </label>
+                        <span class="rentcar-field-error-msg" style="display:none" id="ageConfirmError">
+                            You must confirm your age to continue
+                        </span>
+                    </div>
+
+                    <!-- D: Payment method ──────────────────────────────── -->
+                    <div class="rentcar-review-card">
+                        <h2 class="rentcar-review-section-title">How would you like to pay?</h2>
+
+                        <div class="rentcar-payment-options">
+
+                            <label class="rentcar-payment-option is-selected" id="pm-card">
+                                <input type="radio" name="rfPayment" value="CARD" checked>
+                                <div class="rentcar-payment-option-icon">💳</div>
+                                <div>Credit or debit card</div>
+                            </label>
+
+                            <label class="rentcar-payment-option" id="pm-paypal">
+                                <input type="radio" name="rfPayment" value="PAYPAL">
+                                <div class="rentcar-payment-option-icon">🅿️</div>
+                                <div>PayPal</div>
+                            </label>
+
+                            <label class="rentcar-payment-option" id="pm-apple">
+                                <input type="radio" name="rfPayment" value="APPLE_PAY">
+                                <div class="rentcar-payment-option-icon">🍎</div>
+                                <div>Apple Pay</div>
+                            </label>
+
+                        </div>
+
+                        <p class="text-13 text-light-1 mt-15">
+                            Payment details will be collected securely at the next step. No charges are made until your booking is confirmed.
+                        </p>
+                    </div>
+
+                    <!-- E: Invoice address ──────────────────────────────── -->
+                    <div class="rentcar-review-card">
+                        <h2 class="rentcar-review-section-title">What's your invoice address?</h2>
+
+                        <div class="row x-gap-15 y-gap-20">
+
+                            <div class="col-12">
+                                <div class="rentcar-field">
+                                    <label for="rfInvCountry">Country</label>
+                                    <select id="rfInvCountry" autocomplete="country">
+                                        <option value="">Select country…</option>
+                                        <option value="ES" selected>Spain</option>
+                                        <option value="US">United States</option>
+                                        <option value="GB">United Kingdom</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="FR">France</option>
+                                        <option value="IT">Italy</option>
+                                        <option value="NL">Netherlands</option>
+                                        <option value="BE">Belgium</option>
+                                        <option value="CH">Switzerland</option>
+                                        <option value="AT">Austria</option>
+                                        <option value="PT">Portugal</option>
+                                        <option value="AU">Australia</option>
+                                        <option value="CA">Canada</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="rentcar-field">
+                                    <label for="rfStreet">Street address</label>
+                                    <input id="rfStreet" type="text" autocomplete="street-address">
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <div class="rentcar-field">
+                                    <label for="rfZip">ZIP / Postal code</label>
+                                    <input id="rfZip" type="text" autocomplete="postal-code">
+                                </div>
+                            </div>
+
+                            <div class="col-sm-8">
+                                <div class="rentcar-field">
+                                    <label for="rfCity">City</label>
+                                    <input id="rfCity" type="text" autocomplete="address-level2">
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="rentcar-field">
+                                    <label for="rfState">State / Province</label>
+                                    <input id="rfState" type="text" autocomplete="address-level1">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- F: Flight number ───────────────────────────────── -->
+                    <div class="rentcar-review-card">
+                        <h2 class="rentcar-review-section-title">What's your flight number?</h2>
+
+                        <div class="rentcar-info-block">
+                            <i class="icon-info"></i>
+                            <div>
+                                <strong>Please provide your flight number if available.</strong>
+                                This helps us track delays and keep your rental car ready.
+                            </div>
+                        </div>
+
+                        <div class="rentcar-info-block" style="background:#fffbeb;border-color:#fde68a;color:#92400e;">
+                            <i class="icon-clock"></i>
+                            <div>
+                                Don't worry if there's a flight delay — we monitor your flight and adjust your pickup accordingly.
+                            </div>
+                        </div>
+
+                        <div class="rentcar-field mb-15" id="field-flightNumber">
+                            <label for="rfFlightNumber">Flight number</label>
+                            <input id="rfFlightNumber" type="text">
+                        </div>
+
+                        <label class="rentcar-checkbox-option" id="noFlightOption">
+                            <input type="checkbox" id="rfNoFlight">
+                            <div>I don't have a flight number.</div>
+                        </label>
+                    </div>
+
+                    <!-- G: Final total + CTA ───────────────────────────── -->
+                    <div class="rentcar-review-cta-section" id="field-terms">
+
+                        <!-- Total row -->
+                        <div class="rentcar-review-total-row">
+                            <span class="rentcar-review-total-label">Total</span>
+                            <div class="rentcar-review-total-right">
+                                <span id="rfTotalAmount" class="rentcar-review-total-amount">€-</span>
+                                <button type="button" id="rfPriceDetailsBtn"
+                                        class="rentcar-price-details-sm">Price details</button>
+                            </div>
+                        </div>
+
+                        <!-- Deposit note -->
+                        <p class="rentcar-review-deposit-note">
+                            🔒 Refundable deposit may be required at pickup.
+                        </p>
+
+                        <!-- Terms -->
+                        <label class="rentcar-terms-row" id="termsLabel">
+                            <input type="checkbox" id="rfTerms">
+                            <span>
+                                I accept the
+                                <a href="#" class="text-dark-1 underline" onclick="return false">Terms and Conditions</a>
+                                and
+                                <a href="#" class="text-dark-1 underline" onclick="return false">Privacy Policy</a>
+                            </span>
+                        </label>
+                        <span class="rentcar-field-error-msg" id="termsError" style="display:none">
+                            Please accept the terms and conditions to continue
+                        </span>
+
+                        <div id="rfBookingError" class="text-red-1 mt-15" style="display:none"></div>
+
+                        <button id="rfConfirmBtn"
+                                type="button"
+                                class="button h-60 bg-yellow-1 text-dark-1 rounded-8 fw-700 mt-20"
+                                style="width:100%;font-size:17px;letter-spacing:0.01em">
+                            Pay and Book
+                        </button>
+                    </div>
+
+                </div><!-- /col-lg-8 -->
+
+                <!-- Right: sticky summary ─────────────────────────────────── -->
+                <div class="col-lg-4">
+                    <div class="rentcar-addon-summary" id="reviewSummary">
+
+                        <!-- Car -->
+                        <div class="d-flex x-gap-15 items-center">
+                            <img id="summaryCarImage"
+                                 src="img/lists/car/1/1.png"
+                                 alt="car"
+                                 class="rentcar-summary-car-image">
+                            <div>
+                                <h3 id="summaryCarName" class="text-18 fw-700">Car</h3>
+                                <div id="summaryCarSubtitle" class="text-14 text-light-1">or similar</div>
+                            </div>
+                        </div>
+
+                        <!-- Pickup / return -->
+                        <div class="mt-30">
+                            <h4 class="text-18 fw-700 mb-15">Pickup and return</h4>
+
+                            <div class="rentcar-summary-route">
+                                <div>
+                                    <div class="text-14 text-light-1">Pickup</div>
+                                    <div id="summaryPickupLocation" class="text-16 fw-600">-</div>
+                                    <div id="summaryPickupDate" class="text-14 text-light-1">-</div>
+                                </div>
+
+                                <div class="mt-20">
+                                    <div class="text-14 text-light-1">Return</div>
+                                    <div id="summaryDropoffLocation" class="text-16 fw-600">-</div>
+                                    <div id="summaryDropoffDate" class="text-14 text-light-1">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Included features -->
+                        <div class="border-top-light mt-25 pt-25">
+                            <h4 class="text-18 fw-700 mb-10">Included features</h4>
+                            <div class="text-15 mb-8">✓ Third party insurance</div>
+                            <div class="text-15 mb-8">✓ 24/7 breakdown assistance</div>
+                            <div class="text-15 mb-8">✓ Free cancellation</div>
+                        </div>
+
+                        <!-- Added features -->
+                        <div class="border-top-light mt-25 pt-25">
+                            <h4 class="text-18 fw-700 mb-10">Added features</h4>
+                            <div id="summaryAddedFeatures" class="text-15 text-light-1">
+                                No add-ons selected yet.
+                            </div>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="border-top-light mt-25 pt-25">
+                            <div class="d-flex justify-between items-center">
+                                <span class="text-18 fw-700">Total</span>
+                                <strong id="summaryTotal" class="text-26 fw-800">€-</strong>
+                            </div>
+                            <button type="button"
+                                    id="reviewSummaryPriceDetailsBtn"
+                                    class="rentcar-price-details mt-8">
+                                Price details
+                            </button>
+                        </div>
+
+                    </div>
+                </div><!-- /col-lg-4 -->
+
+            </div><!-- /row -->
+        </div><!-- /container -->
+    </section>
+
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script src="js/vendors.js"></script>
+<script src="js/main.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/escape-html.js"></script>
+<script src="js/price-details-modal.js"></script>
+<script src="js/booking-summary.js"></script>
+<script src="js/review.js"></script>
+</body>
+</html>

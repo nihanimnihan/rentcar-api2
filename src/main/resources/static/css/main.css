@@ -12996,3 +12996,284 @@ table.table-5 td {
     min-width: 100%;
   }
 }
+/* ── Review / Checkout page ──────────────────────────────────────────────── */
+
+.rentcar-review-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+
+.rentcar-review-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #050b2c;
+  margin-bottom: 22px;
+}
+
+/* Form fields */
+.rentcar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rentcar-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rentcar-field input,
+.rentcar-field select,
+.rentcar-field textarea {
+  display: block;
+  width: 100%;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #050b2c;
+  background: #fff;
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.rentcar-field input:focus,
+.rentcar-field select:focus {
+  border-color: #050b2c;
+}
+
+.rentcar-field.has-error input,
+.rentcar-field.has-error select {
+  border-color: #ef4444;
+}
+
+.rentcar-field-error-msg {
+  display: none;
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 2px;
+}
+
+.rentcar-field.has-error .rentcar-field-error-msg {
+  display: block;
+}
+
+/* Phone row (country code + number) */
+.rentcar-phone-row {
+  display: flex;
+  gap: 10px;
+}
+
+.rentcar-phone-row select {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.rentcar-phone-row input {
+  flex: 1;
+}
+
+/* Communication & checkbox options */
+.rentcar-radio-option,
+.rentcar-checkbox-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 12px 16px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+
+.rentcar-radio-option input,
+.rentcar-checkbox-option input {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: #050b2c;
+  width: 18px;
+  height: 18px;
+}
+
+.rentcar-radio-option:hover,
+.rentcar-checkbox-option:hover {
+  border-color: #050b2c;
+}
+
+/* Payment method options */
+.rentcar-payment-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.rentcar-payment-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fff;
+}
+
+.rentcar-payment-option input[type="radio"] {
+  display: none;
+}
+
+.rentcar-payment-option:hover {
+  border-color: #6b7280;
+}
+
+.rentcar-payment-option.is-selected {
+  border-color: #050b2c;
+  box-shadow: 0 0 0 1px #050b2c;
+  color: #050b2c;
+}
+
+.rentcar-payment-option-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+/* Info block */
+.rentcar-info-block {
+  display: flex;
+  gap: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #0369a1;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.rentcar-info-block i {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Total / CTA card */
+.rentcar-review-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.rentcar-review-total-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b7280;
+  padding-top: 3px;
+}
+
+.rentcar-review-total-right {
+  text-align: right;
+}
+
+.rentcar-review-total-amount {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: #050b2c;
+  line-height: 1.2;
+}
+
+/* Smaller inline price-details variant used in the CTA section */
+.rentcar-price-details-sm {
+  border: 0;
+  border-bottom: 1px solid #6b7280;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  padding: 0;
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+.rentcar-price-details-sm:hover {
+  color: #050b2c;
+  border-bottom-color: #050b2c;
+}
+
+/* CTA section — flat, no card border */
+.rentcar-review-cta-section {
+  border-top: 2px solid #e5e7eb;
+  padding-top: 22px;
+  margin-top: 4px;
+}
+
+.rentcar-review-cta-card {
+  border-top: 3px solid #050b2c;
+}
+
+.rentcar-review-deposit-note {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 8px 0 14px;
+}
+
+/* Compact inline terms row */
+.rentcar-terms-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  cursor: pointer;
+}
+
+.rentcar-terms-row input[type="checkbox"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: #050b2c;
+  width: 16px;
+  height: 16px;
+}
+
+/* Summary sticky card on review page */
+.rentcar-review-summary {
+  position: sticky;
+  top: 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 24px;
+}
+
+@media (max-width: 991px) {
+  .rentcar-review-card {
+    padding: 20px;
+  }
+
+  .rentcar-payment-options {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .rentcar-review-summary {
+    position: static;
+  }
+}
