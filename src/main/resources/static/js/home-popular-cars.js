@@ -1,5 +1,20 @@
+let _popularCarsCache = null;
+let _popularCarsSearchParams = null;
+
 document.addEventListener("DOMContentLoaded", () => {
     loadPopularCars();
+});
+
+document.addEventListener("languageChanged", () => {
+    if (_popularCarsCache) {
+        const container = document.getElementById("popularCarsContainer");
+        if (container) {
+            container.innerHTML = _popularCarsCache
+                .slice(0, 4)
+                .map(car => renderPopularCarCard(car, _popularCarsSearchParams))
+                .join("");
+        }
+    }
 });
 
 async function loadPopularCars() {
@@ -21,6 +36,8 @@ async function loadPopularCars() {
         }
 
         const cars = await response.json();
+        _popularCarsCache = cars;
+        _popularCarsSearchParams = searchParamsStr;
 
         container.innerHTML = cars
             .slice(0, 4)
@@ -72,11 +89,12 @@ function buildSearchParamsStr() {
 function renderPopularCarCard(car, searchParamsStr) {
     const imgSrc      = safeSrc(car.imageUrl, "img/lists/car/1/1.png");
     const location    = escapeHtml(car.location || car.pickupLocation || "Barcelona");
-    const category    = escapeHtml(car.category || "Car");
+    const categoryRaw = car.category || car.vehicleType || "CAR";
+    const category    = tEnum('serviceType', categoryRaw) || tEnum('vehicleType', categoryRaw) || escapeHtml(categoryRaw);
     const name        = `${escapeHtml(car.brand || "")} ${escapeHtml(car.model || "")}`.trim() || "Car";
     const seats       = Number.isFinite(Number(car.seats))       ? Number(car.seats)       : "-";
     const bags        = Number.isFinite(Number(car.bags))        ? Number(car.bags)        : "-";
-    const transmission = escapeHtml(car.transmission || "-");
+    const transmission = tEnum('transmission', car.transmission) || escapeHtml(car.transmission || "-");
     const dailyPrice  = Number.isFinite(Number(car.dailyPrice))  ? Number(car.dailyPrice).toFixed(2)
                       : Number.isFinite(Number(car.pricePerDay)) ? Number(car.pricePerDay).toFixed(2)
                       : "-";
@@ -100,7 +118,7 @@ function renderPopularCarCard(car, searchParamsStr) {
                     </div>
 
                     <h4 class="text-dark-1 text-18 lh-16 fw-500">
-                        ${name} <span class="text-15 text-light-1 fw-400">or similar</span>
+                        ${name} <span class="text-15 text-light-1 fw-400">${t('home.orSimilar')}</span>
                     </h4>
 
                     <div class="row x-gap-20 y-gap-10 items-center pt-5">
@@ -128,7 +146,7 @@ function renderPopularCarCard(car, searchParamsStr) {
 
                     <div class="mt-15">
                         <div class="text-light-1">
-                            From <span class="fw-500 text-dark-1">€${dailyPrice}</span> / day
+                            ${t('home.from')} <span class="fw-500 text-dark-1">€${dailyPrice}</span> ${t('car.perDay')}
                         </div>
                     </div>
                 </div>

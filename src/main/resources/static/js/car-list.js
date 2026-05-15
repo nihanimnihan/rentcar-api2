@@ -114,10 +114,10 @@ function renderCars(cars) {
   if (filterCarsCount) filterCarsCount.textContent = cars.length;
 
   carsList.innerHTML = cars.map(car => {
-    const displayClass = escapeHtml(car.displayClass || car.segment || "Standard");
-    const vehicleType  = escapeHtml(car.vehicleType  || "");
-    const transmission = escapeHtml(car.transmission || "");
-    const fuelType     = escapeHtml(car.fuelType     || "");
+    const displayClass = tEnum('segment', car.displayClass || car.segment) || escapeHtml(car.displayClass || car.segment || 'Standard');
+    const vehicleType  = tEnum('vehicleType', car.vehicleType) || escapeHtml(car.vehicleType || "");
+    const transmission = tEnum('transmission', car.transmission) || escapeHtml(car.transmission || "");
+    const fuelType     = tEnum('fuelType', car.fuelType) || escapeHtml(car.fuelType || "");
 
     const seats       = Number.isFinite(Number(car.seats))       ? Number(car.seats)       : "-";
     const doors       = Number.isFinite(Number(car.doors))       ? Number(car.doors)       : 4;
@@ -278,8 +278,8 @@ function removeExistingDetail() {
 
 function buildDetailHtml(car, carId) {
   const carName      = `${escapeHtml(car.brand || "")} ${escapeHtml(car.model || "")}`.trim();
-  const displayClass = escapeHtml(car.displayClass || car.segment || "Standard");
-  const transmission = escapeHtml(car.transmission || "");
+  const displayClass = tEnum('segment', car.displayClass || car.segment) || escapeHtml(car.displayClass || car.segment || 'Standard');
+  const transmission = tEnum('transmission', car.transmission) || escapeHtml(car.transmission || "");
   const seats        = Number.isFinite(Number(car.seats))        ? Number(car.seats)        : "-";
   const doors        = Number.isFinite(Number(car.doors))        ? Number(car.doors)        : 4;
   const bags         = Number.isFinite(Number(car.bags))         ? Number(car.bags)         : "-";

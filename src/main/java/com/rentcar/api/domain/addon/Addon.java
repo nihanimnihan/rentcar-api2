@@ -36,7 +36,16 @@ public class Addon {
     private String name;
 
     @Column
+    private String nameEs;
+
+    @Column(unique = true)
+    private String code;
+
+    @Column
     private String description;
+
+    @Column
+    private String descriptionEs;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;

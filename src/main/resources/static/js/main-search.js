@@ -20,7 +20,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function displayFromIso(isoDate) {
     const date = new Date(isoDate + 'T00:00:00');
     if (isNaN(date.getTime())) return isoDate;
-    return date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const locale = (typeof getLanguage === 'function' && getLanguage() === 'es') ? 'es-ES' : 'en-GB';
+    return date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
   }
 
   // Defaults: tomorrow (pickup) and day-after-tomorrow (dropoff).
@@ -130,4 +131,22 @@ document.addEventListener("click", function (event) {
     event.preventDefault();
     document.getElementById("carsSearchDrawer")?.classList.toggle("is-active");
   }
+});
+// Re-format displayed date labels when language changes
+document.addEventListener("languageChanged", function () {
+  const pickupDateText  = document.getElementById("pickupDateText");
+  const dropoffDateText = document.getElementById("dropoffDateText");
+
+  function redisplayDate(el) {
+    if (!el) return;
+    const iso = el.getAttribute("data-date");
+    if (!iso) return;
+    const date = new Date(iso + "T00:00:00");
+    if (isNaN(date.getTime())) return;
+    const locale = (typeof getLanguage === "function" && getLanguage() === "es") ? "es-ES" : "en-GB";
+    el.innerText = date.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
+  }
+
+  redisplayDate(pickupDateText);
+  redisplayDate(dropoffDateText);
 });

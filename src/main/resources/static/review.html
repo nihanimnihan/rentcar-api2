@@ -41,7 +41,7 @@
                     <div class="d-flex items-center x-gap-20">
                         <button class="d-flex items-center text-14 text-white" data-x-click="lang">
                             <img src="img/general/lang.png" alt="language" class="rounded-full mr-10" style="width:20px;height:20px">
-                            <span data-i18n-lang-label data-i18n="header.english">English</span>
+                            <span data-i18n-lang-label>English</span>
                             <i class="icon-chevron-sm-down text-7 ml-10"></i>
                         </button>
                            <a href="signup.html"
@@ -59,7 +59,7 @@
     <section class="layout-pt-md layout-pb-xl">
         <div class="container">
 
-            <h1 class="text-32 fw-700 mb-30">Review your booking</h1>
+            <h1 class="text-32 fw-700 mb-30" data-i18n="review.title">Review your booking</h1>
 
             <div class="row x-gap-30 y-gap-30">
 
@@ -88,7 +88,7 @@
                                     <span class="rentcar-field-error-msg" data-i18n="review.invalidField">Invalid entry or required field</span>
                                     <label for="rfFirstName" data-i18n="review.firstName">First name *</label>
                                     <input id="rfFirstName" type="text" autocomplete="given-name">
-                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
+                                    <span class="rentcar-field-error-msg" data-i18n="review.invalidField">Invalid entry or required field</span>
                                 </div>
                             </div>
 
@@ -96,7 +96,7 @@
                                 <div class="rentcar-field" id="field-lastName">
                                     <label for="rfLastName" data-i18n="review.lastName">Last name *</label>
                                     <input id="rfLastName" type="text" autocomplete="family-name">
-                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
+                                    <span class="rentcar-field-error-msg" data-i18n="review.invalidField">Invalid entry or required field</span>
                                 </div>
                             </div>
 
@@ -122,7 +122,7 @@
                                         </select>
                                         <input id="rfPhone" type="tel" autocomplete="tel-national">
                                     </div>
-                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
+                                    <span class="rentcar-field-error-msg" data-i18n="review.invalidField">Invalid entry or required field</span>
                                 </div>
                             </div>
 
@@ -210,7 +210,7 @@
                             <div class="col-12">
                                 <div class="rentcar-field">
                                     <label for="rfInvCountry" data-i18n="review.country">Country</label>
-                                    <select id="rfInvCountry" autocomplete="country">
+                                    <select id="rfInvCountry" autocomplete="country" data-i18n-country>
                                         <option value="">Select country…</option>
                                         <option value="ES" selected>Spain</option>
                                         <option value="US">United States</option>

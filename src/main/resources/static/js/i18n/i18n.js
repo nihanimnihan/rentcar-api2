@@ -78,4 +78,33 @@
   window.setLanguage = setLanguage;
   window.getLanguage = getLanguage;
   window.applyTranslations = applyTranslations;
+
+  // Translate enum/API values: tEnum('transmission', 'AUTOMATIC') → 'Automático'
+  window.tEnum = function (type, value) {
+    if (!value) return '';
+    var key = 'enum.' + type + '.' + value;
+    var result = t(key);
+    // If key not found, fall back to the raw value (escaped)
+    return result === key ? (typeof escapeHtml === 'function' ? escapeHtml(value) : value) : result;
+  };
+
+  // Translate addon name from the addon object returned by API
+  // Falls back to English name if no Spanish translation is stored in DB
+  window.localAddonName = function (addon) {
+    if (!addon) return '';
+    if (getLanguage() === 'es') return addon.nameEs || addon.name || '';
+    return addon.name || '';
+  };
+
+  // Translate addon description from the addon object
+  window.localAddonDesc = function (addon) {
+    if (!addon) return '';
+    if (getLanguage() === 'es') return addon.descriptionEs || addon.description || '';
+    return addon.description || '';
+  };
+
+  // Legacy code-based helpers kept as no-ops that fall back to DB values
+  // (no longer needed but kept to avoid errors if called from old cached pages)
+  window.tAddonName = function (code, fallback) { return fallback || code || ''; };
+  window.tAddonDesc = function (code, fallback) { return fallback || ''; };
 }());

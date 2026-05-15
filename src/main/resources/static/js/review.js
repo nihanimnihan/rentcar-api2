@@ -1,6 +1,36 @@
 // review.js — booking review / checkout page logic
 
+const COUNTRIES = [
+  { value: "ES", en: "Spain",          es: "España" },
+  { value: "US", en: "United States",  es: "Estados Unidos" },
+  { value: "GB", en: "United Kingdom", es: "Reino Unido" },
+  { value: "DE", en: "Germany",        es: "Alemania" },
+  { value: "FR", en: "France",         es: "Francia" },
+  { value: "IT", en: "Italy",          es: "Italia" },
+  { value: "NL", en: "Netherlands",    es: "Países Bajos" },
+  { value: "BE", en: "Belgium",        es: "Bélgica" },
+  { value: "CH", en: "Switzerland",    es: "Suiza" },
+  { value: "AT", en: "Austria",        es: "Austria" },
+  { value: "PT", en: "Portugal",       es: "Portugal" },
+  { value: "AU", en: "Australia",      es: "Australia" },
+  { value: "CA", en: "Canada",         es: "Canadá" },
+];
+
+function populateCountrySelect() {
+  const sel = document.getElementById("rfInvCountry");
+  if (!sel) return;
+  const lang = getLanguage();
+  const current = sel.value;
+  sel.innerHTML =
+    `<option value="">${t('review.selectCountry')}</option>` +
+    COUNTRIES.map(c =>
+      `<option value="${c.value}">${lang === 'es' ? c.es : c.en}</option>`
+    ).join("");
+  sel.value = current; // restore selection
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  populateCountrySelect();
   loadReviewPage();
   initPaymentOptions();
   initFlightToggle();
@@ -123,15 +153,37 @@ function initConfirmButtons() {
   if (footerBtn) footerBtn.addEventListener("click", () => submitBooking());
 
   // Price details buttons — footer card + summary card
-  const openPriceModal = () => {
-    if (!reviewCar) return;
-    openPriceDetailsModal(reviewCar, reviewMileageOption);
-  };
-
   ["rfPriceDetailsBtn", "reviewSummaryPriceDetailsBtn"].forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", openPriceModal);
+    if (btn) btn.addEventListener("click", buildAndOpenPriceModal);
   });
+}
+
+function buildAndOpenPriceModal() {
+  if (!reviewCar?.priceBreakdown) return;
+  const modalId = "reviewPriceModal";
+  const existing = document.getElementById(modalId);
+  if (existing) existing.remove();
+
+  const rentalDays = reviewCar.priceBreakdown.rentalDays || 1;
+  const addonLines = [];
+
+  if (reviewMileageOption === "UNLIMITED") {
+    const charge = Number(reviewCar.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays;
+    addonLines.push({ name: t('car.unlimitedKm'), totalPrice: charge.toFixed(2) });
+  }
+
+  reviewAddonIds.forEach(addonId => {
+    const addon = reviewAllAddons.find(a => a.id === addonId);
+    if (!addon) return;
+    const totalPrice = addon.pricingType === "DAILY"
+      ? Number(addon.price) * rentalDays
+      : Number(addon.price);
+    addonLines.push({ name: localAddonName(addon), totalPrice: totalPrice.toFixed(2) });
+  });
+
+  document.body.insertAdjacentHTML("beforeend", buildPriceDetailsModalHtml(modalId, reviewCar.priceBreakdown, addonLines));
+  openPriceDetailsModal(modalId);
 }
 
 // ── Form validation ──────────────────────────────────────────────────────────
@@ -234,7 +286,7 @@ async function submitBooking() {
   const confirmBtn = document.getElementById("rfConfirmBtn");
   const errorDiv   = document.getElementById("rfBookingError");
 
-  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = "Processing…"; }  if (errorDiv)   errorDiv.style.display = "none";
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = t('review.processing'); }  if (errorDiv)   errorDiv.style.display = "none";
 
   try {
     const res = await fetch("/api/bookings", {
@@ -247,18 +299,18 @@ async function submitBooking() {
       const booking = await res.json();
       showBookingSuccess(booking, firstName);
     } else if (res.status === 409) {
-      const msg = await res.text().catch(() => "This car is no longer available for the selected dates.");
+      const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
       showBookingFormError(msg);
     } else if (res.status === 400) {
       const data = await res.json().catch(() => null);
-      const msg = data?.message || "Please check your details and try again.";
+      const msg = data?.message || t('error.checkDetails');
       showBookingFormError(msg);
     } else {
-      showBookingFormError("Something went wrong. Please try again.");
+      showBookingFormError(t('error.somethingWrong'));
     }
   } catch (err) {
     console.error("Booking submission failed:", err);
-    showBookingFormError("A network error occurred. Please check your connection.");
+    showBookingFormError(t('error.networkError'));
   } finally {
     if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = t('review.payAndBook'); }
   }
@@ -273,15 +325,15 @@ function showBookingSuccess(booking, firstName) {
   formColumn.innerHTML = `
     <div class="rentcar-review-card" style="text-align:center;padding:60px 40px">
       <div style="font-size:56px;margin-bottom:20px">🎉</div>
-      <h2 class="text-28 fw-700 mb-15">Booking Confirmed!</h2>
+      <h2 class="text-28 fw-700 mb-15">${t('review.bookingConfirmed')}</h2>
       <p class="text-18 text-light-1 mb-10">
-        Thank you, <strong>${esc(firstName)}</strong>! Your car is reserved.
+        ${t('review.thankYou', { name: esc(firstName) })}
       </p>
       <p class="text-15 text-light-1 mb-30">
-        Booking reference: <strong>#${esc(String(booking.id || "—"))}</strong>
+        ${t('review.bookingRef')} <strong>#${esc(String(booking.id || "—"))}</strong>
       </p>
       <a href="index.html" class="button h-60 px-50 bg-yellow-1 text-dark-1 rounded-8 fw-700">
-        Back to Home
+        ${t('review.backToHome')}
       </a>
     </div>
   `;
@@ -326,6 +378,7 @@ function esc(str) {
 
 document.addEventListener('languageChanged', function () {
   applyTranslations(document);
+  populateCountrySelect();
   if (reviewCar) {
     renderBookingSummary({
       car: reviewCar,

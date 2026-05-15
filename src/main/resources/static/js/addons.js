@@ -116,8 +116,8 @@ function renderAddonCard(addon, isRecommended) {
         <div class="rentcar-addon-content">
           <div class="d-flex justify-between items-start">
             <div>
-              <h3 class="text-20 fw-700">${escapeHtml(addon.name)}</h3>
-              <div class="text-15 text-light-1">${escapeHtml(addon.description || "")}</div>
+              <h3 class="text-20 fw-700">${escapeHtml(localAddonName(addon))}</h3>
+              <div class="text-15 text-light-1">${escapeHtml(localAddonDesc(addon))}</div>
             </div>
             <i class="icon-info text-18"></i>
           </div>
@@ -145,8 +145,8 @@ function renderAddonCard(addon, isRecommended) {
       <div class="rentcar-addon-content">
         <div class="d-flex justify-between items-start">
           <div>
-            <h3 class="text-20 fw-700">${escapeHtml(addon.name)}</h3>
-            <div class="text-15 text-light-1">${escapeHtml(addon.description || "")}</div>
+            <h3 class="text-20 fw-700">${escapeHtml(localAddonName(addon))}</h3>
+            <div class="text-15 text-light-1">${escapeHtml(localAddonDesc(addon))}</div>
           </div>
           <i class="icon-info text-18"></i>
         </div>
@@ -247,7 +247,7 @@ function renderAddonsPriceModal() {
     const totalPrice = addon.pricingType === "DAILY"
       ? Number(addon.price) * rentalDays
       : Number(addon.price);
-    return { name: addon.name, totalPrice: totalPrice.toFixed(2) };
+    return { name: localAddonName(addon), totalPrice: totalPrice.toFixed(2) };
   }).filter(Boolean).forEach(line => addonLines.push(line));
 
   document.body.insertAdjacentHTML(

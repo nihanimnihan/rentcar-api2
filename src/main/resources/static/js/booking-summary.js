@@ -112,7 +112,7 @@ function _renderAddedFeatures(mileageOption, unlimitedKmCharge, selectedAddonIds
       : Number(addon.price);
     lines.push(`
       <div class="d-flex justify-between mb-8">
-        <span>✓ ${_esc(addon.name)}</span>
+        <span>✓ ${_esc(localAddonName(addon))}</span>
         <strong>${_formatMoney(price)}</strong>
       </div>
     `);
