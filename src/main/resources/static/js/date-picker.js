@@ -7,12 +7,61 @@
  * Responsibilities:
  *   1. Disable past calendar cells (visual + pointer-events:none).
  *   2. Restore the visual selected state for already-chosen pickup/dropoff dates.
+ *   3. Apply locale to calendar month names and weekday headers.
  */
 (function () {
+
+  // ── Locale data ────────────────────────────────────────────────────────────
+  var CAL_MONTHS_EN = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  var CAL_MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var CAL_DAYS_EN   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var CAL_DAYS_ES   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  /**
+   * Translate visible month name headers and weekday column headers.
+   * Data attributes (data-month, data-week) are intentionally left as English
+   * because buildIsoDate() and markDateInCalendar() rely on them for ISO logic.
+   * The original English text is cached in data-en-* on the first call so
+   * repeated EN↔ES switches are idempotent.
+   */
+  function applyCalendarLocale() {
+    var lang = (typeof getLanguage === 'function') ? getLanguage() : 'en';
+    var isES = lang === 'es';
+
+    // Weekday column headers: "Sun" → "Dom"
+    document.querySelectorAll('.elCalendar__header__sell').forEach(function (el) {
+      if (!el.hasAttribute('data-en-day')) {
+        el.setAttribute('data-en-day', el.textContent.trim());
+      }
+      var idx = CAL_DAYS_EN.indexOf(el.getAttribute('data-en-day'));
+      if (idx !== -1) el.textContent = isES ? CAL_DAYS_ES[idx] : CAL_DAYS_EN[idx];
+    });
+
+    // Month name headers: "january 2026" → "enero 2026"
+    document.querySelectorAll('.js-calendar-slider .swiper-slide > div:first-child').forEach(function (el) {
+      if (!el.hasAttribute('data-en-month')) {
+        el.setAttribute('data-en-month', el.textContent.trim().toLowerCase());
+      }
+      var original  = el.getAttribute('data-en-month'); // "january 2026"
+      var spaceIdx  = original.indexOf(' ');
+      if (spaceIdx === -1) return;
+      var enMonth   = original.slice(0, spaceIdx);      // "january"
+      var yearPart  = original.slice(spaceIdx);          // " 2026"
+      var mIdx = CAL_MONTHS_EN.indexOf(enMonth);
+      if (mIdx !== -1) {
+        el.textContent = (isES ? CAL_MONTHS_ES[mIdx] : CAL_MONTHS_EN[mIdx]) + yearPart;
+      }
+    });
+  }
 
   window.addEventListener('rentcar:calendar-ready', function () {
     disablePastCells();
     markInitialDates();
+    applyCalendarLocale();
+  });
+
+  document.addEventListener('languageChanged', function () {
+    applyCalendarLocale();
   });
 
   /** Mark all calendar cells before today as disabled. */
@@ -101,10 +150,11 @@
 
   // Expose for use by main-search.js (dropoff auto-advance after pickup change)
   window.RentCarDatePicker = {
-    markDateInCalendar: markDateInCalendar,
-    disablePastCells:   disablePastCells,
-    markInitialDates:   markInitialDates,
-    isoFromDate:        isoFromDate
+    markDateInCalendar:  markDateInCalendar,
+    disablePastCells:    disablePastCells,
+    markInitialDates:    markInitialDates,
+    isoFromDate:         isoFromDate,
+    applyCalendarLocale: applyCalendarLocale,
   };
 
 })();

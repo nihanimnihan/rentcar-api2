@@ -65,7 +65,7 @@ function renderBookingSummary({ car, params, mileageOption, selectedAddonIds, av
 
   _setText("summaryCarName", carName || "Car");
   _setText("summaryCarSubtitle",
-    `${car.segment || ""} ${car.vehicleType || ""}`.trim() || "or similar");
+    `${car.segment || ""} ${car.vehicleType || ""}`.trim() || t('summary.orSimilar'));
 
   const imgEl = document.getElementById("summaryCarImage");
   if (imgEl) {
