@@ -82,14 +82,14 @@
                             <div class="col-auto">
                                 <button class="d-flex items-center text-14 text-white" data-x-click="lang">
                                     <img src="img/general/lang.png" alt="image" class="rounded-full mr-10">
-                                    <span class="js-language-mainTitle">English</span>
+                                    <span class="js-language-mainTitle" data-i18n="header.english">English</span>
                                     <i class="icon-chevron-sm-down text-7 ml-15"></i>
                                 </button>
                             </div>
                         </div>
 
                         <div class="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
-                            <a href="signup.html" class="button px-30 fw-400 text-14 border-white -blue-1 h-50 text-white ml-20">Log In / Register</a>
+                            <a href="signup.html" class="button px-30 fw-400 text-14 border-white -blue-1 h-50 text-white ml-20" data-i18n="header.logIn">Log In / Register</a>
                         </div>
 
                         <div class="d-none xl:d-flex x-gap-20 items-center pl-30 text-white" data-x="header-mobile-icons" data-x-toggle="text-white">
@@ -113,10 +113,10 @@
                             <div class="searchMenu-loc pr-30 pl-10 lg:py-20 lg:px-0 js-form-dd js-liverSearch">
 
                                 <div data-x-dd-click="searchMenu-loc">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16">Pick up location</h4>
+                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.pickUpLocation">Pick up location</h4>
 
                                     <div class="text-15 text-light-1 ls-2 lh-16">
-                                        <input id="pickupLocation" autocomplete="off" type="search" placeholder="City or Airport" class="js-search js-dd-focus" readonly />
+                                    <input id="pickupLocation" autocomplete="off" type="search" placeholder="City or Airport" data-i18n-placeholder="search.cityOrAirport" class="js-search js-dd-focus" readonly />
                                     </div>
                                 </div>
 
@@ -167,10 +167,10 @@
                             <div class="searchMenu-loc px-30 lg:py-20 lg:px-0 js-form-dd js-liverSearch">
 
                                 <div data-x-dd-click="searchMenu-loc">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16">Drop off location</h4>
+                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.dropOffLocation">Drop off location</h4>
 
                                     <div class="text-15 text-light-1 ls-2 lh-16">
-                                        <input id="dropoffLocation" autocomplete="off" type="search" placeholder="City or Airport" class="js-search js-dd-focus" readonly />
+                                    <input id="dropoffLocation" autocomplete="off" type="search" placeholder="City or Airport" data-i18n-placeholder="search.cityOrAirport" class="js-search js-dd-focus" readonly />
                                     </div>
                                 </div>
 
@@ -219,10 +219,10 @@
 
                             <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar js-calendar-el">
                                 <div data-x-dd-click="searchMenu-date">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16">Pick up</h4>
+                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.pickUp">Pick up</h4>
 
                                     <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
-                                        <span id="pickupDateText" class="js-first-date">Select date</span>
+                                        <span id="pickupDateText" class="js-first-date" data-i18n="search.selectDate">Select date</span>
 
                                         <select id="pickupHour" class="text-15 text-light-1" style="border:none; outline:none; background:white;">
                                             <option value="09:00">09:00</option>
@@ -251,10 +251,10 @@
 
                             <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar js-calendar-el">
                                 <div data-x-dd-click="searchMenu-date">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16">Drop off</h4>
+                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.dropOff">Drop off</h4>
 
                                     <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
-                                        <span id="dropoffDateText" class="js-first-date">Select date</span>
+                                        <span id="dropoffDateText" class="js-first-date" data-i18n="search.selectDate">Select date</span>
 
                                         <select id="dropoffHour" class="text-15 text-light-1" style="border:none; outline:none; background:white;">
                                             <option value="09:00">09:00</option>
@@ -283,7 +283,7 @@
                             <div class="button-item">
                                 <button id="searchCarsButton" class="mainSearch__submit button -dark-1 py-20 px-35 col-12 rounded-4 bg-yellow-1 text-dark-1">
                                     <i class="icon-search text-20 mr-10"></i>
-                                    Search
+                                    <span data-i18n="search.search">Search</span>
                                 </button>
                             </div>
                         </div>
@@ -300,6 +300,9 @@
 <div id="language-modal-placeholder"></div>
 
 <!-- JavaScript -->
+<script src="js/i18n/en.js"></script>
+<script src="js/i18n/es.js"></script>
+<script src="js/i18n/i18n.js"></script>
 <script src="js/vendors.js"></script>
 <script src="js/main.js"></script>
 <script src="js/layout.js"></script>

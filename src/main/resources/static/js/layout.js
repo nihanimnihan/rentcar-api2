@@ -7,26 +7,33 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function loadPartial(elementId, filePath) {
-  const element = document.getElementById(elementId);
+  var element = document.getElementById(elementId);
 
   if (!element) return Promise.resolve();
 
   return fetch(filePath)
-    .then(response => response.text())
-    .then(html => {
+    .then(function (response) { return response.text(); })
+    .then(function (html) {
       element.innerHTML = html;
+      if (typeof applyTranslations === "function") {
+        applyTranslations(element);
+      }
     })
-    .catch(error => console.error("Partial could not be loaded:", error));
+    .catch(function (error) { console.error("Partial could not be loaded:", error); });
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const filtersContainer = document.getElementById("car-filters-placeholder");
+document.addEventListener("DOMContentLoaded", async function () {
+  var filtersContainer = document.getElementById("car-filters-placeholder");
   if (!filtersContainer) return;
 
-  const response = await fetch("/partials/car-filters.html");
-  const html = await response.text();
+  var response = await fetch("/partials/car-filters.html");
+  var html = await response.text();
 
   filtersContainer.innerHTML = html;
+
+  if (typeof applyTranslations === "function") {
+    applyTranslations(filtersContainer);
+  }
 
   if (typeof initCarFilters === "function") {
     initCarFilters();
@@ -38,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   await loadPartial("preloader-placeholder", "partials/preloader.html");
 
   setTimeout(function () {
-    const preloader = document.querySelector(".js-preloader");
+    var preloader = document.querySelector(".js-preloader");
 
     if (!preloader) return;
 

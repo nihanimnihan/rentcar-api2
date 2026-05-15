@@ -14,7 +14,7 @@ async function loadAddonPage() {
   const carId = params.get("carId");
 
   if (!carId) {
-    showPageError("No car selected. Please go back and choose a vehicle.");
+    showPageError(t('error.noCarSelected'));
     return;
   }
 
@@ -27,9 +27,9 @@ async function loadAddonPage() {
     if (!carRes.ok) {
       const status = carRes.status;
       if (status === 404) {
-        showPageError("This car is no longer available. Please go back and choose another vehicle.");
+        showPageError(t('error.carUnavailable'));
       } else {
-        showPageError("Failed to load car details. Please try again.");
+        showPageError(t('error.failedToLoadCar'));
       }
       console.error("Car detail fetch failed:", status);
       return;
@@ -46,7 +46,7 @@ async function loadAddonPage() {
     selectedCar = await carRes.json();
   } catch (err) {
     console.error("Failed to load page data:", err);
-    showPageError("Failed to load page. Please check your connection and try again.");
+    showPageError(t('error.failedToLoadPage'));
     return;
   }
 
@@ -62,7 +62,7 @@ function showPageError(message) {
       <div style="padding:40px 0;text-align:center">
         <p class="text-16 text-danger mb-20">${escapeHtml(message)}</p>
         <a href="cars.html${window.location.search}" class="button h-50 px-30 bg-dark-1 text-white rounded-8 fw-600">
-          Back to search
+          ${t('addon.backToSearch')}
         </a>
       </div>
     `;
@@ -80,7 +80,7 @@ function renderAddonCards(addons) {
   if (!container) return;
 
   if (addons.length === 0) {
-    container.innerHTML = "<p class='text-15 text-light-1'>No add-ons available.</p>";
+    container.innerHTML = `<p class='text-15 text-light-1'>${t('addon.noAddonsAvailable')}</p>`;
     return;
   }
 
@@ -90,12 +90,12 @@ function renderAddonCards(addons) {
   const parts = [];
 
   if (recommended.length > 0) {
-    parts.push(`<h2 class="rentcar-addon-section-title">Recommended add-ons for your trip</h2>`);
+    parts.push(`<h2 class="rentcar-addon-section-title">${t('addon.recommended')}</h2>`);
     parts.push(...recommended.map(addon => renderAddonCard(addon, true)));
   }
 
   if (more.length > 0) {
-    parts.push(`<h2 class="rentcar-addon-section-title rentcar-addon-section-title--more">More add-ons for you</h2>`);
+    parts.push(`<h2 class="rentcar-addon-section-title rentcar-addon-section-title--more">${t('addon.moreAddons')}</h2>`);
     parts.push(...more.map(addon => renderAddonCard(addon, false)));
   }
 
@@ -104,8 +104,8 @@ function renderAddonCards(addons) {
 
 function renderAddonCard(addon, isRecommended) {
   const priceLabel = addon.pricingType === "DAILY"
-    ? `€${Number(addon.price).toFixed(2)} / day`
-    : `€${Number(addon.price).toFixed(2)} / one-time`;
+    ? `€${Number(addon.price).toFixed(2)} ${t('car.perDay')}`
+    : `€${Number(addon.price).toFixed(2)} ${t('addon.oneTime')}`;
 
   if (isRecommended && addon.imageUrl) {
     return `
@@ -124,7 +124,7 @@ function renderAddonCard(addon, isRecommended) {
           <div class="d-flex justify-between items-center mt-20">
             <div class="text-16 fw-700">${priceLabel}</div>
             <button type="button" class="rentcar-addon-button" onclick="toggleAddon(${addon.id})">
-              Add <span>+</span>
+              ${t('addon.add')} <span>+</span>
             </button>
           </div>
         </div>
@@ -153,7 +153,7 @@ function renderAddonCard(addon, isRecommended) {
         <div class="d-flex justify-between items-center mt-20">
           <div class="text-16 fw-700">${priceLabel}</div>
           <button type="button" class="rentcar-addon-button" onclick="toggleAddon(${addon.id})">
-            Add <span>+</span>
+            ${t('addon.add')} <span>+</span>
           </button>
         </div>
       </div>
@@ -177,8 +177,8 @@ function toggleAddon(addonId) {
   const button = document.querySelector(`[data-addon-id="${id}"] .rentcar-addon-button`);
   if (button) {
     button.innerHTML = selectedAddons.has(id)
-      ? `Added <span>✓</span>`
-      : `Add <span>+</span>`;
+      ? `${t('addon.added')} <span>✓</span>`
+      : `${t('addon.add')} <span>+</span>`;
   }
 
   renderSummary();
@@ -238,7 +238,7 @@ function renderAddonsPriceModal() {
 
   if (mileageOption === "UNLIMITED") {
     const charge = Number(selectedCar.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays;
-    addonLines.push({ name: "Unlimited kilometers", totalPrice: charge.toFixed(2) });
+    addonLines.push({ name: t('car.unlimitedKm'), totalPrice: charge.toFixed(2) });
   }
 
   Array.from(selectedAddons).map(addonId => {
@@ -293,3 +293,20 @@ function formatDateTime(value) {
 window.toggleAddon = toggleAddon;
 window.closeBookingModal = closeBookingModal;
 window.submitBooking = submitBooking;
+
+document.addEventListener('languageChanged', function () {
+  applyTranslations(document);
+  if (availableAddons.length > 0 || selectedCar) {
+    renderAddonCards(availableAddons);
+    renderSummary();
+    // Re-apply selected state
+    selectedAddons.forEach(function (id) {
+      var card = document.querySelector('[data-addon-id="' + id + '"]');
+      if (card) {
+        card.classList.add('is-selected');
+        var btn = card.querySelector('.rentcar-addon-button');
+        if (btn) btn.innerHTML = t('addon.added') + ' <span>✓</span>';
+      }
+    });
+  }
+});

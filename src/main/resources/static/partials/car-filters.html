@@ -9,14 +9,14 @@
                             <div class="col-auto">
                                 <button id="openCarFiltersButton" class="button -blue-1 h-40 px-20 rounded-100 bg-blue-1-05 text-15 text-blue-1">
                                     <i class="icon-up-down text-14 mr-10"></i>
-                                    Filter
+                                    <span data-i18n="filter.filter">Filter</span>
                                 </button>
                             </div>
 
                             <div class="col-auto">
                                 <button class="button -blue-1 h-40 px-20 rounded-100 bg-blue-1-05 text-15 text-blue-1">
                                     <i class="icon-up-down text-14 mr-10"></i>
-                                    Sort
+                                    <span data-i18n="filter.sort">Sort</span>
                                 </button>
                             </div>
                         </div>
@@ -30,23 +30,23 @@
                                 <i class="icon-close text-15"></i>
                             </button>
 
-                            <div class="text-18 fw-500">Filters</div>
+                            <div class="text-18 fw-500" data-i18n="filter.filtersTitle">Filters</div>
 
-                            <button type="button" id="clearCarFiltersButton" class="text-14 fw-500 underline">
+                            <button type="button" id="clearCarFiltersButton" class="text-14 fw-500 underline" data-i18n="filter.clear">
                                 Clear
                             </button>
                         </div>
 
                         <div class="rentcar-filter-body">
                             <div class="sidebar__item -no-border">
-                                <h5 class="text-18 fw-500 mb-10">Vehicle type</h5>
+                                <h5 class="text-18 fw-500 mb-10" data-i18n="filter.vehicleType">Vehicle type</h5>
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
                                             <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="SEDAN">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Sedan</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.sedan">Sedan</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -54,7 +54,7 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="SUV">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">SUV</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.suv">SUV</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -62,7 +62,7 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="STATION_WAGON">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Station wagon</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.stationWagon">Station wagon</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -70,7 +70,7 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="VAN">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Family car</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.familyCar">Family car</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -78,7 +78,7 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="CONVERTIBLE">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Convertible</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.convertible">Convertible</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -86,20 +86,20 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="COUPE">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Coupe</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.coupe">Coupe</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="sidebar__item">
-                                <h5 class="text-18 fw-500 mb-10">Premium selections</h5>
+                                <h5 class="text-18 fw-500 mb-10" data-i18n="filter.premiumSelections">Premium selections</h5>
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
                                             <input type="checkbox" class="js-car-filter" data-filter="premium" value="true">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Premium</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.premium">Premium</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -107,20 +107,20 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="guaranteedModel" value="true">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Guaranteed model</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.guaranteedModel">Guaranteed model</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="sidebar__item">
-                                <h5 class="text-18 fw-500 mb-10">Features</h5>
+                                <h5 class="text-18 fw-500 mb-10" data-i18n="filter.features">Features</h5>
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
                                             <input type="checkbox" class="js-car-filter" data-filter="fuelType" value="ELECTRIC">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Electric</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.electric">Electric</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -128,7 +128,7 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="fuelType" value="HYBRID">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Hybrid</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.hybrid">Hybrid</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -136,7 +136,7 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="transmission" value="AUTOMATIC">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Automatic</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.automatic">Automatic</div>
                                     </div>
 
                                     <div class="filter-chip">
@@ -144,13 +144,13 @@
                                             <input type="checkbox" class="js-car-filter" data-filter="hotOffer" value="true">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
-                                        <div class="text-15 ml-10">Hot offers</div>
+                                        <div class="text-15 ml-10" data-i18n="filter.hotOffers">Hot offers</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="sidebar__item">
-                                <h5 class="text-18 fw-500 mb-10">Minimum number of seats</h5>
+                                <h5 class="text-18 fw-500 mb-10" data-i18n="filter.minSeats">Minimum number of seats</h5>
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
@@ -187,7 +187,7 @@
                             </div>
 
                             <div class="sidebar__item">
-                                <h5 class="text-18 fw-500 mb-10">Bags</h5>
+                                <h5 class="text-18 fw-500 mb-10" data-i18n="filter.bags">Bags</h5>
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
@@ -224,7 +224,7 @@
                             </div>
 
                             <div class="sidebar__item">
-                                <h5 class="text-18 fw-500 mb-10">Primary driver age</h5>
+                                <h5 class="text-18 fw-500 mb-10" data-i18n="filter.driverAge">Primary driver age</h5>
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="radio">
@@ -253,7 +253,7 @@
                         </div>
                         <div class="rentcar-filter-footer">
                             <button type="button" id="showFilteredCarsButton">
-                                Show <span id="filterCarsCount">0</span> cars
+                                <span data-i18n="filter.show">Show</span> <span id="filterCarsCount">0</span> <span data-i18n="filter.cars">cars</span>
                             </button>
                         </div>
                     </aside>
@@ -261,7 +261,7 @@
                 <div class="mt-30"></div>
                 <div id="carsList" class="row y-gap-30">
                     <div class="col-12">
-                        <div class="text-15 text-light-1">Loading cars...</div>
+                        <div class="text-15 text-light-1" data-i18n="car.loadingCars">Loading cars...</div>
                     </div>
                 </div>
 

@@ -3,28 +3,22 @@
 
     <div class="langMenu__content bg-white rounded-4">
         <div class="d-flex items-center justify-between px-30 py-20 sm:px-15 border-bottom-light">
-            <div class="text-20 fw-500 lh-15">Select your language</div>
+            <div class="text-20 fw-500 lh-15" data-i18n="lang.selectLanguage">Select your language</div>
             <button class="pointer" data-x-click="lang">
                 <i class="icon-close"></i>
             </button>
         </div>
 
         <div class="modalGrid px-30 py-20 sm:px-15 sm:py-15">
-            <div class="modalGrid__item js-item">
+            <div class="modalGrid__item langMenu__item js-item" data-lang="en">
                 <div class="py-10 px-15 sm:px-5 sm:py-5">
-                    <div class="text-15 lh-15 fw-500 text-dark-1">English</div>
+                    <div class="text-15 lh-15 fw-500 text-dark-1" data-i18n="lang.english">English</div>
                 </div>
             </div>
 
-            <div class="modalGrid__item js-item">
+            <div class="modalGrid__item langMenu__item js-item" data-lang="es">
                 <div class="py-10 px-15 sm:px-5 sm:py-5">
-                    <div class="text-15 lh-15 fw-500 text-dark-1">Türkçe</div>
-                </div>
-            </div>
-
-            <div class="modalGrid__item js-item">
-                <div class="py-10 px-15 sm:px-5 sm:py-5">
-                    <div class="text-15 lh-15 fw-500 text-dark-1">Español</div>
+                    <div class="text-15 lh-15 fw-500 text-dark-1" data-i18n="lang.spanish">Español</div>
                 </div>
             </div>
         </div>

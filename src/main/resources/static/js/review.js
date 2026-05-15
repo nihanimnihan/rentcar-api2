@@ -21,7 +21,7 @@ async function loadReviewPage() {
 
   const carId = params.get("carId");
   if (!carId) {
-    showReviewError("Missing booking details. Please start your search again.", "cars.html");
+    showReviewError(t('error.missingBooking'), "cars.html");
     return;
   }
 
@@ -39,9 +39,9 @@ async function loadReviewPage() {
 
     if (!carRes.ok) {
       if (carRes.status === 404) {
-        showReviewError("This car is no longer available. Please search again.", "cars.html");
+        showReviewError(t('error.carNotAvailable'), "cars.html");
       } else {
-        showReviewError("Could not load car details. Please try again.", "cars.html");
+        showReviewError(t('error.couldNotLoad'), "cars.html");
       }
       return;
     }
@@ -73,7 +73,7 @@ async function loadReviewPage() {
 
   } catch (err) {
     console.error("Failed to load review page data:", err);
-    showReviewError("A network error occurred. Please check your connection and try again.", "cars.html");
+    showReviewError(t('error.networkError'), "cars.html");
   }
 }
 
@@ -234,8 +234,7 @@ async function submitBooking() {
   const confirmBtn = document.getElementById("rfConfirmBtn");
   const errorDiv   = document.getElementById("rfBookingError");
 
-  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = "Processing…"; }
-  if (errorDiv)   errorDiv.style.display = "none";
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = "Processing…"; }  if (errorDiv)   errorDiv.style.display = "none";
 
   try {
     const res = await fetch("/api/bookings", {
@@ -261,7 +260,7 @@ async function submitBooking() {
     console.error("Booking submission failed:", err);
     showBookingFormError("A network error occurred. Please check your connection.");
   } finally {
-    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = "Pay and Book"; }
+    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = t('review.payAndBook'); }
   }
 }
 
@@ -324,3 +323,16 @@ function esc(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+document.addEventListener('languageChanged', function () {
+  applyTranslations(document);
+  if (reviewCar) {
+    renderBookingSummary({
+      car: reviewCar,
+      params: new URLSearchParams(window.location.search),
+      mileageOption: reviewMileageOption,
+      selectedAddonIds: reviewAddonIds,
+      availableAddons: reviewAllAddons
+    });
+  }
+});

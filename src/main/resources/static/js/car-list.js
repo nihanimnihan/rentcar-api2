@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // Module-level maps so selectMileageOption can access car data without DOM hacks
 const carCache = {};       // carId -> CarDetailResponse
 const mileageOptions = {}; // carId -> "INCLUDED" | "UNLIMITED"
+let _lastFetchedCars = null;
 
 async function loadCars() {
   const params = new URLSearchParams(window.location.search);
@@ -30,6 +31,7 @@ async function loadCars() {
 
     const cars = await response.json();
     renderCars(cars);
+    _lastFetchedCars = cars;
   } catch (error) {
     console.error("API error:", error);
     document.getElementById("carsList").innerHTML = renderInvalidSearchError("API_ERROR");
@@ -58,12 +60,12 @@ function validateSearchDates(pickupStr, dropoffStr) {
 /** Render a SIXT-style error panel inside the car list area. */
 function renderInvalidSearchError(type) {
   const messages = {
-    PAST_DATE:    "Your pickup date is in the past. Please start a new search with a valid future date.",
-    INVALID_RANGE:"Return date must be after the pickup date. Please adjust your dates.",
-    INVALID_DATE: "The date in the URL is not valid. Please start a new search.",
-    API_ERROR:    "Cars could not be loaded at this time. Please try again."
+    PAST_DATE:    t('error.pastDate'),
+    INVALID_RANGE: t('error.invalidRange'),
+    INVALID_DATE: t('error.invalidDate'),
+    API_ERROR:    t('error.apiError')
   };
-  const message = messages[type] || "Please start a new search.";
+  const message = messages[type] || t('error.defaultSearch');
 
   return `
     <div class="col-12">
@@ -73,10 +75,10 @@ function renderInvalidSearchError(type) {
             <i class="icon-calendar text-20"></i>
           </div>
           <div class="rentcar-search-error-body">
-            <div class="rentcar-search-error-title">Sorry</div>
+            <div class="rentcar-search-error-title">${t('error.sorry')}</div>
             <div class="rentcar-search-error-message">${message}</div>
           </div>
-          <a href="index.html" class="rentcar-search-error-action">New search</a>
+          <a href="index.html" class="rentcar-search-error-action">${t('error.newSearch')}</a>
         </div>
       </div>
     </div>
@@ -89,7 +91,7 @@ function renderCars(cars) {
 
   if (!cars || cars.length === 0) {
     if (carsCount) {
-      carsCount.textContent = "0 cars";
+      carsCount.textContent = `0 ${t('car.cars')}`;
     }
     const filterCarsCount = document.getElementById("filterCarsCount");
 
@@ -100,14 +102,14 @@ function renderCars(cars) {
     carsList.innerHTML = `
       <div class="col-12">
         <div class="text-15 text-light-1">
-          No cars found.
+          ${t('car.noCarsFound')}
         </div>
       </div>
     `;
     return;
   }
 
-  if (carsCount) carsCount.textContent = `${cars.length} cars`;
+  if (carsCount) carsCount.textContent = `${cars.length} ${t('car.cars')}`;
   const filterCarsCount = document.getElementById("filterCarsCount");
   if (filterCarsCount) filterCarsCount.textContent = cars.length;
 
@@ -158,26 +160,26 @@ function renderCars(cars) {
             <div class="d-flex x-gap-15 y-gap-10 flex-wrap mt-20 text-14">
                 <div class="d-flex items-center">
                   <i class="icon-user text-16 mr-5"></i>
-                  ${seats} seats
+                  ${seats} ${t('car.seats')}
                 </div>
 
                 <div class="d-flex items-center">
                   <i class="icon-car text-16 mr-5"></i>
-                  ${doors} doors
+                  ${doors} ${t('car.doors')}
                 </div>
 
                 <div class="d-flex items-center">
                   <i class="icon-luggage text-16 mr-5"></i>
-                  ${bags} bags
+                  ${bags} ${t('car.bags')}
                 </div>
 
                 <div class="d-flex items-center">
-                  ${hasAc ? "AC" : "No AC"}
+                  ${hasAc ? t('car.ac') : t('car.noAc')}
                 </div>
 
                 <div class="d-flex items-center">
                   <i class="icon-customer text-16 mr-5"></i>
-                  Min age ${minDriverAge}
+                  ${t('car.minAge')} ${minDriverAge}
                 </div>
             </div>
 
@@ -185,14 +187,14 @@ function renderCars(cars) {
               <div class="d-flex items-center">
                 <i class="icon-check text-10 text-green-2 mr-10"></i>
                 <div class="text-14 fw-500 text-green-2">
-                  Free cancellation
+                  ${t('car.freeCancellation')}
                 </div>
               </div>
 
               <div class="d-flex items-center">
                 <i class="icon-check text-10 text-green-2 mr-10"></i>
                 <div class="text-14 fw-500 text-green-2">
-                  Unlimited kilometers available
+                  ${t('car.unlimitedKmAvailable')}
                 </div>
               </div>
             </div>
@@ -201,10 +203,10 @@ function renderCars(cars) {
                <div class="rentcar-price-row">
                   <div class="text-28 fw-700 text-red-1 lh-1">
                     €${dailyPrice}
-                    <span class="text-14 fw-600">/ day</span>
+                    <span class="text-14 fw-600">${t('car.perDay')}</span>
                   </div>
                   <div class="rentcar-total-price">
-                    €${totalPrice} total
+                    €${totalPrice} ${t('car.total')}
                   </div>
                 </div>
 
@@ -212,7 +214,7 @@ function renderCars(cars) {
                 type="button"
                 onclick="showCarDetail(${car.id})"
                 class="button h-50 px-24 bg-dark-1 -yellow-1 text-white">
-                View Detail
+                ${t('car.viewDetail')}
               </button>
             </div>
 
@@ -314,16 +316,16 @@ function buildDetailHtml(car, carId) {
             </div>
 
             <div class="rentcar-detail-specs">
-              <span><i class="icon-user"></i> ${seats} Seats</span>
-              <span><i class="icon-luggage"></i> ${bags} Bags</span>
-              <span><i class="icon-car"></i> ${doors} Doors</span>
+              <span><i class="icon-user"></i> ${seats} ${t('car.seatsLabel')}</span>
+              <span><i class="icon-luggage"></i> ${bags} ${t('car.bagsLabel')}</span>
+              <span><i class="icon-car"></i> ${doors} ${t('car.doorsLabel')}</span>
               <span><i class="icon-transmission"></i> ${transmission}</span>
-              <span><i class="icon-customer"></i> Min age ${minDriverAge}</span>
+              <span><i class="icon-customer"></i> ${t('car.minAge')} ${minDriverAge}</span>
             </div>
           </div>
 
           <div class="rentcar-detail-right">
-            <div class="rentcar-mileage-title">Mileage</div>
+            <div class="rentcar-mileage-title">${t('car.mileage')}</div>
 
             <label class="rentcar-choice-card is-selected">
               <input
@@ -337,10 +339,10 @@ function buildDetailHtml(car, carId) {
 
               <div class="rentcar-choice-content">
                 <div class="rentcar-choice-title">${car.priceBreakdown?.includedKm != null ? Number(car.priceBreakdown.includedKm).toLocaleString("en") + " km" : "—"}</div>
-                <div class="rentcar-choice-sub">+€0.25 / for every additional km</div>
+                <div class="rentcar-choice-sub">${t('car.extraKm')}</div>
               </div>
 
-              <div class="rentcar-choice-price">Included</div>
+              <div class="rentcar-choice-price">${t('car.included')}</div>
             </label>
 
             <label class="rentcar-choice-card">
@@ -353,27 +355,27 @@ function buildDetailHtml(car, carId) {
               <span class="rentcar-radio"></span>
 
               <div class="rentcar-choice-content">
-                <div class="rentcar-choice-title">Unlimited kilometers</div>
-                <div class="rentcar-choice-sub">All kilometers are included in the price</div>
+                <div class="rentcar-choice-title">${t('car.unlimitedKm')}</div>
+                <div class="rentcar-choice-sub">${t('car.unlimitedKmSub')}</div>
               </div>
 
-              <div class="rentcar-choice-price">${car.priceBreakdown?.unlimitedKmDailyPrice != null ? "+ €" + Number(car.priceBreakdown.unlimitedKmDailyPrice).toFixed(2) + " / day" : "—"}</div>
+              <div class="rentcar-choice-price">${car.priceBreakdown?.unlimitedKmDailyPrice != null ? "+ €" + Number(car.priceBreakdown.unlimitedKmDailyPrice).toFixed(2) + " " + t('car.perDay') : "—"}</div>
             </label>
 
             <div class="rentcar-detail-action-row">
               <div>
                 <div class="rentcar-detail-price">
-                  €${dailyPrice}<span>/ day</span>
-                  <strong id="detail-total-${carId}">€${totalPrice} total</strong>
+                  €${dailyPrice}<span>${t('car.perDay')}</span>
+                  <strong id="detail-total-${carId}">€${totalPrice} ${t('car.total')}</strong>
                 </div>
 
                 <button type="button" class="rentcar-price-details" onclick="openCarPriceModal(${carId})">
-                  Price details
+                  ${t('car.priceDetails')}
                 </button>
               </div>
 
               <button type="button" class="rentcar-next-button" onclick="goToAddons(${carId})">
-                Next
+                ${t('car.next')}
               </button>
             </div>
           </div>
@@ -404,7 +406,7 @@ function selectMileageOption(input, carId) {
 
   // Update live total in the detail panel
   const totalEl = document.getElementById(`detail-total-${carId}`);
-  if (totalEl) totalEl.textContent = `€${(baseTotal + unlimitedCharge).toFixed(2)} total`;
+  if (totalEl) totalEl.textContent = `€${(baseTotal + unlimitedCharge).toFixed(2)} ${t('car.total')}`;
 }
 
 window.selectMileageOption = selectMileageOption;
@@ -425,7 +427,7 @@ function openCarPriceModal(carId) {
   const addonLines = [];
   if (mileageOptions[carId] === "UNLIMITED") {
     const charge = Number(car.priceBreakdown.unlimitedKmDailyPrice || 0) * rentalDays;
-    addonLines.push({ name: "Unlimited kilometers", totalPrice: charge.toFixed(2) });
+    addonLines.push({ name: t('car.unlimitedKm'), totalPrice: charge.toFixed(2) });
   }
 
   document.body.insertAdjacentHTML(
@@ -497,7 +499,7 @@ function setTextValue(id, value) {
 }
 
 function formatDateForDisplay(value) {
-  if (!value) return "Select date";
+  if (!value) return t('search.selectDate');
 
   const date = new Date(value + "T00:00:00");
 
@@ -505,7 +507,7 @@ function formatDateForDisplay(value) {
     return value;
   }
 
-  return date.toLocaleDateString("en-GB", {
+  return date.toLocaleDateString(getLanguage() === 'es' ? 'es-ES' : 'en-GB', {
     weekday: "short",
     day: "numeric",
     month: "short"
@@ -542,3 +544,19 @@ function goToAddons(carId) {
 }
 
 window.goToAddons = goToAddons;
+
+document.addEventListener('languageChanged', function () {
+  applyTranslations(document);
+  if (_lastFetchedCars !== null) {
+    renderCars(_lastFetchedCars);
+  }
+  // Re-render open detail panel if any
+  var openDetail = document.querySelector('.inline-car-detail');
+  if (openDetail) {
+    var carId = openDetail.id.replace('car-detail-', '');
+    var car = carCache[carId];
+    if (car) {
+      openDetail.outerHTML = buildDetailHtml(car, carId);
+    }
+  }
+});

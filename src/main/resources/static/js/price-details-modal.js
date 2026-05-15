@@ -8,7 +8,7 @@ function buildPriceDetailsModalHtml(modalId, price, addonLines = []) {
   if (Number(price.oneWayFee) > 0) {
     feeRows.push(`
       <div class="rentcar-price-row-line">
-        <span>One-way fee</span>
+        <span>${t('price.oneWayFee')}</span>
         <strong>€${price.oneWayFee}</strong>
       </div>
     `);
@@ -17,7 +17,7 @@ function buildPriceDetailsModalHtml(modalId, price, addonLines = []) {
   if (Number(price.premiumLocationFee) > 0) {
     feeRows.push(`
       <div class="rentcar-price-row-line">
-        <span>Premium location fee</span>
+        <span>${t('price.premiumLocationFee')}</span>
         <strong>€${price.premiumLocationFee}</strong>
       </div>
     `);
@@ -44,14 +44,14 @@ function buildPriceDetailsModalHtml(modalId, price, addonLines = []) {
           <i class="icon-close"></i>
         </button>
 
-        <h2 class="rentcar-price-modal-title">PRICE DETAILS</h2>
+        <h2 class="rentcar-price-modal-title">${t('price.title')}</h2>
 
         <div class="rentcar-price-section">
-          <div class="rentcar-price-section-title">Rental charges</div>
+          <div class="rentcar-price-section-title">${t('price.rentalCharges')}</div>
 
           <div class="rentcar-price-row-line">
             <span>
-              ${price.rentalDays} rental day${price.rentalDays > 1 ? "s" : ""}
+              ${price.rentalDays} ${price.rentalDays > 1 ? t('price.rentalDays') : t('price.rentalDay')}
               x €${price.effectiveDailyPrice}
               ${Number(price.discountPercentage) > 0 ? `<span class="text-12 text-light-1"> (${price.discountPercentage}% off)</span>` : ""}
             </span>
@@ -62,7 +62,7 @@ function buildPriceDetailsModalHtml(modalId, price, addonLines = []) {
         ${feeRows.length > 0 ? `
           <div class="rentcar-price-divider"></div>
           <div class="rentcar-price-section">
-            <div class="rentcar-price-section-title">Fees</div>
+            <div class="rentcar-price-section-title">${t('price.fees')}</div>
             ${feeRows.join("")}
           </div>
         ` : ""}
@@ -70,7 +70,7 @@ function buildPriceDetailsModalHtml(modalId, price, addonLines = []) {
         <div class="rentcar-price-divider"></div>
 
         <div class="rentcar-price-total">
-          <span>Total</span>
+          <span>${t('price.total')}</span>
           <strong>€${calculatePriceDetailsTotal(price, addonLines)}</strong>
         </div>
       </div>

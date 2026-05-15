@@ -41,11 +41,11 @@
                     <div class="d-flex items-center x-gap-20">
                         <button class="d-flex items-center text-14 text-white" data-x-click="lang">
                             <img src="img/general/lang.png" alt="language" class="rounded-full mr-10" style="width:20px;height:20px">
-                            <span>English</span>
+                            <span data-i18n-lang-label data-i18n="header.english">English</span>
                             <i class="icon-chevron-sm-down text-7 ml-10"></i>
                         </button>
-                        <a href="signup.html"
-                           class="button px-30 fw-400 text-14 border-white -blue-1 h-50 text-white">
+                           <a href="signup.html"
+                          class="button px-30 fw-400 text-14 border-white -blue-1 h-50 text-white" data-i18n="header.logIn">
                             Log In / Register
                         </a>
                     </div>
@@ -77,21 +77,16 @@
 
                     <!-- A: Driver details ──────────────────────────────── -->
                     <div class="rentcar-review-card" id="driverSection">
-                        <h2 class="rentcar-review-section-title">Who will drive?</h2>
+                        <h2 class="rentcar-review-section-title" data-i18n="review.whoWillDrive">Who will drive?</h2>
 
                         <div class="row x-gap-15 y-gap-20">
 
                             <div class="col-12">
                                 <div class="rentcar-field" id="field-email">
-                                    <label for="rfEmail">Email *</label>
+                                    <label for="rfEmail" data-i18n="review.email">Email *</label>
                                     <input id="rfEmail" type="email" autocomplete="email">
-                                    <span class="rentcar-field-error-msg">Invalid entry or required field</span>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-6">
-                                <div class="rentcar-field" id="field-firstName">
-                                    <label for="rfFirstName">First name *</label>
+                                    <span class="rentcar-field-error-msg" data-i18n="review.invalidField">Invalid entry or required field</span>
+                                    <label for="rfFirstName" data-i18n="review.firstName">First name *</label>
                                     <input id="rfFirstName" type="text" autocomplete="given-name">
                                     <span class="rentcar-field-error-msg">Invalid entry or required field</span>
                                 </div>
@@ -99,7 +94,7 @@
 
                             <div class="col-sm-6">
                                 <div class="rentcar-field" id="field-lastName">
-                                    <label for="rfLastName">Last name *</label>
+                                    <label for="rfLastName" data-i18n="review.lastName">Last name *</label>
                                     <input id="rfLastName" type="text" autocomplete="family-name">
                                     <span class="rentcar-field-error-msg">Invalid entry or required field</span>
                                 </div>
@@ -107,7 +102,7 @@
 
                             <div class="col-12">
                                 <div class="rentcar-field" id="field-phone">
-                                    <label>Phone *</label>
+                                    <label data-i18n="review.phone">Phone *</label>
                                     <div class="rentcar-phone-row">
                                         <select id="rfCountryCode" autocomplete="tel-country-code">
                                             <option value="+1">🇺🇸 +1</option>
@@ -133,7 +128,7 @@
 
                             <div class="col-12">
                                 <div class="rentcar-field">
-                                    <label for="rfCompany">Company <span style="font-weight:400;text-transform:none">(optional)</span></label>
+                                    <label for="rfCompany"><span data-i18n="review.company">Company</span> <span style="font-weight:400;text-transform:none" data-i18n="review.optional">(optional)</span></label>
                                     <input id="rfCompany" type="text" autocomplete="organization">
                                 </div>
                             </div>
@@ -143,48 +138,48 @@
 
                     <!-- B: Communication ───────────────────────────────── -->
                     <div class="rentcar-review-card">
-                        <h2 class="rentcar-review-section-title">Communication preferences</h2>
+                        <h2 class="rentcar-review-section-title" data-i18n="review.communicationPrefs">Communication preferences</h2>
 
                         <label class="rentcar-radio-option">
                             <input type="radio" name="rfWhatsapp" value="yes">
                             <div>
-                                <strong>Yes</strong>, I want to receive automated WhatsApp messages about my rental.
+                                <strong data-i18n="review.whatsappYes">Yes</strong>, <span data-i18n="review.whatsappYesText">I want to receive automated WhatsApp messages about my rental.</span>
                             </div>
                         </label>
 
                         <label class="rentcar-radio-option">
                             <input type="radio" name="rfWhatsapp" value="no" checked>
                             <div>
-                                <strong>No</strong>, I don't want to receive WhatsApp messages.
+                                <strong data-i18n="review.whatsappNo">No</strong>, <span data-i18n="review.whatsappNoText">I don't want to receive WhatsApp messages.</span>
                             </div>
                         </label>
                     </div>
 
                     <!-- C: Driver age ──────────────────────────────────── -->
                     <div class="rentcar-review-card" id="field-ageConfirm">
-                        <h2 class="rentcar-review-section-title">Driver age</h2>
+                        <h2 class="rentcar-review-section-title" data-i18n="review.driverAge">Driver age</h2>
 
                         <label class="rentcar-checkbox-option">
                             <input type="checkbox" id="rfAgeConfirm">
                             <div>
-                                I am <strong><span id="rfMinAge">21</span> years of age</strong> or older
+                                <span data-i18n="review.iAm">I am</span> <strong><span id="rfMinAge">21</span> <span data-i18n="review.yearsOfAge">years of age</span></strong> <span data-i18n="review.orOlder">or older</span>
                             </div>
                         </label>
-                        <span class="rentcar-field-error-msg" style="display:none" id="ageConfirmError">
+                        <span class="rentcar-field-error-msg" style="display:none" id="ageConfirmError" data-i18n="review.mustConfirmAge">
                             You must confirm your age to continue
                         </span>
                     </div>
 
                     <!-- D: Payment method ──────────────────────────────── -->
                     <div class="rentcar-review-card">
-                        <h2 class="rentcar-review-section-title">How would you like to pay?</h2>
+                        <h2 class="rentcar-review-section-title" data-i18n="review.howToPay">How would you like to pay?</h2>
 
                         <div class="rentcar-payment-options">
 
                             <label class="rentcar-payment-option is-selected" id="pm-card">
                                 <input type="radio" name="rfPayment" value="CARD" checked>
                                 <div class="rentcar-payment-option-icon">💳</div>
-                                <div>Credit or debit card</div>
+                                <div data-i18n="review.creditCard">Credit or debit card</div>
                             </label>
 
                             <label class="rentcar-payment-option" id="pm-paypal">
@@ -201,20 +196,20 @@
 
                         </div>
 
-                        <p class="text-13 text-light-1 mt-15">
+                        <p class="text-13 text-light-1 mt-15" data-i18n="review.paymentNote">
                             Payment details will be collected securely at the next step. No charges are made until your booking is confirmed.
                         </p>
                     </div>
 
                     <!-- E: Invoice address ──────────────────────────────── -->
                     <div class="rentcar-review-card">
-                        <h2 class="rentcar-review-section-title">What's your invoice address?</h2>
+                        <h2 class="rentcar-review-section-title" data-i18n="review.invoiceAddress">What's your invoice address?</h2>
 
                         <div class="row x-gap-15 y-gap-20">
 
                             <div class="col-12">
                                 <div class="rentcar-field">
-                                    <label for="rfInvCountry">Country</label>
+                                    <label for="rfInvCountry" data-i18n="review.country">Country</label>
                                     <select id="rfInvCountry" autocomplete="country">
                                         <option value="">Select country…</option>
                                         <option value="ES" selected>Spain</option>
@@ -236,28 +231,28 @@
 
                             <div class="col-12">
                                 <div class="rentcar-field">
-                                    <label for="rfStreet">Street address</label>
+                                    <label for="rfStreet" data-i18n="review.streetAddress">Street address</label>
                                     <input id="rfStreet" type="text" autocomplete="street-address">
                                 </div>
                             </div>
 
                             <div class="col-sm-4">
                                 <div class="rentcar-field">
-                                    <label for="rfZip">ZIP / Postal code</label>
+                                    <label for="rfZip" data-i18n="review.zipCode">ZIP / Postal code</label>
                                     <input id="rfZip" type="text" autocomplete="postal-code">
                                 </div>
                             </div>
 
                             <div class="col-sm-8">
                                 <div class="rentcar-field">
-                                    <label for="rfCity">City</label>
+                                    <label for="rfCity" data-i18n="review.city">City</label>
                                     <input id="rfCity" type="text" autocomplete="address-level2">
                                 </div>
                             </div>
 
                             <div class="col-12">
                                 <div class="rentcar-field">
-                                    <label for="rfState">State / Province</label>
+                                    <label for="rfState" data-i18n="review.stateProvince">State / Province</label>
                                     <input id="rfState" type="text" autocomplete="address-level1">
                                 </div>
                             </div>
@@ -267,31 +262,31 @@
 
                     <!-- F: Flight number ───────────────────────────────── -->
                     <div class="rentcar-review-card">
-                        <h2 class="rentcar-review-section-title">What's your flight number?</h2>
+                        <h2 class="rentcar-review-section-title" data-i18n="review.flightNumber">What's your flight number?</h2>
 
                         <div class="rentcar-info-block">
                             <i class="icon-info"></i>
                             <div>
-                                <strong>Please provide your flight number if available.</strong>
-                                This helps us track delays and keep your rental car ready.
+                                <strong data-i18n="review.flightNote1">Please provide your flight number if available.</strong>
+                                <span data-i18n="review.flightNote1Sub">This helps us track delays and keep your rental car ready.</span>
                             </div>
                         </div>
 
                         <div class="rentcar-info-block" style="background:#fffbeb;border-color:#fde68a;color:#92400e;">
                             <i class="icon-clock"></i>
-                            <div>
+                            <div data-i18n="review.flightNote2">
                                 Don't worry if there's a flight delay — we monitor your flight and adjust your pickup accordingly.
                             </div>
                         </div>
 
                         <div class="rentcar-field mb-15" id="field-flightNumber">
-                            <label for="rfFlightNumber">Flight number</label>
+                            <label for="rfFlightNumber" data-i18n="review.flightNumberLabel">Flight number</label>
                             <input id="rfFlightNumber" type="text">
                         </div>
 
                         <label class="rentcar-checkbox-option" id="noFlightOption">
                             <input type="checkbox" id="rfNoFlight">
-                            <div>I don't have a flight number.</div>
+                            <div data-i18n="review.noFlightNumber">I don't have a flight number.</div>
                         </label>
                     </div>
 
@@ -300,16 +295,16 @@
 
                         <!-- Total row -->
                         <div class="rentcar-review-total-row">
-                            <span class="rentcar-review-total-label">Total</span>
+                            <span class="rentcar-review-total-label" data-i18n="summary.total">Total</span>
                             <div class="rentcar-review-total-right">
                                 <span id="rfTotalAmount" class="rentcar-review-total-amount">€-</span>
                                 <button type="button" id="rfPriceDetailsBtn"
-                                        class="rentcar-price-details-sm">Price details</button>
+                                        class="rentcar-price-details-sm" data-i18n="price.title">Price details</button>
                             </div>
                         </div>
 
                         <!-- Deposit note -->
-                        <p class="rentcar-review-deposit-note">
+                        <p class="rentcar-review-deposit-note" data-i18n="review.depositNote">
                             🔒 Refundable deposit may be required at pickup.
                         </p>
 
@@ -317,13 +312,13 @@
                         <label class="rentcar-terms-row" id="termsLabel">
                             <input type="checkbox" id="rfTerms">
                             <span>
-                                I accept the
-                                <a href="#" class="text-dark-1 underline" onclick="return false">Terms and Conditions</a>
-                                and
-                                <a href="#" class="text-dark-1 underline" onclick="return false">Privacy Policy</a>
+                                <span data-i18n="review.iAccept">I accept the</span>
+                                <a href="#" class="text-dark-1 underline" onclick="return false" data-i18n="review.termsLink">Terms and Conditions</a>
+                                <span data-i18n="review.and">and</span>
+                                <a href="#" class="text-dark-1 underline" onclick="return false" data-i18n="review.privacyLink">Privacy Policy</a>
                             </span>
                         </label>
-                        <span class="rentcar-field-error-msg" id="termsError" style="display:none">
+                        <span class="rentcar-field-error-msg" id="termsError" style="display:none" data-i18n="review.acceptTerms">
                             Please accept the terms and conditions to continue
                         </span>
 
@@ -332,7 +327,7 @@
                         <button id="rfConfirmBtn"
                                 type="button"
                                 class="button h-60 bg-yellow-1 text-dark-1 rounded-8 fw-700 mt-20"
-                                style="width:100%;font-size:17px;letter-spacing:0.01em">
+                                style="width:100%;font-size:17px;letter-spacing:0.01em" data-i18n="review.payAndBook">
                             Pay and Book
                         </button>
                     </div>
@@ -357,17 +352,17 @@
 
                         <!-- Pickup / return -->
                         <div class="mt-30">
-                            <h4 class="text-18 fw-700 mb-15">Pickup and return</h4>
+                            <h4 class="text-18 fw-700 mb-15" data-i18n="summary.pickupAndReturn">Pickup and return</h4>
 
                             <div class="rentcar-summary-route">
                                 <div>
-                                    <div class="text-14 text-light-1">Pickup</div>
+                                    <div class="text-14 text-light-1" data-i18n="summary.pickup">Pickup</div>
                                     <div id="summaryPickupLocation" class="text-16 fw-600">-</div>
                                     <div id="summaryPickupDate" class="text-14 text-light-1">-</div>
                                 </div>
 
                                 <div class="mt-20">
-                                    <div class="text-14 text-light-1">Return</div>
+                                    <div class="text-14 text-light-1" data-i18n="summary.return">Return</div>
                                     <div id="summaryDropoffLocation" class="text-16 fw-600">-</div>
                                     <div id="summaryDropoffDate" class="text-14 text-light-1">-</div>
                                 </div>
@@ -376,16 +371,16 @@
 
                         <!-- Included features -->
                         <div class="border-top-light mt-25 pt-25">
-                            <h4 class="text-18 fw-700 mb-10">Included features</h4>
-                            <div class="text-15 mb-8">✓ Third party insurance</div>
-                            <div class="text-15 mb-8">✓ 24/7 breakdown assistance</div>
-                            <div class="text-15 mb-8">✓ Free cancellation</div>
+                            <h4 class="text-18 fw-700 mb-10" data-i18n="summary.includedFeatures">Included features</h4>
+                            <div class="text-15 mb-8" data-i18n="summary.thirdPartyInsurance">✓ Third party insurance</div>
+                            <div class="text-15 mb-8" data-i18n="summary.breakdown">✓ 24/7 breakdown assistance</div>
+                            <div class="text-15 mb-8" data-i18n="summary.freeCancellation">✓ Free cancellation</div>
                         </div>
 
                         <!-- Added features -->
                         <div class="border-top-light mt-25 pt-25">
-                            <h4 class="text-18 fw-700 mb-10">Added features</h4>
-                            <div id="summaryAddedFeatures" class="text-15 text-light-1">
+                            <h4 class="text-18 fw-700 mb-10" data-i18n="summary.addedFeatures">Added features</h4>
+                            <div id="summaryAddedFeatures" class="text-15 text-light-1" data-i18n="summary.noAddons">
                                 No add-ons selected yet.
                             </div>
                         </div>
@@ -393,12 +388,12 @@
                         <!-- Total -->
                         <div class="border-top-light mt-25 pt-25">
                             <div class="d-flex justify-between items-center">
-                                <span class="text-18 fw-700">Total</span>
+                                <span class="text-18 fw-700" data-i18n="summary.total">Total</span>
                                 <strong id="summaryTotal" class="text-26 fw-800">€-</strong>
                             </div>
                             <button type="button"
                                     id="reviewSummaryPriceDetailsBtn"
-                                    class="rentcar-price-details mt-8">
+                                    class="rentcar-price-details mt-8" data-i18n="price.title">
                                 Price details
                             </button>
                         </div>
@@ -414,6 +409,9 @@
 
 <div id="footer-placeholder"></div>
 
+<script src="js/i18n/en.js"></script>
+<script src="js/i18n/es.js"></script>
+<script src="js/i18n/i18n.js"></script>
 <script src="js/vendors.js"></script>
 <script src="js/main.js"></script>
 <script src="js/layout.js"></script>

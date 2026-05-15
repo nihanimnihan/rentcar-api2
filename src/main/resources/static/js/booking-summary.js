@@ -98,7 +98,7 @@ function _renderAddedFeatures(mileageOption, unlimitedKmCharge, selectedAddonIds
   if (mileageOption === "UNLIMITED") {
     lines.push(`
       <div class="d-flex justify-between mb-8">
-        <span>✓ Unlimited kilometers</span>
+        <span>✓ ${t('car.unlimitedKm')}</span>
         <strong>${_formatMoney(unlimitedKmCharge)}</strong>
       </div>
     `);
@@ -120,7 +120,7 @@ function _renderAddedFeatures(mileageOption, unlimitedKmCharge, selectedAddonIds
 
   container.innerHTML = lines.length > 0
     ? lines.join("")
-    : "No add-ons selected yet.";
+    : t('summary.noAddons');
 }
 
 function _setText(id, value) {
@@ -136,7 +136,7 @@ function _formatDT(isoString) {
   if (!isoString) return "-";
   try {
     const d = new Date(isoString);
-    return d.toLocaleString("en-GB", {
+    return d.toLocaleString(getLanguage() === 'es' ? 'es-ES' : 'en-GB', {
       weekday: "short", year: "numeric", month: "short",
       day: "numeric", hour: "2-digit", minute: "2-digit"
     });
