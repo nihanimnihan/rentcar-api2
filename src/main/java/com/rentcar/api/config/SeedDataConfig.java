@@ -7,14 +7,17 @@ import com.rentcar.api.domain.car.FuelType;
 import com.rentcar.api.domain.car.TransmissionType;
 import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
+import com.rentcar.api.domain.transfer.ChauffeurCategory;
 import com.rentcar.api.domain.transfer.TransferDuration;
 import com.rentcar.api.repository.AddonRepository;
 import com.rentcar.api.repository.CarRepository;
+import com.rentcar.api.repository.ChauffeurCategoryRepository;
 import com.rentcar.api.repository.TransferDurationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,84 +32,137 @@ public class SeedDataConfig {
     private final CarRepository carRepository;
     private final AddonRepository addonRepository;
     private final TransferDurationRepository transferDurationRepository;
+    private final ChauffeurCategoryRepository chauffeurCategoryRepository;
 
     @Bean
+    @Order(1)
+    CommandLineRunner seedChauffeurCategories() {
+        return args -> {
+            if (chauffeurCategoryRepository.count() > 0) {
+                return;
+            }
+
+            chauffeurCategoryRepository.saveAll(List.of(
+                    ChauffeurCategory.builder()
+                            .code("RIDE").name("Ride")
+                            .description("Reliable ride at the best price.")
+                            .seats(3).bags(2).electric(false).active(true).displayOrder(1).build(),
+                    ChauffeurCategory.builder()
+                            .code("GREEN").name("Green")
+                            .description("Ride in hybrid or electric vehicles.")
+                            .seats(3).bags(2).electric(true).active(true).displayOrder(2).build(),
+                    ChauffeurCategory.builder()
+                            .code("FIRST").name("First")
+                            .description("Luxury chauffeur service with maximum comfort.")
+                            .seats(3).bags(2).electric(false).active(true).displayOrder(3).build(),
+                    ChauffeurCategory.builder()
+                            .code("BUSINESS").name("Business")
+                            .description("Chauffeur service in limousines.")
+                            .seats(3).bags(2).electric(false).active(true).displayOrder(4).build(),
+                    ChauffeurCategory.builder()
+                            .code("RIDE_XL").name("Ride XL")
+                            .description("Ride in spacious vans for group travels.")
+                            .seats(6).bags(4).electric(false).active(true).displayOrder(5).build(),
+                    ChauffeurCategory.builder()
+                            .code("BUSINESS_GREEN").name("Business Green")
+                            .description("Chauffeur service fully electric limousines.")
+                            .seats(3).bags(2).electric(true).active(true).displayOrder(6).build(),
+                    ChauffeurCategory.builder()
+                            .code("BUSINESS_XL").name("Business XL")
+                            .description("Chauffeur service in spacious premium vans.")
+                            .seats(6).bags(4).electric(false).active(true).displayOrder(7).build()
+            ));
+        };
+    }
+
+    @Bean
+    @Order(2)
     CommandLineRunner seedCars() {
         return args -> {
-
             if (carRepository.count() > 0) {
                 return;
             }
 
+            ChauffeurCategory ride = chauffeurCategoryRepository.findByCode("RIDE").orElseThrow();
+            ChauffeurCategory green = chauffeurCategoryRepository.findByCode("GREEN").orElseThrow();
+            ChauffeurCategory first = chauffeurCategoryRepository.findByCode("FIRST").orElseThrow();
+            ChauffeurCategory business = chauffeurCategoryRepository.findByCode("BUSINESS").orElseThrow();
+            ChauffeurCategory rideXl = chauffeurCategoryRepository.findByCode("RIDE_XL").orElseThrow();
+
+            // ── Rental + chauffeur dual-purpose cars ──────────────────────────────
             carRepository.save(
                     Car.builder()
-                            .brand("BMW sDrive18d")
-                            .model("X1")
-                            .segment(VehicleSegment.PREMIUM)
-                            .vehicleType(VehicleType.SUV)
-                            .transmission(TransmissionType.AUTOMATIC)
-                            .fuelType(FuelType.HYBRID)
-                            .seats(5)
-                            .bags(3)
-                            .airConditioning(true)
-                            .premium(true)
-                            .guaranteedModel(true)
-                            .dailyPrice(new BigDecimal("95.00"))
-                            .active(true)
-                            .imageUrl("img/cars/bmw_x1_sdrive.png")
-                            .displayClass("Compact Elite")
-                            .doors(5)
-                            .minDriverAge(21)
+                            .brand("BMW sDrive18d").model("X1")
+                            .segment(VehicleSegment.PREMIUM).vehicleType(VehicleType.SUV)
+                            .transmission(TransmissionType.AUTOMATIC).fuelType(FuelType.HYBRID)
+                            .seats(5).bags(3).airConditioning(true).premium(true).guaranteedModel(true)
+                            .dailyPrice(new BigDecimal("95.00")).active(true)
+                            .imageUrl("img/cars/bmw_x1_sdrive.png").displayClass("Compact Elite")
+                            .doors(5).minDriverAge(21)
+                            .chauffeurAvailable(true).chauffeurCategory(ride)
+                            .hourlyPrice(new BigDecimal("95.00"))
                             .build()
             );
 
             carRepository.save(
                     Car.builder()
-                            .brand("Mercedes")
-                            .model("Vito")
-                            .segment(VehicleSegment.PREMIUM)
-                            .vehicleType(VehicleType.VAN)
-                            .transmission(TransmissionType.AUTOMATIC)
-                            .fuelType(FuelType.DIESEL)
-                            .seats(7)
-                            .bags(5)
-                            .airConditioning(true)
-                            .premium(false)
-                            .guaranteedModel(false)
-                            .dailyPrice(new BigDecimal("140.00"))
-                            .active(true)
-                            .imageUrl("img/cars/mercedes_vito.png")
-                            .displayClass("Compact Elite")
-                            .doors(5)
-                            .minDriverAge(26)
+                            .brand("Mercedes").model("Vito")
+                            .segment(VehicleSegment.PREMIUM).vehicleType(VehicleType.VAN)
+                            .transmission(TransmissionType.AUTOMATIC).fuelType(FuelType.DIESEL)
+                            .seats(7).bags(5).airConditioning(true).premium(false).guaranteedModel(false)
+                            .dailyPrice(new BigDecimal("140.00")).active(true)
+                            .imageUrl("img/cars/mercedes_vito.png").displayClass("Compact Elite")
+                            .doors(5).minDriverAge(26)
+                            .chauffeurAvailable(true).chauffeurCategory(rideXl)
+                            .hourlyPrice(new BigDecimal("140.00"))
                             .build()
             );
 
             carRepository.save(
                     Car.builder()
-                            .brand("Audi")
-                            .model("Q2")
-                            .segment(VehicleSegment.LUXURY)
-                            .vehicleType(VehicleType.SEDAN)
-                            .transmission(TransmissionType.AUTOMATIC)
-                            .fuelType(FuelType.HYBRID)
-                            .seats(5)
-                            .bags(3)
-                            .airConditioning(true)
-                            .premium(true)
-                            .guaranteedModel(true)
-                            .dailyPrice(new BigDecimal("180.00"))
-                            .active(true)
-                            .imageUrl("img/cars/audi_q2.png")
-                            .displayClass("Compact Elite")
-                            .doors(5)
-                            .minDriverAge(21)
+                            .brand("Audi").model("Q2")
+                            .segment(VehicleSegment.LUXURY).vehicleType(VehicleType.SEDAN)
+                            .transmission(TransmissionType.AUTOMATIC).fuelType(FuelType.HYBRID)
+                            .seats(5).bags(3).airConditioning(true).premium(true).guaranteedModel(true)
+                            .dailyPrice(new BigDecimal("180.00")).active(true)
+                            .imageUrl("img/cars/audi_q2.png").displayClass("Compact Elite")
+                            .doors(5).minDriverAge(21)
+                            .chauffeurAvailable(true).chauffeurCategory(green)
+                            .hourlyPrice(new BigDecimal("120.00"))
+                            .build()
+            );
+
+            // ── Chauffeur-only premium cars ───────────────────────────────────────
+            carRepository.save(
+                    Car.builder()
+                            .brand("Mercedes").model("E-Class")
+                            .segment(VehicleSegment.LUXURY).vehicleType(VehicleType.SEDAN)
+                            .transmission(TransmissionType.AUTOMATIC).fuelType(FuelType.DIESEL)
+                            .seats(4).bags(3).airConditioning(true).premium(true).guaranteedModel(true)
+                            .dailyPrice(new BigDecimal("200.00")).active(true)
+                            .displayClass("Executive").doors(4).minDriverAge(25)
+                            .chauffeurAvailable(true).chauffeurCategory(business)
+                            .hourlyPrice(new BigDecimal("180.00"))
+                            .build()
+            );
+
+            carRepository.save(
+                    Car.builder()
+                            .brand("BMW").model("7-Series")
+                            .segment(VehicleSegment.LUXURY).vehicleType(VehicleType.SEDAN)
+                            .transmission(TransmissionType.AUTOMATIC).fuelType(FuelType.HYBRID)
+                            .seats(4).bags(3).airConditioning(true).premium(true).guaranteedModel(true)
+                            .dailyPrice(new BigDecimal("300.00")).active(true)
+                            .displayClass("Executive").doors(4).minDriverAge(25)
+                            .chauffeurAvailable(true).chauffeurCategory(first)
+                            .hourlyPrice(new BigDecimal("250.00"))
                             .build()
             );
         };
     }
 
     @Bean
+    @Order(3)
     CommandLineRunner seedAddons() {
         return args -> {
             if (addonRepository.count() > 0) {
@@ -188,6 +244,7 @@ public class SeedDataConfig {
     }
 
     @Bean
+    @Order(4)
     CommandLineRunner seedTransferDurations() {
         return args -> {
             if (transferDurationRepository.count() > 0) {

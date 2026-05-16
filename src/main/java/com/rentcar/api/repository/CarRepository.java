@@ -5,6 +5,7 @@ import com.rentcar.api.domain.car.FuelType;
 import com.rentcar.api.domain.car.TransmissionType;
 import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
+import com.rentcar.api.domain.transfer.ChauffeurCategory;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -97,5 +98,33 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             @Param("minSeats")        Integer minSeats,
             @Param("minBags")         Integer minBags,
             @Param("minDriverAge")    Integer minDriverAge
+    );
+
+    /**
+     * Returns chauffeur-available cars for a given category, excluding those
+     * with overlapping PENDING or CONFIRMED bookings in the requested window.
+     * Results are ordered by hourlyPrice ASC so the service can pick the minimum.
+     */
+    @Query("""
+        SELECT c FROM Car c
+        WHERE c.active = true
+        AND c.chauffeurAvailable = true
+        AND c.chauffeurCategory = :category
+        AND NOT EXISTS (
+            SELECT b FROM Booking b
+            WHERE b.car = c
+            AND b.status IN (
+                com.rentcar.api.domain.booking.BookingStatus.PENDING,
+                com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+            )
+            AND b.pickupDateTime  < :dropoffDateTime
+            AND b.dropoffDateTime > :pickupDateTime
+        )
+        ORDER BY c.hourlyPrice ASC
+    """)
+    List<Car> findAvailableChauffeurCars(
+            @Param("category")        ChauffeurCategory category,
+            @Param("pickupDateTime")  LocalDateTime pickupDateTime,
+            @Param("dropoffDateTime") LocalDateTime dropoffDateTime
     );
 }

@@ -56,9 +56,10 @@
     <section class="transfer-offers-list-section">
         <div class="container">
 
-            <div class="transfer-offers-toolbar">
+            <div id="transferOffersCount" class="transfer-offers-toolbar">
                 <div>
-                    <strong>6</strong> <span data-i18n="transfer.offers">Offer(s)</span>
+                    <strong id="transferOffersCountNum">—</strong>
+                    <span data-i18n="transfer.offers">Offer(s)</span>
                 </div>
 
                 <div class="transfer-toolbar-actions">
@@ -73,65 +74,10 @@
                 </div>
             </div>
 
-            <div class="transfer-offers-grid">
-
-                <article class="transfer-offer-card">
-                    <h3>RIDE</h3>
-                    <p>Reliable ride at the best price.</p>
-
-                    <div class="transfer-offer-icons">
-                        <span>👥 3</span>
-                        <span>💼 2</span>
-                    </div>
-
-                    <img src="img/cars/bmw_x1_sdrive.png" alt="Ride car">
-
-                    <div class="transfer-offer-bottom">
-                        <div class="transfer-price">
-                            <span>€</span> 144<small>.21</small>
-                        </div>
-                        <button type="button" data-i18n="transfer.select">Select</button>
-                    </div>
-                </article>
-
-                <article class="transfer-offer-card">
-                    <h3>FIRST</h3>
-                    <p>Luxury chauffeur service with maximum comfort.</p>
-
-                    <div class="transfer-offer-icons">
-                        <span>👥 3</span>
-                        <span>💼 2</span>
-                    </div>
-
-                    <img src="img/cars/mercedes_vito.png" alt="First car">
-
-                    <div class="transfer-offer-bottom">
-                        <div class="transfer-price">
-                            <span>€</span> 239<small>.73</small>
-                        </div>
-                        <button type="button" data-i18n="transfer.select">Select</button>
-                    </div>
-                </article>
-
-                <article class="transfer-offer-card">
-                    <h3>BUSINESS</h3>
-                    <p>Chauffeur service in limousines.</p>
-
-                    <div class="transfer-offer-icons">
-                        <span>👥 3</span>
-                        <span>💼 2</span>
-                    </div>
-
-                    <img src="img/cars/audi_q2.png" alt="Business car">
-
-                    <div class="transfer-offer-bottom">
-                        <div class="transfer-price">
-                            <span>€</span> 291<small>.10</small>
-                        </div>
-                        <button type="button" data-i18n="transfer.select">Select</button>
-                    </div>
-                </article>
-
+            <div id="transferOffersGrid" class="transfer-offers-grid">
+                <div id="transferOffersLoading" style="text-align:center;padding:2rem;">
+                    <span data-i18n="common.loading">Loading…</span>
+                </div>
             </div>
         </div>
     </section>

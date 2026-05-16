@@ -1,12 +1,16 @@
 package com.rentcar.api.domain.car;
 
+import com.rentcar.api.domain.transfer.ChauffeurCategory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -79,5 +83,16 @@ public class Car {
 
     @Column(nullable = false)
     private Integer minDriverAge;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean chauffeurAvailable = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chauffeur_category_id")
+    private ChauffeurCategory chauffeurCategory;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal hourlyPrice;
 
 }
