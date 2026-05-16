@@ -349,4 +349,5 @@ window.i18nTranslations['es'] = {
   'transfer.showOffers': 'Ver ofertas',
   'transfer.heroText1': 'Traslados fiables al aeropuerto y',
   'transfer.heroText2': 'viajes premium',
+  'transfer.next': 'Siguiente',
 };

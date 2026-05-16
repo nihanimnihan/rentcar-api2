@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
       imgHtml +
       '<div class="transfer-offer-bottom">' +
         '<div class="transfer-price">' + formatPrice(offer.totalPrice) + '</div>' +
-        '<button type="button" data-i18n="transfer.select">Select</button>' +
+        '<button type="button" data-i18n="transfer.next">Next</button>' +
       '</div>';
 
     return article;

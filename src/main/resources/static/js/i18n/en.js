@@ -349,4 +349,5 @@ window.i18nTranslations['en'] = {
   'transfer.showOffers': 'Show offers',
   'transfer.heroText1': 'Reliable airport transfers and',
   'transfer.heroText2': 'premium rides',
+  'transfer.next': 'Next',
 };

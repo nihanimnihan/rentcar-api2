@@ -13623,14 +13623,6 @@ table.table-5 td {
   gap: 28px;
 }
 
-.transfer-toolbar-button {
-  color: #ff4b00;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .transfer-offers-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -13841,4 +13833,37 @@ body:not(.airport-transfer-body) {
 .airport-transfer-hero {
   flex: 1;
   min-height: auto;
+}
+
+.transfer-offer-card {
+  border: 1px solid #eeeeee;
+  box-shadow: 0 6px 18px rgba(5, 16, 54, 0.10);
+  border-radius: 0;
+  padding: 28px;
+}
+
+.transfer-offer-card h3 {
+  color: #051036;
+  text-transform: none;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.transfer-offer-bottom button {
+  background: #051036;
+  color: #fff;
+  border-radius: 4px;
+  min-width: 130px;
+  height: 54px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.transfer-offer-bottom button:hover {
+  background: #f8d448;
+  color: #051036;
+}
+
+.transfer-price {
+  color: #e3342f;
 }
