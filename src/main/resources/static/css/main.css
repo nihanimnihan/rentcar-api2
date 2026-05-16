@@ -13384,7 +13384,13 @@ table.table-5 td {
 .airport-transfer-hero {
   min-height: 720px;
   background:
-    linear-gradient(90deg, rgba(5,16,54,0.98) 0%, rgba(5,16,54,0.9) 42%, rgba(5,16,54,0.25) 100%),
+    linear-gradient(
+      90deg,
+      rgba(5,16,54,0.96) 0%,
+      rgba(5,16,54,0.82) 36%,
+      rgba(5,16,54,0.55) 68%,
+      rgba(5,16,54,0.78) 100%
+    ),
     url("../img/masthead/1.png");
   background-size: cover;
   background-position: center;
@@ -13749,4 +13755,61 @@ table.table-5 td {
     min-height: auto;
     padding: 22px;
   }
+}
+
+.rentcar-home-yellow-header {
+  background: #f8d448 !important;
+  position: relative !important;
+}
+
+.rentcar-home-yellow-header .text-dark-1,
+.rentcar-home-yellow-header a,
+.rentcar-home-yellow-header button {
+  color: #051036 !important;
+}
+
+.rentcar-home-yellow-header .button {
+  background: #051036 !important;
+  color: #fff !important;
+  border-color: #051036 !important;
+}
+
+.rentcar-home-hero {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(248,212,72,0.78) 0%,
+      rgba(248,212,72,0.55) 32%,
+      rgba(5,16,54,0.35) 62%,
+      rgba(5,16,54,0.58) 100%
+    ),
+    url("../img/masthead/1.png");
+  background-size: cover;
+  background-position: center right;
+  min-height: 620px;
+  padding-top: 150px;
+  padding-bottom: 140px;
+}
+
+.rentcar-home-hero .masthead__bg {
+  display: none;
+}
+
+.rentcar-home-hero .text-center h1,
+.rentcar-home-hero .text-center p {
+  color: #fff !important;
+}
+
+.rentcar-home-hero .masthead-bottom {
+  margin-top: 60px !important;
+}
+
+.rentcar-home-hero .mainSearch {
+  position: relative;
+  z-index: 5;
+  box-shadow: 0 24px 70px rgba(5, 16, 54, 0.18);
+}
+
+.rentcar-home-hero .masthead-slider {
+  display: none;
 }
