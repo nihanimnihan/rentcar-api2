@@ -56,7 +56,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // ── Static frontend resources ──────────────────────────────────────
-                        .requestMatchers("/", "/index.html", "/cars.html", "/car.html", "/addons.html", "/review.html").permitAll()
+                        .requestMatchers("/", "/*.html").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/fonts/**", "/partials/**").permitAll()
                         // H2 console (dev profile only — harmless to permit in prod since
                         // h2-console is disabled there via application-prod.yaml)

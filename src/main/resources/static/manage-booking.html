@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/vendors.css">
+    <link rel="stylesheet" href="css/main.css">
+    <title>Manage booking</title>
+</head>
+
+<body>
+<main>
+    <header class="header bg-dark-1">
+        <div class="header__container header__container-1500 mx-auto px-30">
+            <a href="index.html" class="header-logo">
+                <img src="img/general/logo-light.svg" alt="RentCar">
+            </a>
+        </div>
+    </header>
+
+    <section class="layout-pt-xl layout-pb-xl">
+        <div class="container">
+            <div class="row justify-center">
+                <div class="col-xl-4 col-lg-5 col-md-8">
+
+                    <a href="index.html" class="d-inline-flex items-center mb-30">
+                        <i class="icon-chevron-left text-20 mr-10"></i>
+                    </a>
+
+                    <h1 class="text-30 fw-700 mb-15" data-i18n="manage.title">
+                        Manage your booking
+                    </h1>
+
+                    <p class="text-16 text-dark-1 mb-30" data-i18n="manage.description">
+                        Access your rental with your booking reference and last name.
+                    </p>
+
+                    <form>
+                        <div class="mb-20">
+                            <label class="text-14 fw-600 mb-8 d-block" data-i18n="manage.bookingNumber">
+                                Booking reference number
+                            </label>
+                            <input class="border-light rounded-8 px-20 py-15"
+                                   type="text"
+                                   placeholder="Booking reference number"
+                                   data-i18n-placeholder="manage.bookingNumberPlaceholder">
+                        </div>
+
+                        <div class="mb-30">
+                            <label class="text-14 fw-600 mb-8 d-block" data-i18n="manage.lastName">
+                                Last name
+                            </label>
+                            <input class="border-light rounded-8 px-20 py-15"
+                                   type="text"
+                                   placeholder="Last name"
+                                   data-i18n-placeholder="manage.lastNamePlaceholder">
+                        </div>
+
+                        <button type="button"
+                                class="button h-60 col-12 rounded-8 bg-yellow-1 text-dark-1 fw-600"
+                                data-i18n="manage.continue">
+                            Continue
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="minimal-footer-placeholder"></div>
+</main>
+
+<script src="js/i18n/en.js"></script>
+<script src="js/i18n/es.js"></script>
+<script src="js/i18n/i18n.js"></script>
+<script src="js/vendors.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

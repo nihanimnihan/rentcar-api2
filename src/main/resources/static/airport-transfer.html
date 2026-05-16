@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-x="html" data-x-toggle="html-overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/vendors.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>Airport Transfer | RentCar</title>
+</head>
+
+<body>
+<main class="airport-transfer-page">
+
+    <div id="minimal-header-placeholder"></div>
+    <section class="airport-transfer-hero">
+        <div class="container">
+            <div class="airport-transfer-layout">
+
+                <div class="airport-transfer-card">
+                    <h1 data-i18n="transfer.title">Ride your way</h1>
+
+                    <div class="transfer-tabs">
+                        <button type="button" class="transfer-tab is-active" data-transfer-mode="oneway">
+                            <i class="icon-car text-14"></i>
+                            <span data-i18n="transfer.oneWay">One-way</span>
+                        </button>
+
+                        <button type="button" class="transfer-tab" data-transfer-mode="hourly">
+                            <i class="icon-clock text-14"></i>
+                            <span data-i18n="transfer.hourly">Hourly</span>
+                        </button>
+                    </div>
+
+                    <form class="transfer-form">
+
+                        <div class="transfer-field">
+                            <label data-i18n="transfer.pickupLocation">Pickup location</label>
+                            <div class="transfer-input">
+                                <i class="icon-search text-18"></i>
+                                <input type="text" placeholder="Enter your pickup location" data-i18n-placeholder="transfer.pickupPlaceholder">
+                            </div>
+                        </div>
+
+                        <div class="transfer-field" id="transferDestinationField">
+                            <label data-i18n="transfer.destination">Destination</label>
+                            <div class="transfer-input">
+                                <i class="icon-search text-18"></i>
+                                <input type="text" placeholder="Enter your destination" data-i18n-placeholder="transfer.destinationPlaceholder">
+                            </div>
+                        </div>
+
+                        <div class="transfer-field d-none" id="transferDurationField">
+                            <label data-i18n="transfer.duration">Duration</label>
+                            <select class="transfer-select">
+                                <option data-i18n="transfer.duration2">Up to 2 hours</option>
+                                <option data-i18n="transfer.duration4">Up to 4 hours</option>
+                                <option data-i18n="transfer.duration8">Up to 8 hours</option>
+                            </select>
+                            <div class="transfer-help" data-i18n="transfer.kmIncluded">60 km included</div>
+                        </div>
+
+                        <div class="transfer-date-row">
+                            <div class="transfer-field">
+                                <label data-i18n="transfer.pickupDate">Pickup date</label>
+                                <div class="transfer-input">
+                                    <i class="icon-calendar-2 text-18"></i>
+                                    <input type="text" value="16 May" readonly>
+                                </div>
+                            </div>
+
+                            <div class="transfer-field">
+                                <label data-i18n="transfer.pickupTime">Pickup time</label>
+                                <div class="transfer-input">
+                                    <i class="icon-clock text-18"></i>
+                                    <input type="text" value="10:00" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="transferShowOffersButton" class="transfer-submit" data-i18n="transfer.showOffers">
+                            Show offers
+                        </button>
+
+                    </form>
+                </div>
+
+                <div class="airport-transfer-copy">
+                    <h2>
+                        <span data-i18n="transfer.heroText1">Reliable airport transfers and</span>
+                        <strong data-i18n="transfer.heroText2">premium rides</strong>
+                    </h2>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <div id="minimal-footer-placeholder"></div>
+</main>
+
+<div id="language-modal-placeholder"></div>
+
+<script src="js/i18n/en.js"></script>
+<script src="js/i18n/es.js"></script>
+<script src="js/i18n/i18n.js"></script>
+<script src="js/vendors.js"></script>
+<script src="js/main.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/airport-transfer.js"></script>
+</body>
+</html>

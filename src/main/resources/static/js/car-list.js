@@ -132,9 +132,8 @@ function renderCars(cars) {
     const imgSrc      = safeSrc(car.imageUrl, "img/lists/car/1/1.png");
 
     return `
-      <div class="col-lg-6 col-12" id="car-card-${car.id}">
-        <div class="border-top-light pt-30 h-full">
-          <div class="rounded-4 bg-white px-20 py-20 h-full">
+      <div class="col-xl-4 col-md-6 col-12" id="car-card-${car.id}">
+        <div class="rentcar-premium-card h-full">
 
             <div>
               <h3 class="text-22 fw-600">
@@ -148,7 +147,7 @@ function renderCars(cars) {
               </div>
             </div>
 
-            <div class="cardImage ratio ratio-3:2 rounded-4 mt-20">
+            <div class="cardImage ratio ratio-3:2 rounded-4 mt-25 rentcar-premium-card-image">
               <div class="cardImage__content">
                 <img
                   class="rounded-4 col-12"
@@ -218,7 +217,6 @@ function renderCars(cars) {
               </button>
             </div>
 
-          </div>
         </div>
       </div>
     `;
@@ -522,17 +520,19 @@ function formatDateTimeForHeader(value) {
 }
 
 function findRowEndCard(card) {
-  const nextCard = card.nextElementSibling;
+  let rowEndCard = card;
+  let nextCard = card.nextElementSibling;
 
-  if (
+  while (
     nextCard &&
     nextCard.id?.startsWith("car-card-") &&
-    card.offsetTop === nextCard.offsetTop
+    nextCard.offsetTop === card.offsetTop
   ) {
-    return nextCard;
+    rowEndCard = nextCard;
+    nextCard = nextCard.nextElementSibling;
   }
 
-  return card;
+  return rowEndCard;
 }
 
 function goToAddons(carId) {

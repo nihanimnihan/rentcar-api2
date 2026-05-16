@@ -58,3 +58,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     }, 500);
   }, 800);
 });
+
+const minimalFooter = document.getElementById("minimal-footer-placeholder");
+
+if (minimalFooter) {
+    fetch("partials/footer-minimal.html")
+        .then(response => response.text())
+        .then(html => {
+            minimalFooter.innerHTML = html;
+        });
+}
+const minimalHeader = document.getElementById("minimal-header-placeholder");
+
+if (minimalHeader) {
+    fetch("partials/header-minimal.html")
+        .then(response => response.text())
+        .then(html => {
+            minimalHeader.innerHTML = html;
+        });
+}
