@@ -13510,11 +13510,15 @@ table.table-5 td {
   width: 100%;
   height: 58px;
   border-radius: 12px;
-  background: #ff4b00;
-  color: #fff;
+  background: #FFC700;
+  color: #051036;
   font-size: 17px;
   font-weight: 700;
   margin-top: 2px;
+}
+
+.transfer-submit:hover {
+  background: #F8D448;
 }
 
 .airport-transfer-copy {
@@ -13531,7 +13535,7 @@ table.table-5 td {
 }
 
 .airport-transfer-copy strong {
-  color: #ff4b00;
+  color: #FFC700;
 }
 
 @media (max-width: 991px) {
@@ -13812,4 +13816,29 @@ table.table-5 td {
 
 .rentcar-home-hero .masthead-slider {
   display: none;
+}
+
+body {
+  background-color: #051036;
+}
+
+body:not(.airport-transfer-body) {
+  background-color: white;
+}
+
+.airport-transfer-body {
+  background: #051036;
+  margin: 0;
+}
+
+.airport-transfer-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #051036;
+}
+
+.airport-transfer-hero {
+  flex: 1;
+  min-height: auto;
 }

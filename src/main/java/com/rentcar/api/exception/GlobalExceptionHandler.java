@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
 
@@ -43,6 +44,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PaymentNotFoundException.class)
     public ResponseEntity<?> handlePaymentNotFoundException(PaymentNotFoundException ex) {
         return notFound(ex.getMessage());
+    }
+
+    /**
+     * Missing static resources (e.g. /img/cars/foo.png not found on disk).
+     * Spring 6.x throws NoResourceFoundException from ResourceHttpRequestHandler,
+     * which bubbles up through the DispatcherServlet and would otherwise hit the
+     * catch-all handler below and produce a spurious ERROR log entry.
+     * Handled explicitly here: return 404, no stack trace in the logs.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoResourceFoundException(NoResourceFoundException ex) {
+        log.debug("Static resource not found: {}", ex.getResourcePath());
+        return notFound("Resource not found: " + ex.getResourcePath());
     }
 
     // ── 400 Bad Request ────────────────────────────────────────────────────────
