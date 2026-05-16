@@ -77,6 +77,9 @@ public class SecurityConfig {
                         // ── Public API — add-ons list (must come BEFORE the admin rule below) ─
                         .requestMatchers(HttpMethod.GET, "/api/addons/active").permitAll()
 
+                        // ── Public API — transfer durations ────────────────────────────────
+                        .requestMatchers(HttpMethod.GET, "/api/transfer/durations").permitAll()
+
                         // ── Admin-only ──────────────────────────────────────────────────────
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/**").hasRole("ADMIN")

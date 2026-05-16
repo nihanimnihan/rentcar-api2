@@ -57,12 +57,8 @@
 
                         <div class="transfer-field d-none" id="transferDurationField">
                             <label data-i18n="transfer.duration">Duration</label>
-                            <select class="transfer-select">
-                                <option data-i18n="transfer.duration2">Up to 2 hours</option>
-                                <option data-i18n="transfer.duration4">Up to 4 hours</option>
-                                <option data-i18n="transfer.duration8">Up to 8 hours</option>
-                            </select>
-                            <div class="transfer-help" data-i18n="transfer.kmIncluded">60 km included</div>
+                            <select id="transferDurationSelect" class="transfer-select"></select>
+                            <div class="transfer-help" id="transferKmHelp"></div>
                         </div>
 
                         <div class="transfer-date-row">

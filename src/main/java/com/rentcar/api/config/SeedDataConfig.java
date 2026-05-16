@@ -7,8 +7,10 @@ import com.rentcar.api.domain.car.FuelType;
 import com.rentcar.api.domain.car.TransmissionType;
 import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
+import com.rentcar.api.domain.transfer.TransferDuration;
 import com.rentcar.api.repository.AddonRepository;
 import com.rentcar.api.repository.CarRepository;
+import com.rentcar.api.repository.TransferDurationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +28,7 @@ public class SeedDataConfig {
 
     private final CarRepository carRepository;
     private final AddonRepository addonRepository;
+    private final TransferDurationRepository transferDurationRepository;
 
     @Bean
     CommandLineRunner seedCars() {
@@ -181,6 +184,26 @@ public class SeedDataConfig {
                             .active(true)
                             .build()
             ));
+        };
+    }
+
+    @Bean
+    CommandLineRunner seedTransferDurations() {
+        return args -> {
+            if (transferDurationRepository.count() > 0) {
+                return;
+            }
+
+            for (int hours = 1; hours <= 12; hours++) {
+                transferDurationRepository.save(
+                        TransferDuration.builder()
+                                .hours(hours)
+                                .includedKm(hours * 30)
+                                .active(true)
+                                .displayOrder(hours)
+                                .build()
+                );
+            }
         };
     }
 }
