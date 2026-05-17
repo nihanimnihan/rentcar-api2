@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var dtTrigger        = document.getElementById("pickupDateTimeTrigger");
   var dtDisplay        = document.getElementById("pickupDateTimeDisplay");
   var dtPanel          = document.getElementById("dtEditPanel");
-  var transferCalendar = document.getElementById("transferCalendar");
+  var dtCalWrapper     = document.getElementById("dtCalWrapper");
   var dtTimeList       = document.getElementById("dtTimeList");
   var dtCloseBtn       = document.getElementById("dtEditClose");
   var dtCancelBtn      = document.getElementById("dtCancelBtn");
@@ -244,91 +244,12 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("click", function () { passDrop.style.display = "none"; });
   }
 
-  // ── Date / time edit panel — custom inline calendar ──────────────────────
+  // ── Date / time edit panel — uses shared RentCarCalendar component ─────────
 
-  var CAL_MONTHS = ["January","February","March","April","May","June",
-                    "July","August","September","October","November","December"];
-  var CAL_DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
-
-  // calendarMonth tracks which month is visible (always 1st of that month)
-  var calendarMonth = null;
-
-  function initCalendarMonth() {
-    var parts = (tempDate || selectedPickupDate).split("-");
-    if (parts.length === 3) {
-      calendarMonth = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
-    } else {
-      var now = new Date();
-      calendarMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    }
-  }
-
-  function renderTransferCalendar() {
-    if (!transferCalendar || !calendarMonth) return;
-    var year  = calendarMonth.getFullYear();
-    var month = calendarMonth.getMonth();  // 0-based
-
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    var todayMs = today.getTime();
-
-    // Disable "previous month" nav if we're already on current month
-    var isCurrentMonth = (year === today.getFullYear() && month === today.getMonth());
-
-    var firstDow  = new Date(year, month, 1).getDay();  // 0=Sun
-    var daysInMon = new Date(year, month + 1, 0).getDate();
-
-    var html = '<div class="tc-cal-header">' +
-      '<button class="tc-cal-nav" id="tcPrevBtn" type="button"' + (isCurrentMonth ? ' disabled' : '') + '>&#8249;</button>' +
-      '<span class="tc-cal-title">' + CAL_MONTHS[month] + ' ' + year + '</span>' +
-      '<button class="tc-cal-nav" id="tcNextBtn" type="button">&#8250;</button>' +
-      '</div>';
-
-    html += '<div class="tc-cal-weekdays">';
-    CAL_DAYS.forEach(function (d) { html += '<div class="tc-cal-wd">' + d + '</div>'; });
-    html += '</div>';
-
-    html += '<div class="tc-cal-days">';
-    // Empty cells before the 1st
-    for (var e = 0; e < firstDow; e++) {
-      html += '<div class="tc-cal-day tc-empty"></div>';
-    }
-    for (var day = 1; day <= daysInMon; day++) {
-      var cellDate = new Date(year, month, day);
-      var iso = year + "-" + padZ(month + 1) + "-" + padZ(day);
-      var isPast     = cellDate.getTime() < todayMs;
-      var isSelected = iso === tempDate;
-      var cls = "tc-cal-day";
-      if (isPast)     cls += " tc-disabled";
-      if (isSelected) cls += " tc-active";
-      html += '<div class="' + cls + '" data-date="' + iso + '">' + day + '</div>';
-    }
-    html += '</div>';
-
-    transferCalendar.innerHTML = html;
-
-    // Wire navigation buttons
-    var prevBtn = document.getElementById("tcPrevBtn");
-    var nextBtn = document.getElementById("tcNextBtn");
-    if (prevBtn) {
-      prevBtn.addEventListener("click", function () {
-        calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
-        renderTransferCalendar();
-      });
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener("click", function () {
-        calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
-        renderTransferCalendar();
-      });
-    }
-
-    // Wire day clicks
-    transferCalendar.querySelectorAll(".tc-cal-day:not(.tc-disabled):not(.tc-empty)").forEach(function (cell) {
-      cell.addEventListener("click", function () {
-        tempDate = this.dataset.date;
-        renderTransferCalendar();  // re-render to move active highlight
-      });
+  // When the calendar fires a date-selected event, capture it into tempDate.
+  if (dtCalWrapper) {
+    dtCalWrapper.addEventListener("rentcar:date-selected", function (e) {
+      tempDate = e.detail.isoDate;
     });
   }
 
@@ -368,8 +289,16 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!dtPanel) return;
     tempDate = selectedPickupDate;
     tempTime = selectedPickupTime;
-    initCalendarMonth();
-    renderTransferCalendar();
+    // Tell the shared calendar to show & highlight the current draft date
+    if (window.RentCarCalendar && dtCalWrapper) {
+      var host = dtCalWrapper.querySelector(".rc-calendar-host");
+      if (host && host._rcCalInstance) {
+        host._rcCalInstance.setDate(tempDate);
+      } else {
+        // Lazy-mount if initAll() hasn't run yet (shouldn't happen, but safe fallback)
+        RentCarCalendar.mount(host, { initialDate: tempDate, wrapperEl: dtCalWrapper });
+      }
+    }
     buildTimeSlots();
     markActiveTimeSlot();
     dtPanel.style.display = "block";

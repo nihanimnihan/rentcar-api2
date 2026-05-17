@@ -92,66 +92,7 @@
             margin-bottom: 12px;
         }
 
-        /* Custom inline calendar */
-        .tc-calendar { user-select: none; }
-        .tc-cal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .tc-cal-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #051036;
-        }
-        .tc-cal-nav {
-            background: none;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-size: 15px;
-            color: #374151;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background .12s;
-        }
-        .tc-cal-nav:hover { background: #EBF0FB; }
-        .tc-cal-nav:disabled { opacity: .35; cursor: default; }
-        .tc-cal-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            margin-bottom: 4px;
-        }
-        .tc-cal-wd {
-            text-align: center;
-            font-size: 10px;
-            font-weight: 600;
-            color: #9ca3af;
-            padding: 4px 0;
-        }
-        .tc-cal-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
-        }
-        .tc-cal-day {
-            text-align: center;
-            padding: 7px 2px;
-            border-radius: 7px;
-            font-size: 13px;
-            cursor: pointer;
-            color: #051036;
-            transition: background .1s, color .1s;
-        }
-        .tc-cal-day:hover:not(.tc-disabled):not(.tc-active) { background: #EBF0FB; color: #3554D1; }
-        .tc-cal-day.tc-active { background: #051036; color: #fff; font-weight: 700; }
-        .tc-cal-day.tc-disabled { color: #d1d5db; cursor: default; }
-        .tc-cal-day.tc-empty { visibility: hidden; }
+        /* (calendar handled by shared rentcar-calendar.js + main.css .rc-cal-* rules) */
 
         /* Time list */
         .dt-time-list {
@@ -285,8 +226,11 @@
                 <div class="dt-edit-body">
                     <div class="dt-edit-dates">
                         <div class="dt-edit-col-title" data-i18n="transfer.pickupDate">Pickup date</div>
-                        <!-- Custom inline calendar rendered by airport-transfer-offers.js -->
-                        <div id="transferCalendar" class="tc-calendar"></div>
+                        <!-- Calendar rendered by RentCarCalendar.mount() via airport-transfer-offers.js -->
+                        <div id="dtCalWrapper" class="js-calendar-el">
+                            <span class="js-first-date" style="display:none;"></span>
+                            <div class="rc-calendar-host"></div>
+                        </div>
                     </div>
                     <div class="dt-edit-times">
                         <div class="dt-edit-col-title" data-i18n="transfer.pickupTime">Pickup time</div>
@@ -385,6 +329,7 @@
 <script src="js/vendors.js"></script>
 <script src="js/main.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/rentcar-calendar.js"></script>
 <script src="js/airport-transfer-offers.js"></script>
 </body>
 </html>

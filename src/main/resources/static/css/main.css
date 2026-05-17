@@ -13881,3 +13881,73 @@ body:not(.airport-transfer-body) {
 .transfer-price {
   color: #e3342f;
 }
+
+/* ── Shared calendar component (rentcar-calendar.js) ─────────────────────── */
+.rc-calendar-host { user-select: none; }
+
+.rc-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+.rc-cal-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #051036;
+  text-transform: capitalize;
+}
+.rc-cal-nav {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s, border-color .12s;
+}
+.rc-cal-nav:hover:not(:disabled) { background: #EBF0FB; border-color: #3554D1; }
+.rc-cal-nav:disabled              { opacity: .35; cursor: default; }
+
+.rc-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+.rc-cal-wd {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  padding: 4px 0;
+}
+
+.rc-cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.rc-cal-day {
+  text-align: center;
+  padding: 8px 2px;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #051036;
+  transition: background .1s, color .1s;
+}
+.rc-cal-day:hover:not(.rc-cal-disabled):not(.rc-cal-active):not(.rc-cal-empty) {
+  background: #EBF0FB;
+  color: #3554D1;
+}
+.rc-cal-day.rc-cal-active   { background: #051036; color: #fff; font-weight: 700; }
+.rc-cal-day.rc-cal-disabled { color: #d1d5db; cursor: default; pointer-events: none; }
+.rc-cal-day.rc-cal-empty    { visibility: hidden; cursor: default; pointer-events: none; }

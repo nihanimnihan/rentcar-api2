@@ -45,9 +45,7 @@ function initComponents() {
   cruiseSlider()
   singleMenu()
 
-  Calendar.init()
-  calendarInteraction()
-  calendarInteraction2()
+  RentCarCalendar.initAll()
 
   testimonialsSlider3()
   mastheadSlider9()
