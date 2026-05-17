@@ -92,34 +92,66 @@
             margin-bottom: 12px;
         }
 
-        /* Date pills */
-        .dt-date-grid {
+        /* Custom inline calendar */
+        .tc-calendar { user-select: none; }
+        .tc-cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .tc-cal-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #051036;
+        }
+        .tc-cal-nav {
+            background: none;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .12s;
+        }
+        .tc-cal-nav:hover { background: #EBF0FB; }
+        .tc-cal-nav:disabled { opacity: .35; cursor: default; }
+        .tc-cal-weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
+            gap: 2px;
+            margin-bottom: 4px;
         }
-        @media (max-width: 500px) {
-            .dt-date-grid { grid-template-columns: repeat(4, 1fr); }
+        .tc-cal-wd {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: #9ca3af;
+            padding: 4px 0;
         }
-        .dt-date-pill {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 8px 4px;
-            border-radius: 8px;
+        .tc-cal-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .tc-cal-day {
+            text-align: center;
+            padding: 7px 2px;
+            border-radius: 7px;
+            font-size: 13px;
             cursor: pointer;
-            border: 1px solid #e5e9f0;
             color: #051036;
-            transition: background .12s, color .12s, border-color .12s;
-            user-select: none;
+            transition: background .1s, color .1s;
         }
-        .dt-date-pill .dt-day { font-size: 10px; color: #697488; margin-bottom: 2px; }
-        .dt-date-pill .dt-num { font-size: 15px; font-weight: 700; line-height: 1.1; }
-        .dt-date-pill .dt-mon { font-size: 10px; color: #697488; margin-top: 2px; }
-        .dt-date-pill:hover  { background: #EBF0FB; border-color: #3554D1; }
-        .dt-date-pill.is-active { background: #051036; border-color: #051036; color: #fff; }
-        .dt-date-pill.is-active .dt-day,
-        .dt-date-pill.is-active .dt-mon { color: rgba(255,255,255,.6); }
+        .tc-cal-day:hover:not(.tc-disabled):not(.tc-active) { background: #EBF0FB; color: #3554D1; }
+        .tc-cal-day.tc-active { background: #051036; color: #fff; font-weight: 700; }
+        .tc-cal-day.tc-disabled { color: #d1d5db; cursor: default; }
+        .tc-cal-day.tc-empty { visibility: hidden; }
 
         /* Time list */
         .dt-time-list {
@@ -253,7 +285,8 @@
                 <div class="dt-edit-body">
                     <div class="dt-edit-dates">
                         <div class="dt-edit-col-title" data-i18n="transfer.pickupDate">Pickup date</div>
-                        <div id="dtDateGrid" class="dt-date-grid"></div>
+                        <!-- Custom inline calendar rendered by airport-transfer-offers.js -->
+                        <div id="transferCalendar" class="tc-calendar"></div>
                     </div>
                     <div class="dt-edit-times">
                         <div class="dt-edit-col-title" data-i18n="transfer.pickupTime">Pickup time</div>
