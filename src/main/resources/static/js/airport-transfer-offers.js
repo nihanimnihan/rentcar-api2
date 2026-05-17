@@ -13,8 +13,15 @@ document.addEventListener("DOMContentLoaded", function () {
   var currentPassengers = 1;
   var selectedPickupDate = "";   // YYYY-MM-DD
   var selectedPickupTime = "";   // HH:mm
-  var tempDate = "";             // staging while panel is open
+  var tempDate = "";             // staging while dt panel is open
   var tempTime = "";
+
+  // Duration state
+  var selectedDurationHours = parseInt(durationHours, 10) || 1;
+  var selectedIncludedKm    = parseInt(includedKm, 10)    || selectedDurationHours * 30;
+  var draftDurationHours    = selectedDurationHours;
+  var draftIncludedKm       = selectedIncludedKm;
+  var availableDurations    = [];
 
   // Initialise date/time from URL param
   (function () {
@@ -46,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var grid        = document.getElementById("transferOffersGrid");
   var countEl     = document.getElementById("transferOffersCountNum");
   var durationEl  = document.getElementById("selectedTransferDuration");
+  var metaEl      = document.getElementById("durationMetaEl");
   var sortBtn     = document.getElementById("sortToggleBtn");
   var sortArrow   = document.getElementById("sortArrow");
   var sortLabel   = document.getElementById("sortLabel");
@@ -60,6 +68,12 @@ document.addEventListener("DOMContentLoaded", function () {
   var dtCloseBtn  = document.getElementById("dtEditClose");
   var dtCancelBtn = document.getElementById("dtCancelBtn");
   var dtApplyBtn  = document.getElementById("dtApplyBtn");
+  var durTrigger  = document.getElementById("durationTrigger");
+  var durPanel    = document.getElementById("durEditPanel");
+  var durList     = document.getElementById("durOptionsList");
+  var durCloseBtn = document.getElementById("durEditClose");
+  var durCancelBtn= document.getElementById("durCancelBtn");
+  var durApplyBtn = document.getElementById("durApplyBtn");
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function t(key) {
@@ -174,8 +188,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadOffers(date, time) {
     showGridLoading();
     var pickupDt = date + "T" + time;
-    if (transferType === "HOURLY" && pickupDt && durationHours) {
-      var q = new URLSearchParams({ pickupDateTime: pickupDt, durationHours: durationHours });
+    if (transferType === "HOURLY" && pickupDt && selectedDurationHours) {
+      var q = new URLSearchParams({ pickupDateTime: pickupDt, durationHours: selectedDurationHours });
       if (pickupLocation) q.set("pickupLocation", pickupLocation);
       fetch("/api/transfer/offers?" + q.toString())
         .then(function (res) {
@@ -305,7 +319,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (dtPanel) dtPanel.style.display = "none";
   }
 
-  if (dtTrigger) dtTrigger.addEventListener("click", openPanel);
   if (dtCloseBtn) dtCloseBtn.addEventListener("click", closePanel);
   if (dtCancelBtn) dtCancelBtn.addEventListener("click", closePanel);
 
@@ -323,13 +336,95 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ── Initialise display and load ───────────────────────────────────────────
-  if (durationEl && transferType === "HOURLY" && durationHours && includedKm) {
-    var h  = parseInt(durationHours, 10);
-    var km = parseInt(includedKm, 10);
-    durationEl.textContent = (h === 1 ? "1 hour" : h + " hours") + " (" + km + " km included)";
+  // ── Duration edit panel ───────────────────────────────────────────────────
+  function durationLabel(h) { return h === 1 ? "1 hour" : h + " hours"; }
+
+  function updateDurationSummary() {
+    if (durationEl) durationEl.textContent = durationLabel(selectedDurationHours) + " (" + selectedIncludedKm + " km included)";
+    if (metaEl)     metaEl.textContent = "est. " + selectedDurationHours + " hrs";
   }
 
+  function buildDurationOptions() {
+    if (!durList) return;
+    durList.innerHTML = "";
+    availableDurations.forEach(function (d) {
+      var opt = document.createElement("div");
+      opt.className = "dur-option" + (d.hours === draftDurationHours ? " is-active" : "");
+      opt.dataset.hours = d.hours;
+      opt.dataset.km    = d.includedKm;
+      opt.innerHTML =
+        '<div class="dur-opt-name">' + durationLabel(d.hours) + "</div>" +
+        '<div class="dur-opt-km">'   + d.includedKm + " km included</div>";
+      opt.addEventListener("click", function () {
+        draftDurationHours = d.hours;
+        draftIncludedKm    = d.includedKm;
+        durList.querySelectorAll(".dur-option").forEach(function (el) { el.classList.remove("is-active"); });
+        opt.classList.add("is-active");
+      });
+      durList.appendChild(opt);
+    });
+  }
+
+  function buildFallbackDurations() {
+    return Array.from({ length: 12 }, function (_, i) {
+      return { hours: i + 1, includedKm: (i + 1) * 30 };
+    });
+  }
+
+  function openDurPanel() {
+    if (!durPanel) return;
+    closeDurPanel();   // reset only; also close dt panel
+    closePanel();
+    draftDurationHours = selectedDurationHours;
+    draftIncludedKm    = selectedIncludedKm;
+
+    if (availableDurations.length === 0) {
+      fetch("/api/transfer/durations")
+        .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+        .then(function (data) {
+          availableDurations = (data || []).map(function (d) {
+            return { hours: d.hours, includedKm: d.includedKm };
+          });
+          if (!availableDurations.length) throw new Error("empty");
+        })
+        .catch(function () { availableDurations = buildFallbackDurations(); })
+        .then(function () {
+          buildDurationOptions();
+          durPanel.style.display = "block";
+        });
+    } else {
+      buildDurationOptions();
+      durPanel.style.display = "block";
+    }
+  }
+
+  function closeDurPanel() {
+    if (durPanel) durPanel.style.display = "none";
+  }
+
+  if (durTrigger)  durTrigger.addEventListener("click", openDurPanel);
+  if (durCloseBtn) durCloseBtn.addEventListener("click", closeDurPanel);
+  if (durCancelBtn) durCancelBtn.addEventListener("click", closeDurPanel);
+
+  if (durApplyBtn) {
+    durApplyBtn.addEventListener("click", function () {
+      selectedDurationHours = draftDurationHours;
+      selectedIncludedKm    = draftIncludedKm;
+      updateDurationSummary();
+      var np = new URLSearchParams(window.location.search);
+      np.set("durationHours", selectedDurationHours);
+      np.set("includedKm",    selectedIncludedKm);
+      window.history.replaceState(null, "", "?" + np.toString());
+      closeDurPanel();
+      loadOffers(selectedPickupDate, selectedPickupTime);
+    });
+  }
+
+  // Make dt panel opening close the dur panel too
+  if (dtTrigger) dtTrigger.addEventListener("click", function () { closeDurPanel(); openPanel(); });
+
+  // ── Initialise display and load ───────────────────────────────────────────
+  updateDurationSummary();
   updateDateTimeDisplay(selectedPickupDate, selectedPickupTime);
   loadOffers(selectedPickupDate, selectedPickupTime);
 });

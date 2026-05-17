@@ -170,6 +170,35 @@
             transition: background .15s, color .15s;
         }
         .dt-btn-apply:hover { background: #F8D448; color: #051036; }
+
+        /* ── Duration trigger ───────────────────────────────────────────────── */
+        .dur-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+        .dur-trigger:hover .transfer-summary-label { color: #3554D1; }
+        .dur-trigger:hover .transfer-summary-value { text-decoration: underline dotted; text-underline-offset: 3px; }
+
+        /* ── Duration options ───────────────────────────────────────────────── */
+        .dur-options-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        .dur-option {
+            padding: 14px 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 1px solid #e5e9f0;
+            transition: background .12s, border-color .12s;
+        }
+        .dur-option .dur-opt-name { font-size: 15px; font-weight: 700; color: #051036; }
+        .dur-option .dur-opt-km   { font-size: 13px; color: #697488; margin-top: 2px; }
+        .dur-option:hover { background: #eef2ff; border-color: #3554D1; }
+        .dur-option.is-active { background: #051036; border-color: #051036; }
+        .dur-option.is-active .dur-opt-name,
+        .dur-option.is-active .dur-opt-km { color: #fff; }
     </style>
 
     <title>Airport Transfer Offers | RentCar</title>
@@ -192,7 +221,7 @@
                     </div>
                 </div>
 
-                <div class="transfer-summary-item">
+                <div class="transfer-summary-item dur-trigger" id="durationTrigger">
                     <div class="transfer-summary-label" data-i18n="transfer.bookByHour">BOOK BY THE HOUR</div>
                     <div class="transfer-summary-value" id="selectedTransferDuration">
                         1 hour (30 km included)
@@ -241,10 +270,31 @@
         </div>
     </section>
 
+    <!-- ── Duration edit panel (hidden until triggered) ──────────────────── -->
+    <section id="durEditPanel" class="dt-edit-panel" style="display:none;">
+        <div class="container">
+            <div class="dt-edit-panel-inner">
+
+                <div class="dt-edit-header">
+                    <span data-i18n="transfer.editDuration">Edit duration</span>
+                    <button id="durEditClose" class="dt-edit-close" type="button" aria-label="Close">&times;</button>
+                </div>
+
+                <div id="durOptionsList" class="dur-options-list"></div>
+
+                <div class="dt-edit-footer">
+                    <button id="durCancelBtn" type="button" class="dt-btn-cancel">Cancel</button>
+                    <button id="durApplyBtn"  type="button" class="dt-btn-apply">Apply</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
     <section class="transfer-offers-meta">
         <div class="container">
             <span data-i18n="transfer.duration">Duration</span>
-            <strong>est. 1 hrs</strong>
+            <strong id="durationMetaEl">est. 1 hrs</strong>
         </div>
     </section>
 
