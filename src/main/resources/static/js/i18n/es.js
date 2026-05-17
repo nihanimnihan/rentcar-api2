@@ -350,4 +350,6 @@ window.i18nTranslations['es'] = {
   'transfer.heroText1': 'Traslados fiables al aeropuerto y',
   'transfer.heroText2': 'viajes premium',
   'transfer.next': 'Siguiente',
+  'transfer.priceHighLow': 'Precio de mayor a menor',
+  'transfer.noOffersForPassengers': 'No hay ofertas disponibles para este número de pasajeros.',
 };

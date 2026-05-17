@@ -350,4 +350,6 @@ window.i18nTranslations['en'] = {
   'transfer.heroText1': 'Reliable airport transfers and',
   'transfer.heroText2': 'premium rides',
   'transfer.next': 'Next',
+  'transfer.priceHighLow': 'Price high to low',
+  'transfer.noOffersForPassengers': 'No transfer offers available for this passenger count.',
 };
