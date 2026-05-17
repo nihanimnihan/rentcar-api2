@@ -352,4 +352,5 @@ window.i18nTranslations['es'] = {
   'transfer.next': 'Siguiente',
   'transfer.priceHighLow': 'Precio de mayor a menor',
   'transfer.noOffersForPassengers': 'No hay ofertas disponibles para este número de pasajeros.',
+  'transfer.editPickupDateTime': 'Editar fecha y hora de recogida',
 };

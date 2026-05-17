@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/main.css">
 
     <style>
+        /* ── Passenger dropdown ──────────────────────────────────────────────── */
         .transfer-passengers-dropdown {
             position: absolute;
             top: calc(100% + 6px);
@@ -35,6 +36,140 @@
             background: #EBF0FB;
             color: #3554D1;
         }
+
+        /* ── Date/time trigger ────────────────────────────────────────────────── */
+        .dt-pickup-trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+        .dt-pickup-trigger:hover .transfer-summary-label { color: #3554D1; }
+        .dt-pickup-trigger:hover .transfer-summary-value { text-decoration: underline dotted; text-underline-offset: 3px; }
+
+        /* ── Edit panel ─────────────────────────────────────────────────────── */
+        .dt-edit-panel {
+            background: #fff;
+            border-top: 1px solid #e5e9f0;
+            border-bottom: 1px solid #e5e9f0;
+            box-shadow: 0 6px 24px rgba(0,0,0,.10);
+        }
+        .dt-edit-panel-inner {
+            padding: 24px 0;
+        }
+        .dt-edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #051036;
+        }
+        .dt-edit-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #697488;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .dt-edit-close:hover { color: #051036; }
+        .dt-edit-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 640px) {
+            .dt-edit-body { grid-template-columns: 1fr; }
+        }
+        .dt-edit-col-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #697488;
+            margin-bottom: 12px;
+        }
+
+        /* Date pills */
+        .dt-date-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+        @media (max-width: 500px) {
+            .dt-date-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        .dt-date-pill {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #e5e9f0;
+            color: #051036;
+            transition: background .12s, color .12s, border-color .12s;
+            user-select: none;
+        }
+        .dt-date-pill .dt-day { font-size: 10px; color: #697488; margin-bottom: 2px; }
+        .dt-date-pill .dt-num { font-size: 15px; font-weight: 700; line-height: 1.1; }
+        .dt-date-pill .dt-mon { font-size: 10px; color: #697488; margin-top: 2px; }
+        .dt-date-pill:hover  { background: #EBF0FB; border-color: #3554D1; }
+        .dt-date-pill.is-active { background: #051036; border-color: #051036; color: #fff; }
+        .dt-date-pill.is-active .dt-day,
+        .dt-date-pill.is-active .dt-mon { color: rgba(255,255,255,.6); }
+
+        /* Time list */
+        .dt-time-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e5e9f0;
+            border-radius: 8px;
+            scroll-behavior: smooth;
+        }
+        .dt-time-option {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #051036;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background .1s;
+        }
+        .dt-time-option:last-child { border-bottom: none; }
+        .dt-time-option:hover { background: #EBF0FB; color: #3554D1; }
+        .dt-time-option.is-active { background: #051036; color: #fff; }
+
+        /* Footer */
+        .dt-edit-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .dt-btn-cancel {
+            padding: 10px 24px;
+            border-radius: 100px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .dt-btn-cancel:hover { background: #f3f4f6; }
+        .dt-btn-apply {
+            padding: 10px 28px;
+            border-radius: 100px;
+            border: none;
+            background: #051036;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+        .dt-btn-apply:hover { background: #F8D448; color: #051036; }
     </style>
 
     <title>Airport Transfer Offers | RentCar</title>
@@ -64,12 +199,42 @@
                     </div>
                 </div>
 
-                <div class="transfer-summary-item">
+                <div class="transfer-summary-item dt-pickup-trigger" id="pickupDateTimeTrigger">
                     <div class="transfer-summary-label" data-i18n="transfer.pickupDateTime">PICKUP DATE / TIME</div>
-                    <div class="transfer-summary-value">
+                    <div class="transfer-summary-value" id="pickupDateTimeDisplay">
                         <span>16/05/2026</span>
                         <span>10:00</span>
                     </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Date/time edit panel (hidden until triggered) ─────────────────── -->
+    <section id="dtEditPanel" class="dt-edit-panel" style="display:none;">
+        <div class="container">
+            <div class="dt-edit-panel-inner">
+
+                <div class="dt-edit-header">
+                    <span data-i18n="transfer.editPickupDateTime">Edit pickup date &amp; time</span>
+                    <button id="dtEditClose" class="dt-edit-close" type="button" aria-label="Close">&times;</button>
+                </div>
+
+                <div class="dt-edit-body">
+                    <div class="dt-edit-dates">
+                        <div class="dt-edit-col-title" data-i18n="transfer.pickupDate">Pickup date</div>
+                        <div id="dtDateGrid" class="dt-date-grid"></div>
+                    </div>
+                    <div class="dt-edit-times">
+                        <div class="dt-edit-col-title" data-i18n="transfer.pickupTime">Pickup time</div>
+                        <div id="dtTimeList" class="dt-time-list"></div>
+                    </div>
+                </div>
+
+                <div class="dt-edit-footer">
+                    <button id="dtCancelBtn" type="button" class="dt-btn-cancel">Cancel</button>
+                    <button id="dtApplyBtn"  type="button" class="dt-btn-apply">Apply</button>
                 </div>
 
             </div>

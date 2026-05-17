@@ -352,4 +352,5 @@ window.i18nTranslations['en'] = {
   'transfer.next': 'Next',
   'transfer.priceHighLow': 'Price high to low',
   'transfer.noOffersForPassengers': 'No transfer offers available for this passenger count.',
+  'transfer.editPickupDateTime': 'Edit pickup date \u0026 time',
 };

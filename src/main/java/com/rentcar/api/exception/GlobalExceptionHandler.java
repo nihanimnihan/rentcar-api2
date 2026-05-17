@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 @Slf4j
@@ -77,6 +78,13 @@ public class GlobalExceptionHandler {
                 ? ex.getBindingResult().getFieldError().getDefaultMessage()
                 : "Validation failed";
         return error(HttpStatus.BAD_REQUEST, "Validation error", message);
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<?> handleDateTimeParseException(DateTimeParseException ex) {
+        log.warn("Invalid datetime parameter: {}", ex.getMessage());
+        return error(HttpStatus.BAD_REQUEST, "Bad Request",
+                "Invalid datetime format. Expected: YYYY-MM-DDTHH:mm (e.g. 2026-05-29T10:00)");
     }
 
     // ── 409 Conflict ──────────────────────────────────────────────────────────

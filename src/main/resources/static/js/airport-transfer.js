@@ -7,6 +7,28 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentMode = "oneway";
   let durationsData = [];
 
+  // ── Date/time state (always ISO internally) ────────────────────────────────
+  const dateInput = document.getElementById("transferPickupDateInput");
+  const timeInput = document.getElementById("transferPickupTimeInput");
+
+  function padZ(n) { return String(n).padStart(2, "0"); }
+
+  function formatDisplayDate(isoDate) {
+    var d = new Date(isoDate + "T00:00:00");
+    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return d.getDate() + " " + months[d.getMonth()];
+  }
+
+  // Initialise date input to today
+  (function () {
+    var today = new Date();
+    var iso = today.getFullYear() + "-" + padZ(today.getMonth() + 1) + "-" + padZ(today.getDate());
+    if (dateInput) {
+      dateInput.dataset.isoDate = iso;
+      dateInput.value = formatDisplayDate(iso);
+    }
+  }());
+
   // ── Fallback durations used if the API is unavailable ──────────────────────
   function buildFallbackDurations() {
     return Array.from({ length: 12 }, (_, i) => ({
@@ -78,11 +100,22 @@ document.addEventListener("DOMContentLoaded", function () {
     showOffersButton.addEventListener("click", function () {
       const params = new URLSearchParams();
 
-      const allInputs = document.querySelectorAll(".transfer-field input[type='text']");
-      const pickupLocationInput = allInputs[0];
-      const destinationInput = allInputs[1];
-      const pickupDateInput = allInputs[2];
-      const pickupTimeInput = allInputs[3];
+      const pickupLocationInput = document.querySelector(".transfer-field input[type='text']:not(#transferPickupDateInput):not(#transferPickupTimeInput)");
+      const allTextInputs = document.querySelectorAll(".transfer-field input[type='text']");
+      const pickupLocInput = allTextInputs[0];
+      const destinationInput = allTextInputs[1];
+
+      // Build ISO datetime: use data-isoDate attribute from date input + time input value
+      var isoDate = dateInput && dateInput.dataset.isoDate ? dateInput.dataset.isoDate : "";
+      var timeVal  = timeInput ? timeInput.value.trim() : "10:00";
+
+      if (!isoDate) {
+        var today = new Date();
+        isoDate = today.getFullYear() + "-" + padZ(today.getMonth() + 1) + "-" + padZ(today.getDate());
+      }
+      // Normalise time to HH:mm (strip any extra text)
+      var timeMatch = timeVal.match(/^(\d{1,2}):(\d{2})/);
+      var cleanTime = timeMatch ? padZ(timeMatch[1]) + ":" + timeMatch[2] : "10:00";
 
       if (currentMode === "hourly") {
         params.set("transferType", "HOURLY");
@@ -98,12 +131,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
 
-      if (pickupLocationInput && pickupLocationInput.value) {
-        params.set("pickupLocation", pickupLocationInput.value);
+      if (pickupLocInput && pickupLocInput.value) {
+        params.set("pickupLocation", pickupLocInput.value);
       }
-      if (pickupDateInput && pickupDateInput.value) {
-        params.set("pickupDateTime", pickupDateInput.value + (pickupTimeInput ? " " + pickupTimeInput.value : ""));
-      }
+
+      params.set("pickupDateTime", isoDate + "T" + cleanTime);
 
       window.location.href = "airport-transfer-offers.html?" + params.toString();
     });
