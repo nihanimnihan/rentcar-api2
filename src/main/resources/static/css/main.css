@@ -13951,3 +13951,67 @@ body:not(.airport-transfer-body) {
 .rc-cal-day.rc-cal-active   { background: #051036; color: #fff; font-weight: 700; }
 .rc-cal-day.rc-cal-disabled { color: #d1d5db; cursor: default; pointer-events: none; }
 .rc-cal-day.rc-cal-empty    { visibility: hidden; cursor: default; pointer-events: none; }
+
+/* ── airport-transfer.html date/time pickers (tdt = transfer date/time) ─── */
+.tdt-field {
+  position: relative;
+}
+
+.tdt-trigger {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tdt-trigger:hover {
+  border-color: #3554D1;
+}
+
+.tdt-trigger span {
+  font-size: 16px;
+  color: #111;
+  flex: 1;
+}
+
+.tdt-popup {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .18);
+  z-index: 200;
+  padding: 16px;
+  min-width: 260px;
+}
+
+.tdt-time-popup {
+  padding: 0;
+  overflow: hidden;
+  min-width: 160px;
+  right: 0;
+  left: auto;
+}
+
+.tdt-time-list {
+  max-height: 240px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.tdt-time-option {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #051036;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background .1s;
+}
+
+.tdt-time-option:last-child { border-bottom: none; }
+.tdt-time-option:hover      { background: #EBF0FB; color: #3554D1; }
+.tdt-time-option.is-active  { background: #051036; color: #fff; }
+
+@media (max-width: 480px) {
+  .tdt-popup      { left: 0; right: 0; min-width: auto; }
+  .tdt-time-popup { left: 0; right: 0; }
+}

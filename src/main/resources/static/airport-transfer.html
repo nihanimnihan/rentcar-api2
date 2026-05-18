@@ -62,19 +62,25 @@
                         </div>
 
                         <div class="transfer-date-row">
-                            <div class="transfer-field">
+                            <div class="transfer-field tdt-field" id="transferPickupDateField">
                                 <label data-i18n="transfer.pickupDate">Pickup date</label>
-                                <div class="transfer-input">
+                                <div class="transfer-input tdt-trigger" id="transferPickupDateTrigger">
                                     <i class="icon-calendar-2 text-18"></i>
-                                    <input type="text" id="transferPickupDateInput" value="16 May" readonly>
+                                    <span id="transferPickupDateValue">16 May</span>
+                                </div>
+                                <div id="transferCalendarPopup" class="tdt-popup" style="display:none;">
+                                    <div id="transferCalendarHost" class="rc-calendar-host"></div>
                                 </div>
                             </div>
 
-                            <div class="transfer-field">
+                            <div class="transfer-field tdt-field" id="transferPickupTimeField">
                                 <label data-i18n="transfer.pickupTime">Pickup time</label>
-                                <div class="transfer-input">
+                                <div class="transfer-input tdt-trigger" id="transferPickupTimeTrigger">
                                     <i class="icon-clock text-18"></i>
-                                    <input type="text" id="transferPickupTimeInput" value="10:00" readonly>
+                                    <span id="transferPickupTimeValue">10:00</span>
+                                </div>
+                                <div id="transferTimePopup" class="tdt-popup tdt-time-popup" style="display:none;">
+                                    <div id="transferTimeList" class="tdt-time-list"></div>
                                 </div>
                             </div>
                         </div>
@@ -108,6 +114,7 @@
 <script src="js/vendors.js"></script>
 <script src="js/main.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/rentcar-calendar.js"></script>
 <script src="js/airport-transfer.js"></script>
 </body>
 </html>

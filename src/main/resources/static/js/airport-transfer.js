@@ -7,11 +7,16 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentMode = "oneway";
   let durationsData = [];
 
-  // ── Date/time state (always ISO internally) ────────────────────────────────
-  const dateInput = document.getElementById("transferPickupDateInput");
-  const timeInput = document.getElementById("transferPickupTimeInput");
+  // ── State ──────────────────────────────────────────────────────────────────
+  var selectedTransferDate = "";   // YYYY-MM-DD
+  var selectedTransferTime = "10:00";
 
   function padZ(n) { return String(n).padStart(2, "0"); }
+
+  function todayIso() {
+    var d = new Date();
+    return d.getFullYear() + "-" + padZ(d.getMonth() + 1) + "-" + padZ(d.getDate());
+  }
 
   function formatDisplayDate(isoDate) {
     var d = new Date(isoDate + "T00:00:00");
@@ -19,17 +24,137 @@ document.addEventListener("DOMContentLoaded", function () {
     return d.getDate() + " " + months[d.getMonth()];
   }
 
-  // Initialise date input to today
-  (function () {
-    var today = new Date();
-    var iso = today.getFullYear() + "-" + padZ(today.getMonth() + 1) + "-" + padZ(today.getDate());
-    if (dateInput) {
-      dateInput.dataset.isoDate = iso;
-      dateInput.value = formatDisplayDate(iso);
-    }
-  }());
+  selectedTransferDate = todayIso();
 
-  // ── Fallback durations used if the API is unavailable ──────────────────────
+  // ── DOM refs ───────────────────────────────────────────────────────────────
+  var dateField     = document.getElementById("transferPickupDateField");
+  var dateTrigger   = document.getElementById("transferPickupDateTrigger");
+  var dateValueEl   = document.getElementById("transferPickupDateValue");
+  var calPopup      = document.getElementById("transferCalendarPopup");
+  var calHost       = document.getElementById("transferCalendarHost");
+  var timeField     = document.getElementById("transferPickupTimeField");
+  var timeTrigger   = document.getElementById("transferPickupTimeTrigger");
+  var timeValueEl   = document.getElementById("transferPickupTimeValue");
+  var timePopup     = document.getElementById("transferTimePopup");
+  var timeList      = document.getElementById("transferTimeList");
+
+  var calInstance = null;
+  var timeSlotsBuilt = false;
+
+  function updateDateDisplay() {
+    if (dateValueEl) dateValueEl.textContent = formatDisplayDate(selectedTransferDate);
+  }
+
+  function updateTimeDisplay() {
+    if (timeValueEl) timeValueEl.textContent = selectedTransferTime;
+  }
+
+  updateDateDisplay();
+  updateTimeDisplay();
+
+  // ── Calendar popup ─────────────────────────────────────────────────────────
+  function openCalendar() {
+    if (!calPopup) return;
+    closeTimePopup();
+    if (window.RentCarCalendar && calHost) {
+      if (!calInstance) {
+        calInstance = RentCarCalendar.mount(calHost, {
+          initialDate: selectedTransferDate,
+          onDateSelected: function (iso) {
+            selectedTransferDate = iso;
+            updateDateDisplay();
+            closeCalendar();
+          }
+        });
+      } else {
+        calInstance.setDate(selectedTransferDate);
+      }
+    }
+    calPopup.style.display = "block";
+  }
+
+  function closeCalendar() {
+    if (calPopup) calPopup.style.display = "none";
+  }
+
+  if (dateTrigger) {
+    dateTrigger.addEventListener("click", function (e) {
+      e.stopPropagation();
+      calPopup && calPopup.style.display !== "none" ? closeCalendar() : openCalendar();
+    });
+  }
+
+  // ── Time popup ─────────────────────────────────────────────────────────────
+  function buildTimeSlots() {
+    if (timeSlotsBuilt || !timeList) return;
+    timeSlotsBuilt = true;
+    for (var h = 0; h < 24; h++) {
+      for (var m = 0; m < 60; m += 15) {
+        var slot = padZ(h) + ":" + padZ(m);
+        var opt = document.createElement("div");
+        opt.className = "tdt-time-option";
+        opt.textContent = slot;
+        opt.dataset.time = slot;
+        (function (s, el) {
+          el.addEventListener("click", function (e) {
+            e.stopPropagation();
+            selectedTransferTime = s;
+            updateTimeDisplay();
+            timeList.querySelectorAll(".tdt-time-option").forEach(function (o) {
+              o.classList.toggle("is-active", o.dataset.time === selectedTransferTime);
+            });
+            closeTimePopup();
+          });
+        })(slot, opt);
+        timeList.appendChild(opt);
+      }
+    }
+  }
+
+  function markActiveTime() {
+    if (!timeList) return;
+    timeList.querySelectorAll(".tdt-time-option").forEach(function (opt) {
+      opt.classList.toggle("is-active", opt.dataset.time === selectedTransferTime);
+    });
+  }
+
+  function scrollToActiveTime() {
+    if (!timeList) return;
+    var active = timeList.querySelector(".tdt-time-option.is-active");
+    if (active) active.scrollIntoView({ block: "center" });
+  }
+
+  function openTimePopup() {
+    if (!timePopup) return;
+    closeCalendar();
+    buildTimeSlots();
+    markActiveTime();
+    timePopup.style.display = "block";
+    setTimeout(scrollToActiveTime, 30);
+  }
+
+  function closeTimePopup() {
+    if (timePopup) timePopup.style.display = "none";
+  }
+
+  if (timeTrigger) {
+    timeTrigger.addEventListener("click", function (e) {
+      e.stopPropagation();
+      timePopup && timePopup.style.display !== "none" ? closeTimePopup() : openTimePopup();
+    });
+  }
+
+  // Click outside closes both popups
+  document.addEventListener("click", function (e) {
+    if (calPopup && calPopup.style.display !== "none") {
+      if (!dateField || !dateField.contains(e.target)) closeCalendar();
+    }
+    if (timePopup && timePopup.style.display !== "none") {
+      if (!timeField || !timeField.contains(e.target)) closeTimePopup();
+    }
+  });
+
+  // ── Fallback durations used if the API is unavailable ─────────────────────
   function buildFallbackDurations() {
     return Array.from({ length: 12 }, (_, i) => ({
       id: i + 1,
@@ -61,7 +186,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   durationSelect.addEventListener("change", updateKmHelp);
 
-  // ── Load durations from API ─────────────────────────────────────────────────
   fetch("/api/transfer/durations")
     .then(function (res) {
       if (!res.ok) throw new Error("HTTP " + res.status);
@@ -77,7 +201,7 @@ document.addEventListener("DOMContentLoaded", function () {
       renderDurationOptions(durationsData);
     });
 
-  // ── Tab switching ───────────────────────────────────────────────────────────
+  // ── Tab switching ──────────────────────────────────────────────────────────
   tabs.forEach(function (tab) {
     tab.addEventListener("click", function () {
       tabs.forEach(t => t.classList.remove("is-active"));
@@ -94,28 +218,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // ── Show offers button ──────────────────────────────────────────────────────
+  // ── Show offers button ─────────────────────────────────────────────────────
   const showOffersButton = document.getElementById("transferShowOffersButton");
   if (showOffersButton) {
     showOffersButton.addEventListener("click", function () {
       const params = new URLSearchParams();
 
-      const pickupLocationInput = document.querySelector(".transfer-field input[type='text']:not(#transferPickupDateInput):not(#transferPickupTimeInput)");
       const allTextInputs = document.querySelectorAll(".transfer-field input[type='text']");
       const pickupLocInput = allTextInputs[0];
       const destinationInput = allTextInputs[1];
 
-      // Build ISO datetime: use data-isoDate attribute from date input + time input value
-      var isoDate = dateInput && dateInput.dataset.isoDate ? dateInput.dataset.isoDate : "";
-      var timeVal  = timeInput ? timeInput.value.trim() : "10:00";
-
-      if (!isoDate) {
-        var today = new Date();
-        isoDate = today.getFullYear() + "-" + padZ(today.getMonth() + 1) + "-" + padZ(today.getDate());
-      }
-      // Normalise time to HH:mm (strip any extra text)
-      var timeMatch = timeVal.match(/^(\d{1,2}):(\d{2})/);
-      var cleanTime = timeMatch ? padZ(timeMatch[1]) + ":" + timeMatch[2] : "10:00";
+      var isoDate = selectedTransferDate || todayIso();
+      var cleanTime = selectedTransferTime || "10:00";
 
       if (currentMode === "hourly") {
         params.set("transferType", "HOURLY");
