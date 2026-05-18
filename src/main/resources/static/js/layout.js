@@ -75,5 +75,66 @@ if (minimalHeader) {
         .then(response => response.text())
         .then(html => {
             minimalHeader.innerHTML = html;
+            if (typeof applyTranslations === "function") {
+                applyTranslations(minimalHeader);
+            }
+            if (typeof updateCurrentLanguageLabels === "function") {
+                updateCurrentLanguageLabels();
+            }
         });
 }
+
+// ── Language dropdown ─────────────────────────────────────────────────────
+(function () {
+    function getLangMenu() {
+        return document.querySelector('.langMenu');
+    }
+
+    function getLangContent() {
+        var dd = getLangMenu();
+        return dd ? dd.querySelector('.langMenu__content') : null;
+    }
+
+    function positionUnder(btn) {
+        var content = getLangContent();
+        if (!content) return;
+        var rect = btn.getBoundingClientRect();
+        content.style.top   = (rect.bottom + 8) + 'px';
+        content.style.right = (window.innerWidth - rect.right) + 'px';
+        content.style.left  = 'auto';
+    }
+
+    function openDropdown(btn) {
+        var dd = getLangMenu();
+        if (!dd) return;
+        positionUnder(btn);
+        dd.classList.remove('is-hidden');
+    }
+
+    function closeDropdown() {
+        var dd = getLangMenu();
+        if (dd) dd.classList.add('is-hidden');
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.js-lang-toggle');
+        if (btn) {
+            var dd = getLangMenu();
+            if (dd && !dd.classList.contains('is-hidden')) {
+                closeDropdown();
+            } else {
+                openDropdown(btn);
+            }
+            return;
+        }
+
+        // Click-outside: close if the click lands outside the dropdown content
+        var content = getLangContent();
+        var dd = getLangMenu();
+        if (dd && !dd.classList.contains('is-hidden')) {
+            if (!content || !content.contains(e.target)) {
+                closeDropdown();
+            }
+        }
+    });
+}());

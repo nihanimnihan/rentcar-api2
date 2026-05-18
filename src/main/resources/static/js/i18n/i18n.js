@@ -50,9 +50,21 @@
     });
   }
 
+  // Reads stored language directly from localStorage and updates every
+  // [data-current-language-label] element.  Safe to call at any time,
+  // including right after a partial is injected into the DOM.
+  function updateCurrentLanguageLabels() {
+    var lang  = localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG;
+    var label = lang === 'es' ? 'Español' : 'English';
+    document.querySelectorAll('[data-current-language-label]').forEach(function (el) {
+      el.textContent = label;
+    });
+  }
+
   function setLanguage(lang) {
     localStorage.setItem(STORAGE_KEY, lang);
     updateLanguageButtons(lang);
+    updateCurrentLanguageLabels();
     applyTranslations(document);
     document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: lang } }));
   }
@@ -72,12 +84,15 @@
   document.addEventListener('DOMContentLoaded', function () {
     applyTranslations(document);
     updateLanguageButtons(getLanguage());
+    updateCurrentLanguageLabels();
   });
 
   window.t = t;
   window.setLanguage = setLanguage;
   window.getLanguage = getLanguage;
   window.applyTranslations = applyTranslations;
+  window.updateLanguageButtons = updateLanguageButtons;
+  window.updateCurrentLanguageLabels = updateCurrentLanguageLabels;
 
   // Translate enum/API values: tEnum('transmission', 'AUTOMATIC') → 'Automático'
   window.tEnum = function (type, value) {
