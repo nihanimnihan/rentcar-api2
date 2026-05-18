@@ -230,7 +230,10 @@
   function initAll() {
     document.querySelectorAll('.rc-calendar-host').forEach(function (host) {
       if (host._rcCalInstance) return; // already mounted
-      var wrapper     = host.closest ? host.closest('.js-calendar-el') : null;
+      // _rcCalWrapperEl is set by main-search.js before the popup is moved to
+      // <body> (where closest() can no longer find the .js-calendar-el wrapper).
+      var wrapper     = host._rcCalWrapperEl
+                     || (host.closest ? host.closest('.js-calendar-el') : null);
       var firstDateEl = wrapper ? wrapper.querySelector('.js-first-date') : null;
       var initial     = firstDateEl ? (firstDateEl.getAttribute('data-date') || null) : null;
       mount(host, { initialDate: initial, wrapperEl: wrapper });

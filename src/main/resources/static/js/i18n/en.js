@@ -23,6 +23,7 @@ window.i18nTranslations['en'] = {
   'search.selectDate': 'Select date',
   'search.cityOrAirport': 'City or Airport',
   'search.showCars': 'Show Cars',
+  'search.returnDifferentLocation': 'Return to a different location',
 
   // home page
   'home.heroTitle': 'Search for the Best Car Deals',

@@ -23,6 +23,7 @@ window.i18nTranslations['es'] = {
   'search.selectDate': 'Seleccionar fecha',
   'search.cityOrAirport': 'Ciudad o aeropuerto',
   'search.showCars': 'Ver Coches',
+  'search.returnDifferentLocation': 'Devolver en otra ubicación',
 
   // home page
   'home.heroTitle': 'Encuentra las Mejores Ofertas de Alquiler',
