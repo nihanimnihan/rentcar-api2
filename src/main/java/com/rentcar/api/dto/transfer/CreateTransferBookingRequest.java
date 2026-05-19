@@ -1,5 +1,6 @@
 package com.rentcar.api.dto.transfer;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
@@ -31,8 +32,10 @@ public record CreateTransferBookingRequest(
         @NotNull
         Long categoryId,
 
-        // nullable — defaults to 1 if not provided
+        // Accepts both "passengers" and "passengerCount" from clients.
+        // Nullable — defaults to 1 in the service if omitted.
         @Min(1)
+        @JsonAlias("passengerCount")
         Integer passengers,
 
         // nullable — stored for reference, no business logic applied

@@ -191,6 +191,48 @@ class TransferBookingControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // ── 9. "passengerCount" alias maps to passengers field ────────────────────
+
+    @Test
+    void createTransferBooking_passengerCountAlias_mapsToPassengersField() throws Exception {
+        Long categoryId = rideCategoryId(860);
+        // Send "passengerCount" (legacy/alias key) instead of "passengers"
+        String body = "{"
+                + "\"customerName\": \"Alias Test\","
+                + "\"customerEmail\": \"alias@example.com\","
+                + "\"customerPhone\": \"+34600000002\","
+                + "\"pickupDateTime\": \"" + dateAt(860) + "\","
+                + "\"durationHours\": 2,"
+                + "\"categoryId\": " + categoryId + ","
+                + "\"passengerCount\": 2"
+                + "}";
+        mockMvc.perform(post("/api/transfer/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passengers").value(2));
+    }
+
+    @Test
+    void createTransferBooking_passengerCountAlias_exceedingSeats_returns400() throws Exception {
+        Long categoryId = rideCategoryId(870);
+        // RIDE has 3 seats — send passengerCount: 99 via alias
+        String body = "{"
+                + "\"customerName\": \"Alias Test\","
+                + "\"customerEmail\": \"alias2@example.com\","
+                + "\"customerPhone\": \"+34600000003\","
+                + "\"pickupDateTime\": \"" + dateAt(870) + "\","
+                + "\"durationHours\": 2,"
+                + "\"categoryId\": " + categoryId + ","
+                + "\"passengerCount\": 99"
+                + "}";
+        mockMvc.perform(post("/api/transfer/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid transfer request"));
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /**
