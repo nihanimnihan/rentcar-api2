@@ -101,15 +101,19 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     );
 
     /**
-     * Returns chauffeur-available cars for a given category, excluding those
-     * with overlapping PENDING or CONFIRMED bookings in the requested window.
+     * Returns chauffeur-available cars for a given category that have enough seats
+     * for the requested passenger count, excluding those with overlapping bookings.
      * Results are ordered by hourlyPrice ASC so the service can pick the minimum.
+     *
+     * passengerCount may be null — when null, no seat filter is applied and the
+     * category-level seats check in the service is the only guard.
      */
     @Query("""
         SELECT c FROM Car c
         WHERE c.active = true
         AND c.chauffeurAvailable = true
         AND c.chauffeurCategory = :category
+        AND (:passengerCount IS NULL OR c.seats >= :passengerCount)
         AND NOT EXISTS (
             SELECT b FROM Booking b
             WHERE b.car = c
@@ -125,6 +129,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     List<Car> findAvailableChauffeurCars(
             @Param("category")        ChauffeurCategory category,
             @Param("pickupDateTime")  LocalDateTime pickupDateTime,
-            @Param("dropoffDateTime") LocalDateTime dropoffDateTime
+            @Param("dropoffDateTime") LocalDateTime dropoffDateTime,
+            @Param("passengerCount")  Integer passengerCount
     );
 }

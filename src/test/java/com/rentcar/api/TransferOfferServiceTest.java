@@ -19,6 +19,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 /**
@@ -51,7 +52,7 @@ class TransferOfferServiceTest {
         ChauffeurCategory category = buildCategory(1L, "RIDE", "Ride", 3);
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(category));
-        when(carRepository.findAvailableChauffeurCars(eq(category), eq(PICKUP), eq(DROPOFF)))
+        when(carRepository.findAvailableChauffeurCars(eq(category), eq(PICKUP), eq(DROPOFF), isNull()))
                 .thenReturn(List.of());
 
         List<ChauffeurCategoryOfferResponse> result = transferOfferService.getOffers(PICKUP, DURATION, null);
@@ -65,7 +66,7 @@ class TransferOfferServiceTest {
         Car car = buildCar(new BigDecimal("90.00"));
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(category));
-        when(carRepository.findAvailableChauffeurCars(eq(category), eq(PICKUP), eq(DROPOFF)))
+        when(carRepository.findAvailableChauffeurCars(eq(category), eq(PICKUP), eq(DROPOFF), isNull()))
                 .thenReturn(List.of(car));
 
         List<ChauffeurCategoryOfferResponse> result = transferOfferService.getOffers(PICKUP, DURATION, null);
@@ -80,9 +81,9 @@ class TransferOfferServiceTest {
         ChauffeurCategory empty = buildCategory(2L, "FIRST", "First", 3);
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(withCar, empty));
-        when(carRepository.findAvailableChauffeurCars(eq(withCar), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(eq(withCar), any(), any(), isNull()))
                 .thenReturn(List.of(buildCar(new BigDecimal("90.00"))));
-        when(carRepository.findAvailableChauffeurCars(eq(empty), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(eq(empty), any(), any(), isNull()))
                 .thenReturn(List.of());
 
         List<ChauffeurCategoryOfferResponse> result = transferOfferService.getOffers(PICKUP, DURATION, null);
@@ -98,7 +99,7 @@ class TransferOfferServiceTest {
         ChauffeurCategory small = buildCategory(1L, "RIDE", "Ride", 3);
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(small));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), isNull()))
                 .thenReturn(List.of(buildCar(new BigDecimal("90.00"))));
 
         List<ChauffeurCategoryOfferResponse> result = transferOfferService.getOffers(PICKUP, DURATION, null);
@@ -112,7 +113,7 @@ class TransferOfferServiceTest {
         ChauffeurCategory large = buildCategory(2L, "RIDE_XL", "Ride XL", 6);
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(small, large));
-        when(carRepository.findAvailableChauffeurCars(eq(large), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(eq(large), any(), any(), isNull()))
                 .thenReturn(List.of(buildCar(new BigDecimal("140.00"))));
 
         List<ChauffeurCategoryOfferResponse> result = transferOfferService.getOffers(PICKUP, DURATION, 5);
@@ -126,7 +127,7 @@ class TransferOfferServiceTest {
         ChauffeurCategory category = buildCategory(1L, "RIDE", "Ride", 3);
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(category));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), isNull()))
                 .thenReturn(List.of(buildCar(new BigDecimal("90.00"))));
 
         // passengers == seats (boundary: should be included)
@@ -144,7 +145,7 @@ class TransferOfferServiceTest {
         Car cheap = buildCar(new BigDecimal("80.00"));
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(category));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), isNull()))
                 .thenReturn(List.of(expensive, cheap));
 
         ChauffeurCategoryOfferResponse result = transferOfferService.getOffers(PICKUP, DURATION, null).get(0);
@@ -157,7 +158,7 @@ class TransferOfferServiceTest {
         ChauffeurCategory category = buildCategory(1L, "RIDE", "Ride", 3);
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(category));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), isNull()))
                 .thenReturn(List.of(buildCar(new BigDecimal("50.00"))));
 
         ChauffeurCategoryOfferResponse result = transferOfferService.getOffers(PICKUP, 4, null).get(0);
@@ -184,7 +185,7 @@ class TransferOfferServiceTest {
                 .build();
         when(chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc())
                 .thenReturn(List.of(category));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any()))
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), isNull()))
                 .thenReturn(List.of(buildCar(new BigDecimal("95.00"))));
 
         ChauffeurCategoryOfferResponse dto = transferOfferService.getOffers(PICKUP, DURATION, null).get(0);

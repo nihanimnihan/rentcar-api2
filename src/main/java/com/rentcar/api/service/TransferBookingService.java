@@ -55,15 +55,15 @@ public class TransferBookingService {
                 .filter(ChauffeurCategory::isActive)
                 .orElseThrow(() -> new ChauffeurCategoryNotFoundException(request.categoryId()));
 
-        if (request.passengers() != null && request.passengers() > category.getSeats()) {
+        if (request.passengerCount() != null && request.passengerCount() > category.getSeats()) {
             throw new InvalidTransferRequestException(
-                    "Passenger count " + request.passengers()
+                    "Passenger count " + request.passengerCount()
                     + " exceeds category seat capacity of " + category.getSeats());
         }
 
-        // Candidate cars — ordered by hourlyPrice ASC so we always pick the cheapest first.
+        // Candidate cars — ordered by hourlyPrice ASC, filtered by available seats.
         List<Car> candidates = carRepository.findAvailableChauffeurCars(
-                category, request.pickupDateTime(), dropoffDateTime);
+                category, request.pickupDateTime(), dropoffDateTime, request.passengerCount());
 
         if (candidates.isEmpty()) {
             throw new NoChauffeurCarAvailableException(request.categoryId());
@@ -93,7 +93,7 @@ public class TransferBookingService {
                 .multiply(BigDecimal.valueOf(request.durationHours()))
                 .setScale(2, RoundingMode.HALF_UP);
 
-        int passengers = request.passengers() != null ? request.passengers() : 1;
+        int passengerCount = request.passengerCount() != null ? request.passengerCount() : 1;
 
         Booking booking = Booking.builder()
                 .car(car)
@@ -112,7 +112,7 @@ public class TransferBookingService {
                 .totalPrice(totalPrice)
                 .includedKmSnapshot(0)
                 .unlimitedKmPriceSnapshot(BigDecimal.ZERO)
-                .passengers(passengers)
+                .passengers(passengerCount)
                 .notes(request.notes())
                 .status(BookingStatus.PENDING)
                 .source(BookingSource.TRANSFER)
@@ -123,22 +123,20 @@ public class TransferBookingService {
         log.info("Transfer booking created: id={} carId={} category={} customerId={} total={}",
                 saved.getId(), car.getId(), category.getCode(), customer.getId(), totalPrice);
 
-        return toResponse(saved, category, car, customer, passengers, hourlyPrice);
+        return toResponse(saved, category, car, hourlyPrice);
     }
 
     private TransferBookingResponse toResponse(
             Booking booking,
             ChauffeurCategory category,
             Car car,
-            Customer customer,
-            int passengers,
             BigDecimal hourlyPrice) {
 
         return new TransferBookingResponse(
                 booking.getId(),
                 booking.getStatus(),
-                customer.getFullName(),
-                customer.getEmail(),
+                booking.getCustomer().getFullName(),
+                booking.getCustomer().getEmail(),
                 booking.getPickupDateTime(),
                 booking.getDropoffDateTime(),
                 booking.getRentalDays(),
@@ -146,7 +144,7 @@ public class TransferBookingService {
                 category.getName(),
                 car.getBrand(),
                 car.getModel(),
-                passengers,
+                booking.getPassengers() != null ? booking.getPassengers() : 1,
                 hourlyPrice,
                 booking.getTotalPrice(),
                 booking.getNotes()

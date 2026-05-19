@@ -279,7 +279,7 @@ document.addEventListener("DOMContentLoaded", function () {
         pickupDateTime: pickupDateTime,
         durationHours:  parseInt(durationHours, 10) || 1,
         categoryId:     offer.categoryId,
-        passengers:     passengers,
+        passengerCount: passengers,
         notes:          notes.trim() || null,
       };
 

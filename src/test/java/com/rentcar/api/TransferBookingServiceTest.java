@@ -58,7 +58,7 @@ class TransferBookingServiceTest {
         Customer customer = customer(20L, "Alice", "alice@example.com");
 
         when(chauffeurCategoryRepository.findById(1L)).thenReturn(Optional.of(cat));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any())).thenReturn(List.of(car));
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), any())).thenReturn(List.of(car));
         when(carService.getActiveCarByIdForUpdate(10L)).thenReturn(car);
         when(bookingRepository.existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                 any(), any(), any(), any())).thenReturn(false);
@@ -100,7 +100,7 @@ class TransferBookingServiceTest {
         ChauffeurCategory cat = category(1L, "RIDE", "Ride", 3);
 
         when(chauffeurCategoryRepository.findById(1L)).thenReturn(Optional.of(cat));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any())).thenReturn(List.of());
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), any())).thenReturn(List.of());
 
         assertThatThrownBy(() ->
                 transferBookingService.createTransferBooking(request(1L, PICKUP, 2, null, null)))
@@ -131,7 +131,7 @@ class TransferBookingServiceTest {
         Customer customer = customer(20L, "Bob", "bob@example.com");
 
         when(chauffeurCategoryRepository.findById(1L)).thenReturn(Optional.of(cat));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any())).thenReturn(List.of(car));
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), any())).thenReturn(List.of(car));
         when(carService.getActiveCarByIdForUpdate(10L)).thenReturn(car);
         when(bookingRepository.existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                 any(), any(), any(), any())).thenReturn(false);
@@ -159,7 +159,7 @@ class TransferBookingServiceTest {
         Customer customer = customer(20L, "Carol", "carol@example.com");
 
         when(chauffeurCategoryRepository.findById(1L)).thenReturn(Optional.of(cat));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any())).thenReturn(List.of(car));
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), any())).thenReturn(List.of(car));
         when(carService.getActiveCarByIdForUpdate(10L)).thenReturn(car);
         when(bookingRepository.existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                 any(), any(), any(), any())).thenReturn(false);
@@ -186,7 +186,7 @@ class TransferBookingServiceTest {
         Car car = car(10L, cat, new BigDecimal("95.00"));
 
         when(chauffeurCategoryRepository.findById(1L)).thenReturn(Optional.of(cat));
-        when(carRepository.findAvailableChauffeurCars(any(), any(), any())).thenReturn(List.of(car));
+        when(carRepository.findAvailableChauffeurCars(any(), any(), any(), any())).thenReturn(List.of(car));
         when(carService.getActiveCarByIdForUpdate(10L)).thenReturn(car);
         // Overlap detected after acquiring the lock (race condition)
         when(bookingRepository.existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(

@@ -39,8 +39,9 @@ public class TransferOfferService {
             LocalDateTime dropoffDateTime,
             Integer durationHours) {
 
+        // No passenger filter at the offers stage — passengers is unknown at browse time.
         List<Car> availableCars = carRepository.findAvailableChauffeurCars(
-                category, pickupDateTime, dropoffDateTime);
+                category, pickupDateTime, dropoffDateTime, null);
 
         if (availableCars.isEmpty()) {
             return new ChauffeurCategoryOfferResponse(

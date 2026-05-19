@@ -191,15 +191,14 @@ class TransferBookingControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // ── 9. "passengerCount" alias maps to passengers field ────────────────────
+    // ── 9. Canonical "passengerCount" key maps to passengers in response ─────
 
     @Test
-    void createTransferBooking_passengerCountAlias_mapsToPassengersField() throws Exception {
+    void createTransferBooking_passengerCount2_responsePassengersEquals2() throws Exception {
         Long categoryId = rideCategoryId(860);
-        // Send "passengerCount" (legacy/alias key) instead of "passengers"
         String body = "{"
-                + "\"customerName\": \"Alias Test\","
-                + "\"customerEmail\": \"alias@example.com\","
+                + "\"customerName\": \"Passenger Test\","
+                + "\"customerEmail\": \"pax@example.com\","
                 + "\"customerPhone\": \"+34600000002\","
                 + "\"pickupDateTime\": \"" + dateAt(860) + "\","
                 + "\"durationHours\": 2,"
@@ -213,14 +212,38 @@ class TransferBookingControllerTest {
                 .andExpect(jsonPath("$.passengers").value(2));
     }
 
+    // ── 10. Backward-compat "passengers" key also maps correctly ─────────────
+
     @Test
-    void createTransferBooking_passengerCountAlias_exceedingSeats_returns400() throws Exception {
-        Long categoryId = rideCategoryId(870);
-        // RIDE has 3 seats — send passengerCount: 99 via alias
+    void createTransferBooking_legacyPassengersKey_responsePassengersEquals2() throws Exception {
+        Long categoryId = rideCategoryId(865);
+        // Frontend may still send "passengers" — accepted as alias
         String body = "{"
-                + "\"customerName\": \"Alias Test\","
-                + "\"customerEmail\": \"alias2@example.com\","
+                + "\"customerName\": \"Legacy Test\","
+                + "\"customerEmail\": \"legacy@example.com\","
                 + "\"customerPhone\": \"+34600000003\","
+                + "\"pickupDateTime\": \"" + dateAt(865) + "\","
+                + "\"durationHours\": 2,"
+                + "\"categoryId\": " + categoryId + ","
+                + "\"passengers\": 2"
+                + "}";
+        mockMvc.perform(post("/api/transfer/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passengers").value(2));
+    }
+
+    // ── 11. passengerCount exceeding category seats returns 400, not 409 ─────
+
+    @Test
+    void createTransferBooking_passengerCountExceedsSeats_returns400NotConflict() throws Exception {
+        Long categoryId = rideCategoryId(870);
+        // RIDE has 3 seats — 99 must fail with validation error before reaching car search
+        String body = "{"
+                + "\"customerName\": \"Overflow Test\","
+                + "\"customerEmail\": \"overflow@example.com\","
+                + "\"customerPhone\": \"+34600000004\","
                 + "\"pickupDateTime\": \"" + dateAt(870) + "\","
                 + "\"durationHours\": 2,"
                 + "\"categoryId\": " + categoryId + ","
@@ -274,7 +297,7 @@ class TransferBookingControllerTest {
         sb.append("\"durationHours\": ").append(durationHours).append(",");
         sb.append("\"categoryId\": ").append(categoryId);
         if (passengers != null) {
-            sb.append(",\"passengers\": ").append(passengers);
+            sb.append(",\"passengerCount\": ").append(passengers);
         }
         if (notes != null) {
             sb.append(",\"notes\": \"").append(notes).append("\"");

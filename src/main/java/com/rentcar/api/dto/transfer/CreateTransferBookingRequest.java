@@ -1,6 +1,7 @@
 package com.rentcar.api.dto.transfer;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
@@ -32,11 +33,13 @@ public record CreateTransferBookingRequest(
         @NotNull
         Long categoryId,
 
-        // Accepts both "passengers" and "passengerCount" from clients.
+        // Canonical JSON key is "passengerCount".
+        // "passengers" is accepted as a backward-compatible alias (used by older frontend versions).
         // Nullable — defaults to 1 in the service if omitted.
+        @JsonProperty("passengerCount")
+        @JsonAlias("passengers")
         @Min(1)
-        @JsonAlias("passengerCount")
-        Integer passengers,
+        Integer passengerCount,
 
         // nullable — stored for reference, no business logic applied
         String notes
