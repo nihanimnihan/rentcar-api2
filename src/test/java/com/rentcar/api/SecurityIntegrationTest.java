@@ -86,4 +86,51 @@ class SecurityIntegrationTest {
                         .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
                 .andExpect(status().isNotFound());
     }
+
+    // ── Booking cancellation — explicitly admin-only ──────────────────────────
+
+    @Test
+    void cancelBooking_withoutAuth_returns401() throws Exception {
+        mockMvc.perform(post("/api/bookings/1/cancel"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Unauthorized"));
+    }
+
+    @Test
+    void cancelBooking_withWrongCredentials_returns401() throws Exception {
+        mockMvc.perform(post("/api/bookings/1/cancel")
+                        .with(httpBasic(ADMIN_USER, WRONG_PASS)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void cancelBooking_withAdminCredentials_isNotRejected() throws Exception {
+        // Booking 99999 doesn't exist → 404, which means security passed.
+        mockMvc.perform(post("/api/bookings/99999/cancel")
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
+                .andExpect(status().isNotFound());
+    }
+
+    // ── Public transfer endpoints ─────────────────────────────────────────────
+
+    @Test
+    void transferDurations_isPublic_noAuthRequired() throws Exception {
+        mockMvc.perform(get("/api/transfer/durations"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void transferOffers_isPublic_noAuthRequired() throws Exception {
+        // Minimal required params; empty result is fine — we only verify security allows it.
+        mockMvc.perform(get("/api/transfer/offers")
+                        .param("pickupDateTime", "2030-01-01T10:00")
+                        .param("durationHours", "2"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void addonsActive_isPublic_noAuthRequired() throws Exception {
+        mockMvc.perform(get("/api/addons/active"))
+                .andExpect(status().isOk());
+    }
 }

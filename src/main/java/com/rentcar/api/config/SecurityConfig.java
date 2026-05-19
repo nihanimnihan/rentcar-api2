@@ -83,6 +83,10 @@ public class SecurityConfig {
 
                         // ── Admin-only ──────────────────────────────────────────────────────
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
+                        // Booking reads and cancellation are admin-only.
+                        // The public POST /api/bookings and POST /api/bookings/*/payments/process
+                        // rules above already match before reaching this line.
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/*/cancel").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/customers/**").hasRole("ADMIN")
                         .requestMatchers("/api/addons/**").hasRole("ADMIN")
