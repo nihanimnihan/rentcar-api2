@@ -1,0 +1,13 @@
+{
+  "name": "rentcar-e2e",
+  "private": true,
+  "description": "Playwright e2e smoke tests for the RentCar frontend",
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
+  }
+}

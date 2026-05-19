@@ -1,52 +1,90 @@
 /**
- * TRANSFER BOOKING — API CONTRACT VERIFICATION CHECKLIST
+ * AIRPORT TRANSFER BOOKING — MANUAL VERIFICATION CHECKLIST
  *
- * No JS test framework is configured in this project.
- * When one is added, cover the points below with automated tests.
- * Until then, verify manually after any change to this file or to
- * POST /api/transfer/bookings.
+ * No JS/e2e test framework (Playwright, Cypress, Jest) is configured in this
+ * project. When one is added, convert the steps below into automated tests.
  *
- * ── Request payload ────────────────────────────────────────────────────────
- * [1] Payload shape must match CreateTransferBookingRequest:
- *     {
- *       customerName    : "First Last"           // firstName + " " + lastName
- *       customerEmail   : "email@example.com"
- *       customerPhone   : "+34600000077"         // countryCode + phone
- *       pickupDateTime  : "YYYY-MM-DDTHH:mm"    // from URL param (no seconds)
- *       durationHours   : 2                      // Integer from URL param
- *       categoryId      : 1                      // Long from offer.categoryId
- *       passengers      : 2                      // Integer from URL param
- *       notes           : "..."                  // atbNotesToDriver.value (nullable)
- *     }
- *     Verify: Network tab → POST /api/transfer/bookings → request body.
+ * Backend contract is verified by automated Spring MockMvc tests in:
+ *   TransferBookingControllerTest  — POST /api/transfer/bookings (12 tests)
+ *   TransferBookingServiceTest     — service-layer unit tests (7 tests)
  *
- * [2] categoryId must come from offer.categoryId (sessionStorage "selectedTransferOffer")
- *     or from URL param "categoryId" as a fallback.
- *     Verify: log offer.categoryId before fetch; must be a numeric ID, not undefined.
+ * Run this checklist manually after any change to:
+ *   airport-transfer.js / airport-transfer-offers.js / airport-transfer-booking.js
+ *   POST /api/transfer/bookings controller, service, or DTO
  *
- * [3] pickupDateTime format must be YYYY-MM-DDTHH:mm (no seconds, no Z).
- *     Backend rejects other formats with 400.
+ * ── FULL END-TO-END FLOW ───────────────────────────────────────────────────
  *
- * ── Response fields (TransferBookingResponse) ─────────────────────────────
- * [4] Success panel must render:
- *     id               — booking reference
- *     status           — expected "PENDING"
- *     categoryName     — vehicle category name
- *     assignedCarBrand + assignedCarModel — vehicle name
- *     pickupDateTime   — confirmation datetime
- *     durationHours    — confirmed duration
- *     totalPrice       — final price
- *     Verify: submit valid booking, inspect Network response, confirm card renders.
+ * Step 1 — airport-transfer.html
+ *   [ ] Page loads without JS errors.
+ *   [ ] Pickup location field accepts input.
+ *   [ ] Date/time picker defaults to a future time.
+ *   [ ] "Show offers" button sends:
+ *         GET /api/transfer/durations  → populates duration dropdown
+ *         GET /api/transfer/offers?pickupDateTime=...&durationHours=...
+ *   [ ] On success, browser navigates to airport-transfer-offers.html
+ *       with query params: pickupLocation, pickupDateTime, durationHours, includedKm.
  *
- * ── Error paths ────────────────────────────────────────────────────────────
- * [5] HTTP 400 → atbErrorBanner shows response.message (validation detail).
- * [6] HTTP 409 → atbErrorBanner shows "no car available" friendly message.
- * [7] Network failure → atbErrorBanner shows generic fallback (no JS crash).
- *     Verify each: open DevTools → Network → Block request URL pattern.
+ * Step 2 — airport-transfer-offers.html
+ *   [ ] Page loads offer cards from GET /api/transfer/offers.
+ *   [ ] Each card shows: category name, seats, bags, electric badge, price.
+ *   [ ] Price sort (low → high / high → low) works.
+ *   [ ] Passenger filter hides cards where category.seats < selected passengers.
+ *   [ ] Clicking "Next" on an offer navigates to airport-transfer-booking.html
+ *       with query params: categoryId, pickupLocation, pickupDateTime,
+ *                          durationHours, passengers, categoryName,
+ *                          hourlyPrice, totalPrice.
+ *   [ ] "selectedTransferOffer" is also stored in sessionStorage.
  *
- * ── Existing flows ─────────────────────────────────────────────────────────
- * [8] Normal rental search (/api/cars/search) and review.html booking flow
- *     must be completely unaffected by any change here.
+ * Step 3 — airport-transfer-booking.html (happy path)
+ *   [ ] Summary sidebar shows: pickup location, datetime, duration, price.
+ *   [ ] Fill in: First Name, Last Name, Email, Country Code + Phone, Notes.
+ *   [ ] Click "Book Now":
+ *         - Button shows loading state while request is in flight.
+ *         - POST /api/transfer/bookings is sent.
+ *
+ * ── REQUEST PAYLOAD VERIFICATION ──────────────────────────────────────────
+ *   Open DevTools → Network tab → locate the POST /api/transfer/bookings request.
+ *   Verify the JSON body contains all of:
+ *
+ *   [ ] customerName    : "First Last"         (firstName + " " + lastName)
+ *   [ ] customerEmail   : "user@example.com"
+ *   [ ] customerPhone   : "+34600000077"       (countryCode + phone digits)
+ *   [ ] pickupDateTime  : "YYYY-MM-DDTHH:mm"   (no seconds, no Z suffix)
+ *   [ ] durationHours   : 2                    (integer)
+ *   [ ] categoryId      : 1                    (numeric ID, not the code string)
+ *   [ ] passengerCount  : 2                    (integer — key is "passengerCount")
+ *   [ ] notes           : "..."                (null if empty)
+ *
+ *   IMPORTANT: the JSON key is "passengerCount" (not "passengers").
+ *   The backend DTO accepts both keys ("passengers" is a backward-compat alias),
+ *   but this frontend always sends "passengerCount".
+ *
+ * ── RESPONSE / SUCCESS STATE ──────────────────────────────────────────────
+ *   [ ] HTTP 200: form section hidden, success panel (#atbSuccessPanel) shown.
+ *   [ ] Success panel renders:
+ *         Booking ID / reference number
+ *         Status: PENDING
+ *         Category name
+ *         Assigned car (brand + model)
+ *         Pickup datetime
+ *         Duration (hours)
+ *         Total price
+ *
+ * ── ERROR PATHS ────────────────────────────────────────────────────────────
+ *   [ ] HTTP 400 (validation):
+ *         #atbErrorBanner appears with response.message
+ *         (e.g. "categoryId must not be null")
+ *         Form stays visible so user can correct and resubmit.
+ *   [ ] HTTP 409 (no car available):
+ *         #atbErrorBanner shows a user-friendly "no car available" message.
+ *   [ ] Network failure:
+ *         #atbErrorBanner shows generic fallback — no JS crash, no white screen.
+ *         Verify: DevTools → Network → right-click request → Block request URL.
+ *
+ * ── REGRESSION CHECK ───────────────────────────────────────────────────────
+ *   [ ] Normal rental car search (/api/cars/search) still works end-to-end.
+ *   [ ] Rental review.html booking form submits without errors.
+ *   [ ] /api/addons/active still loads on the rental review page.
  */
 
 document.addEventListener("DOMContentLoaded", function () {
