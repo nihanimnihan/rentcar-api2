@@ -488,12 +488,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Build booking URL, carrying all relevant params forward
       var p = new URLSearchParams(window.location.search);
-      p.set("offerCode",   offer.code);
-      p.set("offerName",   offer.name);
-      p.set("totalPrice",  offer.totalPrice);
-      p.set("seats",       offer.seats);
-      p.set("bags",        offer.bags);
-      p.set("electric",    offer.electric ? "true" : "false");
+      p.set("offerCode",    offer.code);
+      p.set("offerName",    offer.name);
+      p.set("totalPrice",   offer.totalPrice);
+      p.set("seats",        offer.seats);
+      p.set("bags",         offer.bags);
+      p.set("electric",     offer.electric ? "true" : "false");
+      p.set("categoryId",   offer.categoryId);
+      p.set("passengers",   currentPassengers);
       if (offer.description) p.set("offerDesc", offer.description);
 
       window.location.href = "airport-transfer-booking.html?" + p.toString();

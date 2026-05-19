@@ -63,7 +63,11 @@
                 <!-- ── Left: forms ──────────────────────────────────────────── -->
                 <div class="col-lg-8">
 
-                    <!-- A. Passenger Details ─────────────────────────────── -->
+                    <div id="atbSuccessPanel" style="display:none;"></div>
+
+                <div id="atbFormSection">
+
+                <!-- A. Passenger Details ─────────────────────────────── -->
                     <div class="atb-card">
                         <h2 class="rentcar-review-section-title" data-i18n="booking.passengerDetails">Passenger Details</h2>
 
@@ -280,6 +284,10 @@
                             </div>
                         </div>
 
+                        <p style="font-size:12px;color:#888;margin-top:8px;">
+                            ⚠️ For MVP: payment will be processed separately after booking confirmation.
+                        </p>
+
                         <div class="atb-voucher-row">
                             <div class="atb-field" style="flex:1;">
                                 <label for="atbVoucher" data-i18n="booking.voucherCode">Voucher code</label>
@@ -291,6 +299,8 @@
 
                     </div><!-- /payment details -->
 
+                </div><!-- /atbFormSection -->
+
                 </div><!-- /col-lg-8 -->
 
                 <!-- ── Right: sticky summary ─────────────────────────────── -->
@@ -300,6 +310,7 @@
                         <div id="atbSummary">
                             <!-- filled by airport-transfer-booking.js -->
                         </div>
+                        <div id="atbErrorBanner" class="atb-error-banner" style="display:none;padding:10px 14px;margin-bottom:12px;background:#fff3f3;border:1px solid #e53e3e;border-radius:6px;color:#c53030;font-size:13px;"></div>
                         <button type="button" id="atbBookNow" class="atb-book-btn">
                             <span data-i18n="booking.bookNow">Book Now</span>
                             <i class="icon-arrow-right text-14 ml-10"></i>
