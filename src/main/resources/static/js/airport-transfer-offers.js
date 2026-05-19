@@ -128,6 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function buildCard(offer) {
     var article = document.createElement("article");
     article.className = "transfer-offer-card";
+    article.setAttribute("data-offer-code", offer.code);
     var icons = "<span>\uD83D\uDC65 " + offer.seats + "</span>" +
                 "<span>\uD83D\uDCBC " + offer.bags + "</span>" +
                 (offer.electric ? "<span>\u26A1 Electric</span>" : "");
@@ -141,8 +142,11 @@ document.addEventListener("DOMContentLoaded", function () {
       "</div>" +
       '<div class="transfer-offer-bottom">' +
         '<div class="transfer-price">' + formatPrice(offer.totalPrice) + "</div>" +
-        '<button type="button" data-i18n="transfer.next">Next</button>' +
+        '<button type="button" class="transfer-next-btn" data-i18n="transfer.next">Next</button>' +
       "</div>";
+
+    // Store full offer on the element for the click handler
+    article._offerData = offer;
     return article;
   }
 
@@ -412,6 +416,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Make dt panel opening close the dur panel too
   if (dtTrigger) dtTrigger.addEventListener("click", function () { closeDurPanel(); openPanel(); });
+
+  // ── Next button — navigate to booking page ────────────────────────────────
+  if (grid) {
+    grid.addEventListener("click", function (e) {
+      var btn = e.target.closest(".transfer-next-btn");
+      if (!btn) return;
+      var card = btn.closest(".transfer-offer-card");
+      if (!card || !card._offerData) return;
+      var offer = card._offerData;
+
+      // Persist selected offer for the booking page
+      try {
+        sessionStorage.setItem("selectedTransferOffer", JSON.stringify(offer));
+      } catch (_) {}
+
+      // Build booking URL, carrying all relevant params forward
+      var p = new URLSearchParams(window.location.search);
+      p.set("offerCode",   offer.code);
+      p.set("offerName",   offer.name);
+      p.set("totalPrice",  offer.totalPrice);
+      p.set("seats",       offer.seats);
+      p.set("bags",        offer.bags);
+      p.set("electric",    offer.electric ? "true" : "false");
+      if (offer.description) p.set("offerDesc", offer.description);
+
+      window.location.href = "airport-transfer-booking.html?" + p.toString();
+    });
+  }
 
   // ── Initialise display and load ───────────────────────────────────────────
   updateDurationSummary();

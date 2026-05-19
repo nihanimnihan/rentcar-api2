@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-x="html" data-x-toggle="html-overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/vendors.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>Add Details &amp; Book | RentCar</title>
+</head>
+
+<body>
+<main>
+
+    <!-- ── Header (matches review.html) ───────────────────────────────────── -->
+    <section class="py-20 bg-dark-3">
+        <div class="container">
+            <div class="row justify-between items-center">
+
+                <div class="col-auto">
+                    <div class="d-flex items-center">
+                        <button type="button"
+                                onclick="history.back()"
+                                class="button -blue-1 size-40 rounded-full bg-white-10 mr-15 text-white">
+                            <i class="icon-arrow-left text-18"></i>
+                        </button>
+                        <a href="index.html" class="header-logo">
+                            <img src="img/general/logo-light.svg" alt="RentCar logo">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <div class="d-flex items-center x-gap-20">
+                        <button class="d-flex items-center text-14 text-white js-lang-toggle" type="button">
+                            <img src="img/general/lang.png" alt="language" class="rounded-full mr-10" style="width:20px;height:20px">
+                            <span data-current-language-label>English</span>
+                            <i class="icon-chevron-sm-down text-7 ml-10"></i>
+                        </button>
+                        <a href="signup.html"
+                           class="button px-30 fw-400 text-14 border-white -blue-1 h-50 text-white"
+                           data-i18n="header.logIn">Log In / Register</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Content ─────────────────────────────────────────────────────────── -->
+    <section class="layout-pt-md layout-pb-xl atb-page">
+        <div class="container">
+
+            <h1 class="text-30 fw-600" data-i18n="booking.pageTitle">Add details &amp; book</h1>
+
+            <div class="row x-gap-30 y-gap-30">
+
+                <!-- ── Left: forms ──────────────────────────────────────────── -->
+                <div class="col-lg-8">
+
+                    <!-- A. Passenger Details ─────────────────────────────── -->
+                    <div class="atb-card">
+                        <h2 class="rentcar-review-section-title" data-i18n="booking.passengerDetails">Passenger Details</h2>
+
+                        <div class="row x-gap-15 y-gap-20">
+
+                            <div class="col-sm-6">
+                                <div class="atb-field" id="field-atbFirstName">
+                                    <label for="atbFirstName">
+                                        <span data-i18n="booking.firstName">First name</span>
+                                        <span style="color:#e53e3e"> *</span>
+                                    </label>
+                                    <input id="atbFirstName" type="text" autocomplete="given-name">
+                                    <span class="atb-field-error-msg" data-i18n="booking.required">Required field</span>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="atb-field" id="field-atbLastName">
+                                    <label for="atbLastName">
+                                        <span data-i18n="booking.lastName">Last name</span>
+                                        <span style="color:#e53e3e"> *</span>
+                                    </label>
+                                    <input id="atbLastName" type="text" autocomplete="family-name">
+                                    <span class="atb-field-error-msg" data-i18n="booking.required">Required field</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="atb-field" id="field-atbEmail">
+                                    <label for="atbEmail">
+                                        <span data-i18n="booking.email">Email address</span>
+                                        <span style="color:#e53e3e"> *</span>
+                                    </label>
+                                    <input id="atbEmail" type="email" autocomplete="email">
+                                    <span class="atb-field-error-msg" data-i18n="booking.invalidEmail">Please enter a valid email</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="atb-field" id="field-atbPhone">
+                                    <label>
+                                        <span data-i18n="booking.phone">Phone number</span>
+                                        <span style="color:#e53e3e"> *</span>
+                                    </label>
+                                    <div class="atb-phone-row">
+                                        <select id="atbCountryCode" autocomplete="tel-country-code">
+                                            <option value="+1">🇺🇸 +1</option>
+                                            <option value="+34" selected>🇪🇸 +34</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+49">🇩🇪 +49</option>
+                                            <option value="+33">🇫🇷 +33</option>
+                                            <option value="+39">🇮🇹 +39</option>
+                                            <option value="+31">🇳🇱 +31</option>
+                                            <option value="+351">🇵🇹 +351</option>
+                                            <option value="+41">🇨🇭 +41</option>
+                                            <option value="+61">🇦🇺 +61</option>
+                                        </select>
+                                        <input id="atbPhone" type="tel" autocomplete="tel-national">
+                                    </div>
+                                    <span class="atb-field-error-msg" data-i18n="booking.required">Required field</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div><!-- /passenger details -->
+
+                    <!-- B. Additional Requests ───────────────────────────── -->
+                    <div class="atb-card">
+                        <h2 class="rentcar-review-section-title" data-i18n="booking.additionalReqs">Additional Requests</h2>
+
+                        <div class="row x-gap-15 y-gap-20">
+                            <div class="col-12">
+                                <div class="atb-field">
+                                    <label for="atbNotesToDriver" data-i18n="booking.notesToDriver">Notes to driver</label>
+                                    <textarea id="atbNotesToDriver" rows="3"
+                                              style="height:auto;padding:12px 15px;resize:vertical;"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="atb-field">
+                                    <label for="atbNameBoard" data-i18n="booking.nameBoard">Name board</label>
+                                    <input id="atbNameBoard" type="text">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Child seats accordion -->
+                        <button type="button" class="atb-accordion-toggle" aria-expanded="false">
+                            <i class="icon-plus text-12 mr-8"></i>
+                            <span data-i18n="booking.childSeats">Add child car seats</span>
+                            <i class="icon-chevron-sm-down ml-auto text-10 atb-chevron"></i>
+                        </button>
+                        <div class="atb-accordion-body" style="display:none;">
+                            <div class="atb-counter-row">
+                                <span data-i18n="booking.infantSeat">Infant seat</span>
+                                <div class="atb-counter">
+                                    <button type="button" class="atb-counter-dec">−</button>
+                                    <span class="atb-counter-val">0</span>
+                                    <button type="button" class="atb-counter-inc">+</button>
+                                    <input type="hidden" id="atbInfantCount" value="0">
+                                </div>
+                            </div>
+                            <div class="atb-counter-row">
+                                <span data-i18n="booking.childSeat">Child seat</span>
+                                <div class="atb-counter">
+                                    <button type="button" class="atb-counter-dec">−</button>
+                                    <span class="atb-counter-val">0</span>
+                                    <button type="button" class="atb-counter-inc">+</button>
+                                    <input type="hidden" id="atbChildCount" value="0">
+                                </div>
+                            </div>
+                            <div class="atb-counter-row">
+                                <span data-i18n="booking.boosterSeat">Booster seat</span>
+                                <div class="atb-counter">
+                                    <button type="button" class="atb-counter-dec">−</button>
+                                    <span class="atb-counter-val">0</span>
+                                    <button type="button" class="atb-counter-inc">+</button>
+                                    <input type="hidden" id="atbBoosterCount" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Billing Details accordion -->
+                        <button type="button" class="atb-accordion-toggle" aria-expanded="false">
+                            <i class="icon-plus text-12 mr-8"></i>
+                            <span data-i18n="booking.billingDetails">Billing Details</span>
+                            <i class="icon-chevron-sm-down ml-auto text-10 atb-chevron"></i>
+                        </button>
+                        <div class="atb-accordion-body" style="display:none;">
+                            <div class="row x-gap-15 y-gap-15" style="margin-top:8px;">
+                                <div class="col-12">
+                                    <div class="atb-field">
+                                        <label for="atbStreet">Street address</label>
+                                        <input id="atbStreet" type="text" autocomplete="street-address">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="atb-field">
+                                        <label for="atbCountry">Country</label>
+                                        <input id="atbCountry" type="text" autocomplete="country-name">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="atb-field">
+                                        <label for="atbCity">City</label>
+                                        <input id="atbCity" type="text" autocomplete="address-level2">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="atb-field">
+                                        <label for="atbZip">ZIP Code</label>
+                                        <input id="atbZip" type="text" autocomplete="postal-code">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="atb-field">
+                                        <label for="atbCompany">Company</label>
+                                        <input id="atbCompany" type="text" autocomplete="organization">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bonus Program accordion -->
+                        <button type="button" class="atb-accordion-toggle" aria-expanded="false">
+                            <i class="icon-plus text-12 mr-8"></i>
+                            <span data-i18n="booking.bonusProgram">Add Bonus Program</span>
+                            <i class="icon-chevron-sm-down ml-auto text-10 atb-chevron"></i>
+                        </button>
+                        <div class="atb-accordion-body" style="display:none;">
+                            <p class="text-13 text-light-1" style="padding:6px 0;">Bonus program coming soon.</p>
+                        </div>
+
+                    </div><!-- /additional requests -->
+
+                    <!-- C. Payment Details ───────────────────────────────── -->
+                    <div class="rentcar-review-card">
+                        <h2 class="rentcar-review-section-title" data-i18n="booking.paymentDetails">Payment Details</h2>
+
+                        <div class="row x-gap-15 y-gap-20">
+                            <div class="col-12">
+                                <div class="atb-field">
+                                    <label for="atbCardNumber" data-i18n="booking.cardNumber">Card number</label>
+                                    <input id="atbCardNumber" type="text" maxlength="19"
+                                           placeholder="0000 0000 0000 0000" autocomplete="cc-number">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="atb-field">
+                                    <label for="atbCardHolder" data-i18n="booking.cardHolder">Cardholder name</label>
+                                    <input id="atbCardHolder" type="text" autocomplete="cc-name">
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="atb-field">
+                                    <label for="atbExpMonth" data-i18n="booking.expMonth">Month</label>
+                                    <input id="atbExpMonth" type="text" maxlength="2"
+                                           placeholder="MM" autocomplete="cc-exp-month">
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="atb-field">
+                                    <label for="atbExpYear" data-i18n="booking.expYear">Year</label>
+                                    <input id="atbExpYear" type="text" maxlength="4"
+                                           placeholder="YYYY" autocomplete="cc-exp-year">
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="atb-field">
+                                    <label for="atbCvv" data-i18n="booking.cvv">CVV</label>
+                                    <input id="atbCvv" type="text" maxlength="4"
+                                           placeholder="···" autocomplete="cc-csc">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="atb-voucher-row">
+                            <div class="atb-field" style="flex:1;">
+                                <label for="atbVoucher" data-i18n="booking.voucherCode">Voucher code</label>
+                                <input id="atbVoucher" type="text">
+                            </div>
+                            <button type="button" class="atb-voucher-btn"
+                                    data-i18n="booking.applyVoucher">Apply</button>
+                        </div>
+
+                    </div><!-- /payment details -->
+
+                </div><!-- /col-lg-8 -->
+
+                <!-- ── Right: sticky summary ─────────────────────────────── -->
+                <div class="col-lg-4">
+                    <div class="atb-summary">
+                        <h2 class="text-20 fw-700 mb-20" data-i18n="booking.orderSummary">Order Summary</h2>
+                        <div id="atbSummary">
+                            <!-- filled by airport-transfer-booking.js -->
+                        </div>
+                        <button type="button" id="atbBookNow" class="atb-book-btn">
+                            <span data-i18n="booking.bookNow">Book Now</span>
+                            <i class="icon-arrow-right text-14 ml-10"></i>
+                        </button>
+                    </div>
+                </div><!-- /col-lg-4 -->
+
+            </div><!-- /row -->
+        </div><!-- /container -->
+    </section>
+    <div id="minimal-footer-placeholder"></div>
+</main>
+
+<div id="language-modal-placeholder"></div>
+<script>
+    loadPartial("#footer-minimal-placeholder", "partials/footer-minimal.html");
+</script>
+<script src="js/i18n/en.js"></script>
+<script src="js/i18n/es.js"></script>
+<script src="js/i18n/i18n.js"></script>
+<script src="js/vendors.js"></script>
+<script src="js/main.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/airport-transfer-booking.js"></script>
+</body>
+</html>
