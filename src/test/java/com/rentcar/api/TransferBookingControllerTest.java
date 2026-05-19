@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -147,14 +148,35 @@ class TransferBookingControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ── 7. Missing required fields returns 400 ────────────────────────────────
+    // ── 7. Missing required fields returns 400 with field names ──────────────
 
     @Test
-    void createTransferBooking_missingRequiredFields_returns400() throws Exception {
+    void createTransferBooking_missingRequiredFields_returns400WithFieldNames() throws Exception {
         mockMvc.perform(post("/api/transfer/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation error"))
+                .andExpect(jsonPath("$.message").value(containsString("categoryId must not be null")))
+                .andExpect(jsonPath("$.message").value(containsString("customerName must not be blank")));
+    }
+
+    @Test
+    void createTransferBooking_missingCategoryId_messageIncludesFieldName() throws Exception {
+        String body = "{"
+                + "\"customerName\": \"Test User\","
+                + "\"customerEmail\": \"test@example.com\","
+                + "\"customerPhone\": \"+34600000001\","
+                + "\"pickupDateTime\": \"2030-01-01T10:00\","
+                + "\"durationHours\": 2"
+                // categoryId intentionally omitted
+                + "}";
+        mockMvc.perform(post("/api/transfer/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation error"))
+                .andExpect(jsonPath("$.message").value(containsString("categoryId must not be null")));
     }
 
     // ── 8. Endpoint is public — no auth required ──────────────────────────────

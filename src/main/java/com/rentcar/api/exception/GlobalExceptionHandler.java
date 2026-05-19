@@ -12,6 +12,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.format.DateTimeParseException;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -84,9 +85,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldError() != null
-                ? ex.getBindingResult().getFieldError().getDefaultMessage()
-                : "Validation failed";
+        String message = ex.getBindingResult().getFieldErrors().isEmpty()
+                ? "Validation failed"
+                : ex.getBindingResult().getFieldErrors().stream()
+                        .map(fe -> fe.getField() + " " + fe.getDefaultMessage())
+                        .collect(Collectors.joining("; "));
         return error(HttpStatus.BAD_REQUEST, "Validation error", message);
     }
 
