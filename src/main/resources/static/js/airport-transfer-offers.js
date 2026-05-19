@@ -1,3 +1,57 @@
+/**
+ * TRANSFER OFFERS — API CONTRACT VERIFICATION CHECKLIST
+ *
+ * No JS test framework is configured in this project.
+ * When one is added, cover the points below with automated tests.
+ * Until then, verify manually after any change to this file or to
+ * GET /api/transfer/offers.
+ *
+ * ── Request ──────────────────────────────────────────────────────────────────
+ * [1] URL shape
+ *     Expected: /api/transfer/offers?pickupDateTime=YYYY-MM-DDTHH%3Amm
+ *                                    &durationHours=<int>
+ *                                    &passengers=<int>
+ *     Verify  : open Network tab, trigger a search, inspect the fetch URL.
+ *
+ * [2] pickupDateTime format must be YYYY-MM-DDTHH:mm  (no seconds, no Z)
+ *     Verify  : check the `pickupDt` value logged before fetch;
+ *               backend rejects other formats with 400.
+ *
+ * [3] passengers must equal the currently selected passenger count
+ *     Verify  : change the passenger dropdown before clicking search,
+ *               confirm the query param reflects the selection.
+ *
+ * ── Response mapping ─────────────────────────────────────────────────────────
+ * Backend returns per-category offer objects with these fields.
+ * Each must be consumed / rendered correctly by buildCard():
+ *
+ *   categoryId     — stored on article._offerData (used by booking step)
+ *   code           — data-offer-code attr + fallback image key
+ *   name           — rendered in <h3>
+ *   description    — rendered in <p>
+ *   seats          — rendered in icons row (👥)
+ *   bags           — rendered in icons row (💼)
+ *   electric       — renders ⚡ Electric badge when true
+ *   imageUrl       — <img src>; falls back to getFallbackTransferImage(code)
+ *   hourlyPriceFrom — shown as "from €X.XX/hr" above the total price
+ *   totalPrice     — main price display; also used for PRICE_ASC sort
+ *   available      — only true offers reach buildCard(); false are filtered
+ *                    in applyAndRender() → o.available check
+ *
+ * Verify: start the dev server, open /airport-transfer-offers.html,
+ *         complete a search — each card must show name, description,
+ *         icons, hourlyPriceFrom, and totalPrice from the API response.
+ *
+ * ── Fallback ─────────────────────────────────────────────────────────────────
+ * [4] Mock fallback must fire only on network/HTTP error, never on 200.
+ *     Verify  : disconnect from network, repeat search → mock cards appear.
+ *               Restore network, repeat → real API cards appear.
+ *
+ * ── Sort ─────────────────────────────────────────────────────────────────────
+ * [5] PRICE_ASC sort orders cards by offer.totalPrice ascending.
+ *     Verify  : with multiple categories returned, cheapest card is first.
+ */
+
 document.addEventListener("DOMContentLoaded", function () {
 
   // ── URL params ────────────────────────────────────────────────────────────
@@ -141,6 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
         '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(offer.name) + '">' +
       "</div>" +
       '<div class="transfer-offer-bottom">' +
+        '<div class="transfer-price-from">from ' + formatPrice(offer.hourlyPriceFrom) + '/hr</div>' +
         '<div class="transfer-price">' + formatPrice(offer.totalPrice) + "</div>" +
         '<button type="button" class="transfer-next-btn" data-i18n="transfer.next">Next</button>' +
       "</div>";
@@ -192,8 +247,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function loadOffers(date, time) {
     showGridLoading();
     var pickupDt = date + "T" + time;
-    if (transferType === "HOURLY" && pickupDt && selectedDurationHours) {
-      var q = new URLSearchParams({ pickupDateTime: pickupDt, durationHours: selectedDurationHours });
+    if (pickupDt && selectedDurationHours) {
+      var q = new URLSearchParams({ pickupDateTime: pickupDt, durationHours: selectedDurationHours, passengers: currentPassengers });
       if (pickupLocation) q.set("pickupLocation", pickupLocation);
       fetch("/api/transfer/offers?" + q.toString())
         .then(function (res) {

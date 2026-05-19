@@ -240,6 +240,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } else {
         params.set("transferType", "ONE_WAY");
+        params.set("durationHours", "1");
+        params.set("includedKm", "30");
         if (destinationInput && destinationInput.value) {
           params.set("destination", destinationInput.value);
         }
