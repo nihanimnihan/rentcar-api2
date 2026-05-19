@@ -21,11 +21,13 @@ public class TransferOfferService {
     private final ChauffeurCategoryRepository chauffeurCategoryRepository;
     private final CarRepository carRepository;
 
-    public List<ChauffeurCategoryOfferResponse> getOffers(LocalDateTime pickupDateTime, int durationHours) {
+    public List<ChauffeurCategoryOfferResponse> getOffers(
+            LocalDateTime pickupDateTime, Integer durationHours, Integer passengers) {
         LocalDateTime dropoffDateTime = pickupDateTime.plusHours(durationHours);
 
         return chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc()
                 .stream()
+                .filter(category -> passengers == null || category.getSeats() >= passengers)
                 .map(category -> buildOffer(category, pickupDateTime, dropoffDateTime, durationHours))
                 .filter(ChauffeurCategoryOfferResponse::available)
                 .toList();
@@ -35,7 +37,7 @@ public class TransferOfferService {
             ChauffeurCategory category,
             LocalDateTime pickupDateTime,
             LocalDateTime dropoffDateTime,
-            int durationHours) {
+            Integer durationHours) {
 
         List<Car> availableCars = carRepository.findAvailableChauffeurCars(
                 category, pickupDateTime, dropoffDateTime);

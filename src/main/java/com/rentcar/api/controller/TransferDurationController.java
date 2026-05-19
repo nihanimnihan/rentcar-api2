@@ -40,6 +40,6 @@ public class TransferDurationController {
         LocalDateTime pickup = LocalDateTime.parse(
                 pickupDateTime.trim().replace(' ', 'T'), PICKUP_DT_FMT);
 
-        return transferOfferService.getOffers(pickup, durationHours);
+        return transferOfferService.getOffers(pickup, durationHours, passengers);
     }
 }
