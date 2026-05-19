@@ -80,6 +80,7 @@ public class SecurityConfig {
                         // ── Public API — transfer durations + offers ───────────────────────
                         .requestMatchers(HttpMethod.GET, "/api/transfer/durations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/transfer/offers").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/transfer/bookings").permitAll()
 
                         // ── Admin-only ──────────────────────────────────────────────────────
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")

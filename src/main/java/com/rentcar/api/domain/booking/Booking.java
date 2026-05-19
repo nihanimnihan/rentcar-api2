@@ -128,6 +128,13 @@ public class Booking {
     @Column(nullable = false)
     private BookingSource source;
 
+    // Transfer-booking extras — null for regular rental bookings.
+    @Column
+    private Integer passengers;
+
+    @Column(length = 1000)
+    private String notes;
+
     @Version
     @Column(nullable = false)
     private Long version;

@@ -42,6 +42,11 @@ public class GlobalExceptionHandler {
         return notFound(ex.getMessage());
     }
 
+    @ExceptionHandler(ChauffeurCategoryNotFoundException.class)
+    public ResponseEntity<?> handleChauffeurCategoryNotFoundException(ChauffeurCategoryNotFoundException ex) {
+        return notFound(ex.getMessage());
+    }
+
     @ExceptionHandler(PaymentNotFoundException.class)
     public ResponseEntity<?> handlePaymentNotFoundException(PaymentNotFoundException ex) {
         return notFound(ex.getMessage());
@@ -65,6 +70,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidBookingDateException.class)
     public ResponseEntity<?> handleInvalidBookingDateException(InvalidBookingDateException ex) {
         return error(HttpStatus.BAD_REQUEST, "Invalid booking dates", ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidTransferRequestException.class)
+    public ResponseEntity<?> handleInvalidTransferRequestException(InvalidTransferRequestException ex) {
+        return error(HttpStatus.BAD_REQUEST, "Invalid transfer request", ex.getMessage());
     }
 
     @ExceptionHandler(InvalidSearchDateException.class)
@@ -92,6 +102,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CarNotAvailableException.class)
     public ResponseEntity<?> handleCarNotAvailableException(CarNotAvailableException ex) {
         return error(HttpStatus.CONFLICT, "Car not available", ex.getMessage());
+    }
+
+    @ExceptionHandler(NoChauffeurCarAvailableException.class)
+    public ResponseEntity<?> handleNoChauffeurCarAvailableException(NoChauffeurCarAvailableException ex) {
+        return error(HttpStatus.CONFLICT, "No chauffeur car available", ex.getMessage());
     }
 
     @ExceptionHandler(BookingCannotBeCancelledException.class)

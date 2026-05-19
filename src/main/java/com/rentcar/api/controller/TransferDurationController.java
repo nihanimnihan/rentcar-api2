@@ -1,11 +1,17 @@
 package com.rentcar.api.controller;
 
 import com.rentcar.api.dto.transfer.ChauffeurCategoryOfferResponse;
+import com.rentcar.api.dto.transfer.CreateTransferBookingRequest;
+import com.rentcar.api.dto.transfer.TransferBookingResponse;
 import com.rentcar.api.dto.transfer.TransferDurationResponse;
+import com.rentcar.api.service.TransferBookingService;
 import com.rentcar.api.service.TransferDurationService;
 import com.rentcar.api.service.TransferOfferService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +30,7 @@ public class TransferDurationController {
 
     private final TransferDurationService transferDurationService;
     private final TransferOfferService transferOfferService;
+    private final TransferBookingService transferBookingService;
 
     @GetMapping("/durations")
     public List<TransferDurationResponse> getDurations() {
@@ -41,5 +48,11 @@ public class TransferDurationController {
                 pickupDateTime.trim().replace(' ', 'T'), PICKUP_DT_FMT);
 
         return transferOfferService.getOffers(pickup, durationHours, passengers);
+    }
+
+    @PostMapping("/bookings")
+    public TransferBookingResponse createTransferBooking(
+            @Valid @RequestBody CreateTransferBookingRequest request) {
+        return transferBookingService.createTransferBooking(request);
     }
 }
