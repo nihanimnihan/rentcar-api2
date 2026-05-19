@@ -25,7 +25,7 @@ public class TransferDuration {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private int hours;
 
     @Column(nullable = false)

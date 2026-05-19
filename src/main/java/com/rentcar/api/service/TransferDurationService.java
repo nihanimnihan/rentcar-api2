@@ -19,14 +19,8 @@ public class TransferDurationService {
                 .map(d -> new TransferDurationResponse(
                         d.getId(),
                         d.getHours(),
-                        d.getIncludedKm(),
-                        buildLabel(d.getHours(), d.getIncludedKm())
+                        d.getIncludedKm()
                 ))
                 .toList();
-    }
-
-    private String buildLabel(int hours, int includedKm) {
-        String hourPart = hours == 1 ? "1 hour" : hours + " hours";
-        return hourPart + " (" + includedKm + " km included)";
     }
 }
