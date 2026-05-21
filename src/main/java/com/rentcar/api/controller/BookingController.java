@@ -27,6 +27,13 @@ public class BookingController {
         return bookingMapper.toResponse(bookingService.getBookingById(id));
     }
 
+    @GetMapping("/manage")
+    public BookingResponse manageBooking(@RequestParam String bookingReference,
+                                         @RequestParam String lastName) {
+        return bookingMapper.toResponse(
+                bookingService.findBookingByReferenceAndLastName(bookingReference, lastName));
+    }
+
     @PostMapping("/{id}/cancel")
     public BookingResponse cancelBooking(@PathVariable Long id) {
         return bookingMapper.toResponse(bookingService.cancelBooking(id));

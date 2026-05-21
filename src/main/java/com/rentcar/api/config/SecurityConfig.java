@@ -73,6 +73,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/bookings/*/payments/process").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/checkout").permitAll()
+                        // Manage booking lookup — public, requires reference + lastName (no auth).
+                        // Must come BEFORE the admin GET /api/bookings/** rule below.
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/manage").permitAll()
 
                         // ── Public API — add-ons list (must come BEFORE the admin rule below) ─
                         .requestMatchers(HttpMethod.GET, "/api/addons/active").permitAll()

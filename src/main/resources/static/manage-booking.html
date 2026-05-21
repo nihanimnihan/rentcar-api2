@@ -35,33 +35,42 @@
                         Access your rental with your booking reference and last name.
                     </p>
 
-                    <form>
+                    <form id="manageForm">
                         <div class="mb-20">
                             <label class="text-14 fw-600 mb-8 d-block" data-i18n="manage.bookingNumber">
                                 Booking reference number
                             </label>
-                            <input class="border-light rounded-8 px-20 py-15"
+                            <input id="mfReference"
+                                   class="border-light rounded-8 px-20 py-15"
                                    type="text"
                                    placeholder="Booking reference number"
                                    data-i18n-placeholder="manage.bookingNumberPlaceholder">
                         </div>
 
-                        <div class="mb-30">
+                        <div class="mb-20">
                             <label class="text-14 fw-600 mb-8 d-block" data-i18n="manage.lastName">
                                 Last name
                             </label>
-                            <input class="border-light rounded-8 px-20 py-15"
+                            <input id="mfLastName"
+                                   class="border-light rounded-8 px-20 py-15"
                                    type="text"
                                    placeholder="Last name"
                                    data-i18n-placeholder="manage.lastNamePlaceholder">
                         </div>
 
-                        <button type="button"
+                        <div id="mfError"
+                             style="display:none"
+                             class="mt-20"></div>
+
+                        <button id="mfSubmitBtn"
+                                type="button"
                                 class="button h-60 col-12 rounded-8 bg-yellow-1 text-dark-1 fw-600"
                                 data-i18n="manage.continue">
                             Continue
                         </button>
                     </form>
+
+                    <div id="mfResultSection" style="display:none"></div>
 
                 </div>
             </div>
@@ -76,5 +85,6 @@
 <script src="js/vendors.js"></script>
 <script src="js/layout.js"></script>
 <script src="js/main.js"></script>
+<script src="js/manage-booking.js"></script>
 </body>
 </html>

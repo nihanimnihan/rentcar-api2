@@ -21,6 +21,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     boolean existsByBookingReference(String bookingReference);
 
+    @Query("SELECT b FROM Booking b " +
+           "JOIN FETCH b.customer " +
+           "JOIN FETCH b.car " +
+           "WHERE b.bookingReference = :ref")
+    Optional<Booking> findByBookingReferenceEager(@Param("ref") String ref);
+
     boolean existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
             Car car,
             List<BookingStatus> statuses,
