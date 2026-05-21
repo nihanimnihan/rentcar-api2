@@ -14,6 +14,7 @@ import com.rentcar.api.exception.NoChauffeurCarAvailableException;
 import com.rentcar.api.repository.BookingRepository;
 import com.rentcar.api.repository.CarRepository;
 import com.rentcar.api.repository.ChauffeurCategoryRepository;
+import com.rentcar.api.util.BookingReferenceGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class TransferBookingService {
     private final ChauffeurCategoryRepository chauffeurCategoryRepository;
     private final CarService carService;
     private final CustomerService customerService;
+    private final BookingReferenceGenerator referenceGenerator;
 
     /**
      * Creates a transfer booking for the first available chauffeur car in the
@@ -98,6 +100,7 @@ public class TransferBookingService {
         Booking booking = Booking.builder()
                 .car(car)
                 .customer(customer)
+                .bookingReference(referenceGenerator.generate())
                 .pickupDateTime(request.pickupDateTime())
                 .dropoffDateTime(dropoffDateTime)
                 // durationHours stored as rentalDays — the semantics differ for transfer bookings

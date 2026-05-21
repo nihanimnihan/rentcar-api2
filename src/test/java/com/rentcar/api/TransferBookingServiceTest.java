@@ -15,6 +15,7 @@ import com.rentcar.api.repository.ChauffeurCategoryRepository;
 import com.rentcar.api.service.CarService;
 import com.rentcar.api.service.CustomerService;
 import com.rentcar.api.service.TransferBookingService;
+import com.rentcar.api.util.BookingReferenceGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,6 +44,7 @@ class TransferBookingServiceTest {
     @Mock private ChauffeurCategoryRepository chauffeurCategoryRepository;
     @Mock private CarService carService;
     @Mock private CustomerService customerService;
+    @Mock private BookingReferenceGenerator referenceGenerator;
 
     @InjectMocks
     private TransferBookingService transferBookingService;
@@ -63,6 +65,7 @@ class TransferBookingServiceTest {
         when(bookingRepository.existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                 any(), any(), any(), any())).thenReturn(false);
         when(customerService.getOrCreateCustomer(any(), any(), any())).thenReturn(customer);
+        when(referenceGenerator.generate()).thenReturn("RC-260521-TEST");
         when(bookingRepository.save(any())).thenAnswer(inv -> {
             com.rentcar.api.domain.booking.Booking b = inv.getArgument(0);
             b.setId(99L);
@@ -136,6 +139,7 @@ class TransferBookingServiceTest {
         when(bookingRepository.existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                 any(), any(), any(), any())).thenReturn(false);
         when(customerService.getOrCreateCustomer(any(), any(), any())).thenReturn(customer);
+        when(referenceGenerator.generate()).thenReturn("RC-260521-TEST");
         when(bookingRepository.save(any())).thenAnswer(inv -> {
             com.rentcar.api.domain.booking.Booking b = inv.getArgument(0);
             b.setId(88L);
@@ -164,6 +168,7 @@ class TransferBookingServiceTest {
         when(bookingRepository.existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                 any(), any(), any(), any())).thenReturn(false);
         when(customerService.getOrCreateCustomer(any(), any(), any())).thenReturn(customer);
+        when(referenceGenerator.generate()).thenReturn("RC-260521-TEST");
         when(bookingRepository.save(any())).thenAnswer(inv -> {
             com.rentcar.api.domain.booking.Booking b = inv.getArgument(0);
             b.setId(77L);
