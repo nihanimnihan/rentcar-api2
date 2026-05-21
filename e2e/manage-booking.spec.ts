@@ -58,10 +58,10 @@ test('not-found: displays backend friendly message, not raw i18n key', async ({ 
   await expect(errorEl).toBeVisible();
 
   // Panel title should say "Booking not found"
-  await expect(errorEl.locator('.rentcar-search-error-title')).toContainText('Booking not found');
+  await expect(errorEl.locator('.rc-alert__title')).toContainText('Booking not found');
 
   // Panel message should carry the backend message
-  await expect(errorEl.locator('.rentcar-search-error-message')).toContainText(FRIENDLY_NOT_FOUND_MSG);
+  await expect(errorEl.locator('.rc-alert__message')).toContainText(FRIENDLY_NOT_FOUND_MSG);
 
   // Must NOT show raw i18n keys
   const errorText = await errorEl.textContent() ?? '';

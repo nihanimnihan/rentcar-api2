@@ -3,8 +3,8 @@
  * Handles the Manage Booking lookup form:
  *   1. User enters bookingReference + lastName
  *   2. GET /api/bookings/manage?bookingReference=...&lastName=...
- *   3. Renders a booking details card on success, or a polished error panel
- *      (reusing .rentcar-search-error-* classes) on failure
+ *   3. Renders a booking details card on success, or a .rc-alert--error
+ *      panel (css/components/alerts.css) on failure
  * ─────────────────────────────────────────────────────────────────────────*/
 
 'use strict';
@@ -121,22 +121,30 @@ function renderResult(booking) {
 /* ── helpers ─────────────────────────────────────────────────────────────*/
 
 /**
- * Builds a polished error panel using the .rentcar-search-error-* classes
- * already defined in main.css (same style as the car-search no-results panel).
- * `title` is optional — omit or pass '' for validation/network messages.
+ * Builds an inline alert panel using the reusable .rc-alert component
+ * defined in css/components/alerts.css.
+ *
+ * @param {string} title   - Bold heading (optional — omit or pass '' to skip).
+ * @param {string} msg     - Body message text.
+ * @param {string} variant - 'error' | 'success' | 'warning' | 'info'  (default: 'error')
  */
-function buildErrorPanel(title, msg) {
+function buildErrorPanel(title, msg, variant = 'error') {
+  const iconMap = {
+    error:   'icon-close',
+    success: 'icon-check',
+    warning: 'icon-notification',
+    info:    'icon-notification',
+  };
+  const icon = iconMap[variant] ?? 'icon-notification';
   const titleHtml = title
-    ? `<div class="rentcar-search-error-title">${escHtml(title)}</div>`
+    ? `<div class="rc-alert__title">${escHtml(title)}</div>`
     : '';
   return `
-    <div class="rentcar-search-error-inner">
-      <div class="rentcar-search-error-icon">
-        <i class="icon-calendar text-20"></i>
-      </div>
-      <div class="rentcar-search-error-body">
+    <div class="rc-alert rc-alert--${variant}">
+      <div class="rc-alert__icon"><i class="${icon}"></i></div>
+      <div class="rc-alert__content">
         ${titleHtml}
-        <div class="rentcar-search-error-message">${escHtml(msg)}</div>
+        <div class="rc-alert__message">${escHtml(msg)}</div>
       </div>
     </div>`;
 }
