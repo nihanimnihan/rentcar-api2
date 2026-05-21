@@ -311,6 +311,7 @@ window.i18nTranslations['en'] = {
   'review.backToHome': 'Back to Home',
   'review.confirmingPayment': 'Confirming payment…',
   'review.paymentFailed': 'Payment could not be processed. Please try again.',
+  'review.bookingCreatedPaymentFailed': 'Your booking was created, but payment could not be completed. Please try again.',
   'review.statusConfirmed': '✓ CONFIRMED',
   'error.carNoLongerAvailable': 'This car is no longer available for the selected dates.',
   'error.checkDetails': 'Please check your details and try again.',

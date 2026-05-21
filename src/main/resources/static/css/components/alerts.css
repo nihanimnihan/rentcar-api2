@@ -100,3 +100,34 @@
 .rc-alert + button {
   margin-top: 14px;
 }
+
+/* ── Status badges ──────────────────────────────────────────────────────────
+ * Compact inline pills for booking/payment status labels.
+ * Used on: review confirmation screen, manage-booking result card.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+.rc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+.rc-badge--success {
+  background: #dcfae6;
+  color: #067647;
+}
+
+.rc-badge--warning {
+  background: #fef0c7;
+  color: #b54708;
+}
+
+.rc-badge--error {
+  background: #fee4e2;
+  color: #b42318;
+}

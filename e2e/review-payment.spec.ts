@@ -68,10 +68,17 @@ async function mockBookingCreation(page: Page): Promise<void> {
   });
 }
 
-async function mockPaymentProcess(page: Page, response: object, status = 200): Promise<void> {
-  await page.route(`**/api/bookings/${BOOKING_ID}/payments/process`, route =>
-    route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(response) })
-  );
+/**
+ * Mocks the payment endpoint and returns a recorder that captures whether
+ * the endpoint was actually called, and the order relative to booking creation.
+ */
+async function mockPaymentProcess(page: Page, response: object, status = 200): Promise<{ wasCalled: () => boolean }> {
+  let called = false;
+  await page.route(`**/api/bookings/${BOOKING_ID}/payments/process`, route => {
+    called = true;
+    route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(response) });
+  });
+  return { wasCalled: () => called };
 }
 
 /** Fill all required form fields and click the confirm button. */
@@ -94,7 +101,7 @@ test('happy path: successful payment shows confirmation screen with booking refe
 
   await mockPageLoadApis(page);
   await mockBookingCreation(page);
-  await mockPaymentProcess(page, MOCK_BOOKING_CONFIRMED);
+  const payment = await mockPaymentProcess(page, MOCK_BOOKING_CONFIRMED);
 
   await page.goto(`/review.html?${REVIEW_QUERY}`);
   await expect(page.locator('#rfConfirmBtn')).toBeVisible({ timeout: 5000 });
@@ -105,6 +112,11 @@ test('happy path: successful payment shows confirmation screen with booking refe
   await expect(successPanel).toBeVisible({ timeout: 5000 });
   await expect(successPanel).toContainText('RC-260521-K8P4');
   await expect(successPanel).toContainText('CONFIRMED');
+  // Status badge must use rc-badge--success class, not inline styles
+  await expect(successPanel.locator('.rc-badge--success')).toBeVisible();
+
+  // Payment endpoint was called (ordering: booking → payment)
+  expect(payment.wasCalled()).toBe(true);
 
   // Form replaced by success screen — confirm button is gone
   await expect(page.locator('#rfConfirmBtn')).not.toBeVisible();
@@ -113,23 +125,28 @@ test('happy path: successful payment shows confirmation screen with booking refe
   expect(realErrors, `Unexpected console errors: ${realErrors.join(', ')}`).toHaveLength(0);
 });
 
-test('payment failure: provider declines → error message shown, button re-enabled, no crash', async ({ page }) => {
+test('payment failure: provider declines → specific error message shown, button re-enabled, no crash', async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
 
   await mockPageLoadApis(page);
   await mockBookingCreation(page);
-  await mockPaymentProcess(page, MOCK_BOOKING_FAILED);
+  const payment = await mockPaymentProcess(page, MOCK_BOOKING_FAILED);
 
   await page.goto(`/review.html?${REVIEW_QUERY}`);
   await expect(page.locator('#rfConfirmBtn')).toBeVisible({ timeout: 5000 });
 
   await fillAndSubmit(page);
 
+  // Error panel must appear as rc-alert with specific message, not raw text
   await expect(page.locator('#rfBookingError')).toBeVisible({ timeout: 5000 });
-  // Error must render as an rc-alert panel, not raw text
+  // Payment endpoint was still called — booking was created first, payment attempted second
+  // (checked after awaiting UI so the async flow has completed)
+  expect(payment.wasCalled()).toBe(true);
   await expect(page.locator('#rfBookingError .rc-alert--error')).toBeVisible();
-  await expect(page.locator('#rfBookingError .rc-alert__message')).not.toBeEmpty();
+  await expect(page.locator('#rfBookingError .rc-alert__message')).toContainText(
+    'Your booking was created, but payment could not be completed'
+  );
   await expect(page.locator('#rfSuccessPanel')).not.toBeVisible();
   await expect(page.locator('#rfConfirmBtn')).toBeEnabled();
 
@@ -137,13 +154,14 @@ test('payment failure: provider declines → error message shown, button re-enab
   expect(realErrors, `Unexpected console errors: ${realErrors.join(', ')}`).toHaveLength(0);
 });
 
-test('payment network error: 500 from payment endpoint → controlled error, no white screen', async ({ page }) => {
+test('payment network error: 500 with backend message → backend message shown, no crash', async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
 
   await mockPageLoadApis(page);
   await mockBookingCreation(page);
-  await mockPaymentProcess(page, { message: 'Internal server error' }, 500);
+  // Backend returns a JSON body with a message on 500 → must be surfaced to user
+  const payment = await mockPaymentProcess(page, { message: 'Payment service temporarily unavailable' }, 500);
 
   await page.goto(`/review.html?${REVIEW_QUERY}`);
   await expect(page.locator('#rfConfirmBtn')).toBeVisible({ timeout: 5000 });
@@ -151,11 +169,53 @@ test('payment network error: 500 from payment endpoint → controlled error, no 
   await fillAndSubmit(page);
 
   await expect(page.locator('#rfBookingError')).toBeVisible({ timeout: 5000 });
+  // Payment endpoint was called despite returning 500 (checked after UI settled)
+  expect(payment.wasCalled()).toBe(true);
+
+  await expect(page.locator('#rfBookingError .rc-alert--error')).toBeVisible();
+  // Backend message must be shown (not the generic fallback)
+  await expect(page.locator('#rfBookingError .rc-alert__message')).toContainText(
+    'Payment service temporarily unavailable'
+  );
   await expect(page.locator('#rfConfirmBtn')).toBeEnabled();
   await expect(page.locator('#rfSuccessPanel')).not.toBeVisible();
 
   // The 500 response naturally emits a "Failed to load resource" browser console error —
   // that is expected here. Filter it out; any other JS errors would indicate a crash.
+  const realErrors = consoleErrors.filter(e =>
+    !e.includes('favicon') &&
+    !e.includes('font') &&
+    !e.includes('500') &&
+    !e.includes('Failed to load resource')
+  );
+  expect(realErrors, `Unexpected console errors: ${realErrors.join(', ')}`).toHaveLength(0);
+});
+
+test('payment network error: 500 with no message body → fallback message shown, no crash', async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
+
+  await mockPageLoadApis(page);
+  await mockBookingCreation(page);
+  // Backend returns 500 with no parseable message → must fall back to generic copy
+  await page.route(`**/api/bookings/${BOOKING_ID}/payments/process`, route =>
+    route.fulfill({ status: 500, contentType: 'text/plain', body: '' })
+  );
+
+  await page.goto(`/review.html?${REVIEW_QUERY}`);
+  await expect(page.locator('#rfConfirmBtn')).toBeVisible({ timeout: 5000 });
+
+  await fillAndSubmit(page);
+
+  await expect(page.locator('#rfBookingError')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('#rfBookingError .rc-alert--error')).toBeVisible();
+  // Fallback message must be shown when backend provides no message
+  await expect(page.locator('#rfBookingError .rc-alert__message')).toContainText(
+    'Your booking was created, but payment could not be completed'
+  );
+  await expect(page.locator('#rfConfirmBtn')).toBeEnabled();
+  await expect(page.locator('#rfSuccessPanel')).not.toBeVisible();
+
   const realErrors = consoleErrors.filter(e =>
     !e.includes('favicon') &&
     !e.includes('font') &&

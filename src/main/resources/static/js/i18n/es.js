@@ -311,6 +311,7 @@ window.i18nTranslations['es'] = {
   'review.backToHome': 'Volver al inicio',
   'review.confirmingPayment': 'Confirmando pago…',
   'review.paymentFailed': 'El pago no pudo procesarse. Por favor, inténtalo de nuevo.',
+  'review.bookingCreatedPaymentFailed': 'Tu reserva fue creada, pero el pago no pudo completarse. Por favor, inténtalo de nuevo.',
   'review.statusConfirmed': '✓ CONFIRMADO',
   'error.carNoLongerAvailable': 'Este coche ya no está disponible para las fechas seleccionadas.',
   'error.checkDetails': 'Por favor, verifica tus datos e inténtalo de nuevo.',

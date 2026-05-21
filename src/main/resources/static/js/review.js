@@ -301,7 +301,7 @@ async function submitBooking() {
     if (res.ok) {
       const booking = await res.json();
       if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
-      paymentSucceeded = await processPaymentForBooking(booking, firstName);
+      paymentSucceeded = await processBookingPayment(booking.id, firstName);
     } else if (res.status === 409) {
       const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
       showBookingFormError(msg);
@@ -327,37 +327,50 @@ async function submitBooking() {
 // ── Payment processing ────────────────────────────────────────────────────────
 
 /**
- * Calls the backend payment endpoint for an already-created booking.
- * Returns true if the booking was CONFIRMED, false on any failure.
+ * Returns the payment method ID to send to the backend.
+ *
+ * MVP: always returns the mock valid token.  The radio buttons on the review
+ * page are wired to `initPaymentOptions()` and update the UI selection, but
+ * there is no real Stripe integration yet.  When Stripe Elements are added,
+ * replace the return value here with the generated PaymentMethod ID.
  */
-async function processPaymentForBooking(booking, firstName) {
+function getSelectedPaymentMethodId() {
+  // Future: read from Stripe Elements / selected radio and map to real PM id.
+  return "pm_test_valid";
+}
+
+/**
+ * Calls POST /api/bookings/{bookingId}/payments/process.
+ * The booking already exists; this call transitions it from
+ * PENDING → CONFIRMED (success) or FAILED (provider decline / error).
+ *
+ * Returns true if the booking reached CONFIRMED, false on any failure.
+ * The error panel is shown before returning false.
+ */
+async function processBookingPayment(bookingId, firstName) {
   try {
-    const res = await fetch(`/api/bookings/${booking.id}/payments/process`, {
+    const res = await fetch(`/api/bookings/${bookingId}/payments/process`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentMethodId: "pm_test_valid" })
+      body: JSON.stringify({ paymentMethodId: getSelectedPaymentMethodId() })
     });
 
-    if (res.ok) {
-      const updated = await res.json();
-      if (updated.status === "CONFIRMED") {
-        showBookingSuccess(updated, firstName);
-        return true;
-      }
-      // Backend returned OK but booking ended up FAILED (provider declined).
-      showBookingFormError(t('review.paymentFailed'));
-      return false;
+    // Try to parse body regardless of status — backend may include a message.
+    let data = null;
+    try { data = await res.json(); } catch (_) { /* non-JSON body, ignore */ }
+
+    if (res.ok && data?.status === "CONFIRMED") {
+      showBookingSuccess(data, firstName);
+      return true;
     }
 
-    if (res.status === 409) {
-      showBookingFormError(t('review.paymentFailed'));
-    } else {
-      showBookingFormError(t('review.paymentFailed'));
-    }
+    // Payment failed: prefer backend message, fall back to generic copy.
+    const fallback = t('review.bookingCreatedPaymentFailed');
+    showBookingFormError(data?.message || fallback);
     return false;
   } catch (err) {
     console.error("Payment processing failed:", err);
-    showBookingFormError(t('error.networkError'));
+    showBookingFormError(t('review.bookingCreatedPaymentFailed'));
     return false;
   }
 }
@@ -379,9 +392,7 @@ function showBookingSuccess(booking, firstName) {
         ${t('review.bookingRef')} <strong>${esc(String(booking.bookingReference || booking.id || "—"))}</strong>
       </p>
       <p class="mb-30">
-        <span class="rc-alert rc-alert--success" style="display:inline-flex;padding:4px 18px;border-radius:20px;font-weight:700;font-size:13px;letter-spacing:.05em">
-          ${t('review.statusConfirmed')}
-        </span>
+        <span class="rc-badge rc-badge--success">${t('review.statusConfirmed')}</span>
       </p>
       <a href="index.html" class="button h-60 px-50 bg-yellow-1 text-dark-1 rounded-8 fw-700">
         ${t('review.backToHome')}
