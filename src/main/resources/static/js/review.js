@@ -379,7 +379,7 @@ function showBookingSuccess(booking, firstName) {
         ${t('review.bookingRef')} <strong>${esc(String(booking.bookingReference || booking.id || "—"))}</strong>
       </p>
       <p class="mb-30">
-        <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#d1fae5;color:#065f46;font-weight:700;font-size:13px;letter-spacing:.05em">
+        <span class="rc-alert rc-alert--success" style="display:inline-flex;padding:4px 18px;border-radius:20px;font-weight:700;font-size:13px;letter-spacing:.05em">
           ${t('review.statusConfirmed')}
         </span>
       </p>
@@ -397,7 +397,13 @@ function showBookingSuccess(booking, firstName) {
 function showBookingFormError(message) {
   const div = document.getElementById("rfBookingError");
   if (!div) return;
-  div.textContent = message;
+  div.innerHTML = `
+    <div class="rc-alert rc-alert--error">
+      <div class="rc-alert__icon"><i class="icon-close"></i></div>
+      <div class="rc-alert__content">
+        <div class="rc-alert__message">${esc(message)}</div>
+      </div>
+    </div>`;
   div.style.display = "block";
   div.scrollIntoView({ behavior: "smooth", block: "center" });
 }

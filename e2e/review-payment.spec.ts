@@ -127,7 +127,9 @@ test('payment failure: provider declines → error message shown, button re-enab
   await fillAndSubmit(page);
 
   await expect(page.locator('#rfBookingError')).toBeVisible({ timeout: 5000 });
-  await expect(page.locator('#rfBookingError')).not.toBeEmpty();
+  // Error must render as an rc-alert panel, not raw text
+  await expect(page.locator('#rfBookingError .rc-alert--error')).toBeVisible();
+  await expect(page.locator('#rfBookingError .rc-alert__message')).not.toBeEmpty();
   await expect(page.locator('#rfSuccessPanel')).not.toBeVisible();
   await expect(page.locator('#rfConfirmBtn')).toBeEnabled();
 
