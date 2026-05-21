@@ -13,6 +13,7 @@ import java.util.List;
 
 public record BookingResponse(
         Long id,
+        String bookingReference,
         CarResponse car,
         CustomerResponse customer,
         LocalDateTime pickupDateTime,

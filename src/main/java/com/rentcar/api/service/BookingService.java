@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import com.rentcar.api.util.BookingReferenceGenerator;
 import com.rentcar.api.util.BusinessTimezone;
 import java.util.List;
 
@@ -44,6 +45,9 @@ public class BookingService {
     private final AddonRepository addonRepository;
     private final BookingAddonRepository bookingAddonRepository;
     private final BusinessTimezone businessTimezone;
+    private final BookingReferenceGenerator referenceGenerator;
+
+    private static final int MAX_REF_RETRIES = 5;
 
     @Transactional
     public Booking createBooking(CreateBookingRequest request) {
@@ -94,9 +98,12 @@ public class BookingService {
 
         Customer customer = customerService.getOrCreateCustomer(request.customerName(), request.customerEmail(), request.customerPhone());
 
+        String bookingReference = generateUniqueReference();
+
         Booking booking = Booking.builder()
                 .car(car)
                 .customer(customer)
+                .bookingReference(bookingReference)
                 .pickupDateTime(request.pickupDateTime())
                 .dropoffDateTime(request.dropoffDateTime())
                 .rentalDays(price.rentalDays())
@@ -188,6 +195,18 @@ public class BookingService {
         log.info("Payment completed: bookingId={} bookingStatus={} paymentStatus={}",
                 bookingId, saved.getStatus(), payment.getStatus());
         return saved;
+    }
+
+    private String generateUniqueReference() {
+        for (int attempt = 0; attempt < MAX_REF_RETRIES; attempt++) {
+            String ref = referenceGenerator.generate();
+            if (!bookingRepository.existsByBookingReference(ref)) {
+                return ref;
+            }
+            log.warn("Booking reference collision on attempt {}: {}", attempt + 1, ref);
+        }
+        throw new IllegalStateException(
+                "Failed to generate unique booking reference after " + MAX_REF_RETRIES + " attempts");
     }
 
     private void validateDates(CreateBookingRequest request) {

@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -59,7 +60,8 @@ class MockPaymentFlowTest {
                         .content(payBody("pm_test_valid")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(bookingId))
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+                .andExpect(jsonPath("$.status").value("CONFIRMED"))
+                .andExpect(jsonPath("$.bookingReference").value(matchesPattern("RC-\\d{6}-[A-Z0-9]{4}")));
 
         // Verify the payment record is PAID via admin endpoint
         MvcResult paymentsResult = mockMvc.perform(get("/api/payments")

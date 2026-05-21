@@ -18,6 +18,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,6 +38,10 @@ import java.util.List;
         indexes = @Index(
                 name = "idx_bookings_availability",
                 columnList = "car_id, status, pickup_date_time, dropoff_date_time"
+        ),
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_bookings_reference",
+                columnNames = "booking_reference"
         )
 )
 @Getter
@@ -49,6 +54,10 @@ public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Human-friendly reference shown to customers, e.g. RC-260521-K8P4. */
+    @Column(name = "booking_reference", nullable = false, length = 15)
+    private String bookingReference;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_id", nullable = false)

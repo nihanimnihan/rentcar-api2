@@ -286,8 +286,11 @@ async function submitBooking() {
   const confirmBtn = document.getElementById("rfConfirmBtn");
   const errorDiv   = document.getElementById("rfBookingError");
 
-  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = t('review.processing'); }  if (errorDiv)   errorDiv.style.display = "none";
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = t('review.processing'); }
+  if (errorDiv)   errorDiv.style.display = "none";
 
+  // Track whether payment completed so the finally block knows not to re-enable the button.
+  let paymentSucceeded = false;
   try {
     const res = await fetch("/api/bookings", {
       method: "POST",
@@ -297,7 +300,8 @@ async function submitBooking() {
 
     if (res.ok) {
       const booking = await res.json();
-      showBookingSuccess(booking, firstName);
+      if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
+      paymentSucceeded = await processPaymentForBooking(booking, firstName);
     } else if (res.status === 409) {
       const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
       showBookingFormError(msg);
@@ -312,7 +316,49 @@ async function submitBooking() {
     console.error("Booking submission failed:", err);
     showBookingFormError(t('error.networkError'));
   } finally {
-    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = t('review.payAndBook'); }
+    // Re-enable only on failure — success replaces the form with the confirmation screen.
+    if (!paymentSucceeded && confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = t('review.payAndBook');
+    }
+  }
+}
+
+// ── Payment processing ────────────────────────────────────────────────────────
+
+/**
+ * Calls the backend payment endpoint for an already-created booking.
+ * Returns true if the booking was CONFIRMED, false on any failure.
+ */
+async function processPaymentForBooking(booking, firstName) {
+  try {
+    const res = await fetch(`/api/bookings/${booking.id}/payments/process`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentMethodId: "pm_test_valid" })
+    });
+
+    if (res.ok) {
+      const updated = await res.json();
+      if (updated.status === "CONFIRMED") {
+        showBookingSuccess(updated, firstName);
+        return true;
+      }
+      // Backend returned OK but booking ended up FAILED (provider declined).
+      showBookingFormError(t('review.paymentFailed'));
+      return false;
+    }
+
+    if (res.status === 409) {
+      showBookingFormError(t('review.paymentFailed'));
+    } else {
+      showBookingFormError(t('review.paymentFailed'));
+    }
+    return false;
+  } catch (err) {
+    console.error("Payment processing failed:", err);
+    showBookingFormError(t('error.networkError'));
+    return false;
   }
 }
 
@@ -323,14 +369,19 @@ function showBookingSuccess(booking, firstName) {
   if (!formColumn) return;
 
   formColumn.innerHTML = `
-    <div class="rentcar-review-card" style="text-align:center;padding:60px 40px">
+    <div id="rfSuccessPanel" class="rentcar-review-card" style="text-align:center;padding:60px 40px">
       <div style="font-size:56px;margin-bottom:20px">🎉</div>
       <h2 class="text-28 fw-700 mb-15">${t('review.bookingConfirmed')}</h2>
       <p class="text-18 text-light-1 mb-10">
         ${t('review.thankYou', { name: esc(firstName) })}
       </p>
-      <p class="text-15 text-light-1 mb-30">
-        ${t('review.bookingRef')} <strong>#${esc(String(booking.id || "—"))}</strong>
+      <p class="text-15 text-light-1 mb-10">
+        ${t('review.bookingRef')} <strong>${esc(String(booking.bookingReference || booking.id || "—"))}</strong>
+      </p>
+      <p class="mb-30">
+        <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#d1fae5;color:#065f46;font-weight:700;font-size:13px;letter-spacing:.05em">
+          ${t('review.statusConfirmed')}
+        </span>
       </p>
       <a href="index.html" class="button h-60 px-50 bg-yellow-1 text-dark-1 rounded-8 fw-700">
         ${t('review.backToHome')}
