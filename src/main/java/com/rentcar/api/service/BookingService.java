@@ -4,6 +4,7 @@ import com.rentcar.api.domain.addon.Addon;
 import com.rentcar.api.domain.addon.AddonPricingType;
 import com.rentcar.api.domain.addon.BookingAddon;
 import com.rentcar.api.domain.booking.Booking;
+import com.rentcar.api.domain.booking.BookingOptionType;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.domain.booking.MileageOption;
@@ -124,6 +125,9 @@ public class BookingService {
                 .includedKmSnapshot(price.includedKm())
                 .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
                 .mileageOption(mileageOption)
+                // Default to BEST_PRICE; STAY_FLEXIBLE will be selectable once the
+                // flexibility fee calculation and cancellation policy are implemented.
+                .bookingOptionType(BookingOptionType.BEST_PRICE)
                 .status(BookingStatus.PENDING)
                 .source(BookingSource.WEB)
                 .build();

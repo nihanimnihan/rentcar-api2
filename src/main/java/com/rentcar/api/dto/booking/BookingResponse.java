@@ -1,5 +1,6 @@
 package com.rentcar.api.dto.booking;
 
+import com.rentcar.api.domain.booking.BookingOptionType;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.domain.booking.MileageOption;
@@ -28,6 +29,8 @@ public record BookingResponse(
         int includedKmSnapshot,
         BigDecimal unlimitedKmPriceSnapshot,
         MileageOption mileageOption,
+        /** Booking option tier — BEST_PRICE by default; STAY_FLEXIBLE when that feature is activated. */
+        BookingOptionType bookingOptionType,
         BookingStatus status,
         BookingSource source,
         List<BookingAddonResponse> addons

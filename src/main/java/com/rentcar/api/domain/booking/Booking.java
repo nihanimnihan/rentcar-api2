@@ -137,6 +137,32 @@ public class Booking {
     @Column(nullable = false)
     private BookingSource source;
 
+    // ── Booking option / cancellation policy ────────────────────────────────────
+    //
+    // bookingOptionType: BEST_PRICE (default) or STAY_FLEXIBLE (future).
+    //   STAY_FLEXIBLE will later add a per-day flexibility fee and grant free
+    //   cancellation/rebooking up to the pickup time.
+    //
+    // bookingOptionDailyFee: extra daily fee for STAY_FLEXIBLE; always null for now.
+    //   TODO: compute and persist this when STAY_FLEXIBLE is activated.
+    //
+    // cancellationPolicyType: STRICT for BEST_PRICE, FREE_CANCELLATION for STAY_FLEXIBLE.
+    //   Nullable for transfer bookings and legacy rows that pre-date this field.
+    //   TODO: enforce policy in cancelBooking() when STAY_FLEXIBLE is active.
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "booking_option_type")
+    private BookingOptionType bookingOptionType = BookingOptionType.BEST_PRICE;
+
+    /** Per-day flexibility fee. Null for BEST_PRICE bookings; populated when STAY_FLEXIBLE is activated. */
+    @Column(name = "booking_option_daily_fee", precision = 10, scale = 2)
+    private BigDecimal bookingOptionDailyFee;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancellation_policy_type")
+    private CancellationPolicyType cancellationPolicyType;
+
     // Transfer-booking extras — null for regular rental bookings.
     @Column
     private Integer passengers;

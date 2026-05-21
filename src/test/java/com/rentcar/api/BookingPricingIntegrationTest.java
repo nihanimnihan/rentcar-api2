@@ -273,6 +273,20 @@ class BookingPricingIntegrationTest {
                 .andExpect(jsonPath("$.mileageOption").value("INCLUDED"));
     }
 
+    // ── Booking option type ──────────────────────────────────────────────────────
+
+    @Test
+    void rentalBooking_bookingOptionType_defaultsToBestPrice() throws Exception {
+        // Window: +230 to +231 — verifies bookingOptionType is BEST_PRICE and
+        // present in the response; STAY_FLEXIBLE selection is not yet implemented.
+        String body = bookingBody(1, daysFromNow(230), daysFromNow(231));
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingOptionType").value("BEST_PRICE"));
+    }
+
     // ── Car search date validation ───────────────────────────────────────────────
 
     @Test
