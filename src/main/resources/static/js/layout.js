@@ -59,15 +59,18 @@ document.addEventListener("DOMContentLoaded", async function () {
   }, 800);
 });
 
-const minimalFooter = document.getElementById("minimal-footer-placeholder");
-
-if (minimalFooter) {
+document.addEventListener("DOMContentLoaded", function () {
+    var minimalFooter = document.getElementById("minimal-footer-placeholder");
+    if (!minimalFooter) return;
     fetch("partials/footer-minimal.html")
-        .then(response => response.text())
-        .then(html => {
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
             minimalFooter.innerHTML = html;
+            if (typeof applyTranslations === "function") {
+                applyTranslations(minimalFooter);
+            }
         });
-}
+});
 const minimalHeader = document.getElementById("minimal-header-placeholder");
 
 if (minimalHeader) {

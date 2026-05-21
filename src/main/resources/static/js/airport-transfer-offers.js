@@ -154,7 +154,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function formatPrice(total) {
     if (total == null) return "\u2014";
     var p = parseFloat(total).toFixed(2).split(".");
-    return "\u20AC " + p[0] + "<small>." + p[1] + "</small>";
+    return '<span class="at-offer-price__currency">\u20AC</span>' +
+           '<span class="at-offer-price__amount">' + p[0] + '<small class="at-offer-price__dec">.' + p[1] + '</small></span>';
   }
 
   function escapeHtml(str) {
@@ -195,8 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
         '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(offer.name) + '">' +
       "</div>" +
       '<div class="transfer-offer-bottom">' +
-        '<div class="transfer-price-from">from ' + formatPrice(offer.hourlyPriceFrom) + '/hr</div>' +
-        '<div class="transfer-price">' + formatPrice(offer.totalPrice) + "</div>" +
+        '<div class="at-offer-price">' + formatPrice(offer.totalPrice) + "</div>" +
         '<button type="button" class="transfer-next-btn" data-i18n="transfer.next">Next</button>' +
       "</div>";
 

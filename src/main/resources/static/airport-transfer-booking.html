@@ -10,6 +10,8 @@
 
     <link rel="stylesheet" href="css/vendors.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/airport-transfer.css">
+    <link rel="stylesheet" href="css/booking.css">
 
     <title>Add Details &amp; Book | RentCar</title>
 </head>
@@ -231,16 +233,6 @@
                             </div>
                         </div>
 
-                        <!-- Bonus Program accordion -->
-                        <button type="button" class="atb-accordion-toggle" aria-expanded="false">
-                            <i class="icon-plus text-12 mr-8"></i>
-                            <span data-i18n="booking.bonusProgram">Add Bonus Program</span>
-                            <i class="icon-chevron-sm-down ml-auto text-10 atb-chevron"></i>
-                        </button>
-                        <div class="atb-accordion-body" style="display:none;">
-                            <p class="text-13 text-light-1" style="padding:6px 0;">Bonus program coming soon.</p>
-                        </div>
-
                     </div><!-- /additional requests -->
 
                     <!-- C. Payment Details ───────────────────────────────── -->
@@ -284,19 +276,6 @@
                             </div>
                         </div>
 
-                        <p style="font-size:12px;color:#888;margin-top:8px;">
-                            ⚠️ For MVP: payment will be processed separately after booking confirmation.
-                        </p>
-
-                        <div class="atb-voucher-row">
-                            <div class="atb-field" style="flex:1;">
-                                <label for="atbVoucher" data-i18n="booking.voucherCode">Voucher code</label>
-                                <input id="atbVoucher" type="text">
-                            </div>
-                            <button type="button" class="atb-voucher-btn"
-                                    data-i18n="booking.applyVoucher">Apply</button>
-                        </div>
-
                     </div><!-- /payment details -->
 
                 </div><!-- /atbFormSection -->
@@ -325,9 +304,6 @@
 </main>
 
 <div id="language-modal-placeholder"></div>
-<script>
-    loadPartial("#footer-minimal-placeholder", "partials/footer-minimal.html");
-</script>
 <script src="js/i18n/en.js"></script>
 <script src="js/i18n/es.js"></script>
 <script src="js/i18n/i18n.js"></script>

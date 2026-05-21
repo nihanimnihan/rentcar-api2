@@ -1,0 +1,13 @@
+/*
+ * css/cars.css
+ *
+ * Scope : Rental car search and listing pages (cars.html).
+ *         Car-specific UI components that are not shared with the
+ *         airport transfer domain.
+ *
+ * Currently a stub — rental car search styles live in main.css.
+ * Future work: migrate .rentcar-premium-card, .rentcar-spec-list,
+ * filter sidebar styles, and car result card styles here.
+ *
+ * Do NOT import from airport-transfer pages.
+ */

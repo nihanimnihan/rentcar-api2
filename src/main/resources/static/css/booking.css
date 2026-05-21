@@ -1,0 +1,90 @@
+/*
+ * css/booking.css
+ *
+ * Scope : Shared booking form components.
+ *         Used by both the rental booking review page (review.html)
+ *         and the airport transfer booking page (airport-transfer-booking.html).
+ *
+ * Contains: atb-field, atb-phone-row, atb-error, rentcar-review-section-title.
+ * Transfer-page-specific booking styles (atb-summary, atb-book-btn, etc.)
+ * live in airport-transfer.css.
+ */
+
+/* ── Section heading ─────────────────────────────────────────────────────── */
+
+.rentcar-review-section-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #051036;
+  margin-bottom: 28px;
+}
+
+/* ── Form field wrapper and inputs ───────────────────────────────────────── */
+
+.atb-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5b6475;
+  margin-bottom: 9px;
+}
+
+.atb-field input,
+.atb-field select,
+.atb-field textarea {
+  width: 100%;
+  min-height: 56px;
+  border: 1.5px solid #cfd6e4;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #051036;
+  font-family: inherit;
+}
+
+.atb-field textarea {
+  min-height: 130px;
+  padding: 14px 16px;
+  resize: vertical;
+}
+
+.atb-field input:focus,
+.atb-field select:focus,
+.atb-field textarea:focus {
+  outline: none;
+  border-color: #3554d1;
+  box-shadow: 0 0 0 4px rgba(53, 84, 209, 0.12);
+}
+
+/* ── Phone row (country code + number) ───────────────────────────────────── */
+
+.atb-phone-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 14px;
+}
+
+/* ── Field-level validation error ────────────────────────────────────────── */
+
+.atb-error {
+  display: none;
+  margin-top: 7px;
+  font-size: 12px;
+  color: #e3342f;
+}
+
+.atb-field.has-error .atb-error {
+  display: block;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 575px) {
+  .atb-phone-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* .rentcar-account-footer styles live in main.css (loaded by every page) */
