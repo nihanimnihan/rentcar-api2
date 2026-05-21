@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   fillCarsPageSearchFromUrl();
   fillHeaderBookingSummary();
-  loadCars();
+  // loadCars() is called by layout.js after #car-filters-placeholder partial
+  // has finished loading, so #carsList is guaranteed to exist when needed.
 });
 
 // Module-level maps so selectMileageOption can access car data without DOM hacks
@@ -14,9 +15,15 @@ async function loadCars() {
 
   const pickupStr  = params.get("pickupDateTime");
   const dropoffStr = params.get("dropoffDateTime");
+
+  hideDateError(); // always clear a previous validation error
+
   const errorType  = validateSearchDates(pickupStr, dropoffStr);
   if (errorType) {
-    document.getElementById("carsList").innerHTML = renderInvalidSearchError(errorType);
+    // Render to the static #carsDateError container (always in the DOM).
+    // Do NOT write to #carsList — it lives inside the async-loaded partial
+    // and may not exist yet when validation runs synchronously.
+    showDateError(errorType);
     return;
   }
 
@@ -34,6 +41,7 @@ async function loadCars() {
     _lastFetchedCars = cars;
   } catch (error) {
     console.error("API error:", error);
+    hideFilterControls();
     document.getElementById("carsList").innerHTML = renderInvalidSearchError("API_ERROR");
   }
 }
@@ -45,7 +53,7 @@ window.loadCars = loadCars;
  * Returns null when dates are acceptable for a car search.
  */
 function validateSearchDates(pickupStr, dropoffStr) {
-  if (!pickupStr || !dropoffStr) return null; // no dates = filter-less search, that's fine
+  if (!pickupStr || !dropoffStr) return "MISSING_DATE";
 
   const pickup  = new Date(pickupStr);
   const dropoff = new Date(dropoffStr);
@@ -55,6 +63,56 @@ function validateSearchDates(pickupStr, dropoffStr) {
   if (dropoff <= pickup)  return "INVALID_RANGE";
 
   return null;
+}
+
+/**
+ * Renders a date-validation error using the .rc-alert component into the
+ * static #carsDateError container (always present in cars.html).
+ * The car list area is left untouched — no race with async partial load.
+ */
+function showDateError(type) {
+  const el = document.getElementById("carsDateError");
+  if (!el) return;
+  const messages = {
+    MISSING_DATE:  t("error.missingDate"),
+    PAST_DATE:     t("error.pastDate"),
+    INVALID_RANGE: t("error.invalidRange"),
+    INVALID_DATE:  t("error.invalidDate"),
+  };
+  const msg = messages[type] ?? t("error.defaultSearch");
+  el.innerHTML = `
+    <div class="rc-alert rc-alert--warning">
+      <div class="rc-alert__icon"><i class="icon-calendar"></i></div>
+      <div class="rc-alert__content">
+        <div class="rc-alert__title">${t("error.sorry")}</div>
+        <div class="rc-alert__message">${msg}</div>
+      </div>
+    </div>`;
+  el.style.display = "block";
+
+  hideFilterControls();
+
+  // Clear stale "Loading cars..." text that may have rendered from the
+  // async partial before this validation error fired.
+  const list = document.getElementById("carsList");
+  if (list) list.innerHTML = "";
+}
+
+function hideDateError() {
+  const el = document.getElementById("carsDateError");
+  if (el) { el.innerHTML = ""; el.style.display = "none"; }
+}
+
+/** Hide the Filter + Sort bar — used in all non-result states. */
+function hideFilterControls() {
+  const bar = document.getElementById("carsFilterSortBar");
+  if (bar) bar.style.display = "none";
+}
+
+/** Show the Filter + Sort bar — only called when real results exist. */
+function showFilterControls() {
+  const bar = document.getElementById("carsFilterSortBar");
+  if (bar) bar.style.display = "";
 }
 
 /** Render a SIXT-style error panel inside the car list area. */
@@ -90,6 +148,7 @@ function renderCars(cars) {
   const carsCount = document.getElementById("carsCount");
 
   if (!cars || cars.length === 0) {
+    hideFilterControls();
     if (carsCount) {
       carsCount.textContent = `0 ${t('car.cars')}`;
     }
@@ -108,6 +167,8 @@ function renderCars(cars) {
     `;
     return;
   }
+
+  showFilterControls();
 
   if (carsCount) carsCount.textContent = `${cars.length} ${t('car.cars')}`;
   const filterCarsCount = document.getElementById("filterCarsCount");

@@ -216,6 +216,7 @@ window.i18nTranslations['es'] = {
   // error messages
   'error.sorry': 'Lo sentimos',
   'error.newSearch': 'Nueva búsqueda',
+  'error.missingDate': 'Por favor, elige las fechas de recogida y devolución para buscar coches disponibles.',
   'error.pastDate': 'La fecha de recogida está en el pasado. Por favor, inicia una nueva búsqueda con una fecha futura.',
   'error.invalidRange': 'La fecha de devolución debe ser posterior a la de recogida. Ajusta las fechas.',
   'error.invalidDate': 'La fecha en la URL no es válida. Por favor, inicia una nueva búsqueda.',

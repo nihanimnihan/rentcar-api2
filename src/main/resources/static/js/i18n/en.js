@@ -216,6 +216,7 @@ window.i18nTranslations['en'] = {
   // error messages
   'error.sorry': 'Sorry',
   'error.newSearch': 'New search',
+  'error.missingDate': 'Please choose your pickup and return dates to search for available cars.',
   'error.pastDate': 'Your pickup date is in the past. Please start a new search with a valid future date.',
   'error.invalidRange': 'Return date must be after the pickup date. Please adjust your dates.',
   'error.invalidDate': 'The date in the URL is not valid. Please start a new search.',

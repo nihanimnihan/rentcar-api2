@@ -14,6 +14,8 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/vendors.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/cars.css">
+    <link rel="stylesheet" href="css/components/alerts.css">
 
     <title>RentCar</title>
 </head>
@@ -21,7 +23,7 @@
 <body>
 <div id="preloader-placeholder"></div>
 
-<main>
+<main class="cars-page-main">
 
 
     <div class="header-margin"></div>
@@ -291,7 +293,9 @@
             </div>
         </div>
     </section>
-    <div id="car-filters-placeholder"></div>
+    <!-- Static container for date-validation errors — always in the DOM (never inside the async partial) -->
+    <div id="carsDateError" class="container" style="display:none; padding-top:16px; padding-bottom:8px;"></div>
+    <div id="car-filters-placeholder" class="cars-page-content"></div>
     <div id="minimal-footer-placeholder"></div>
 </main>
 

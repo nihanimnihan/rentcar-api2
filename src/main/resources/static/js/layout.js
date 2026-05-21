@@ -39,6 +39,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     initCarFilters();
     markSelectedFilters();
   }
+
+  // Trigger car search after partial load so #carsList is guaranteed to exist.
+  if (typeof loadCars === "function") {
+    loadCars();
+  }
 });
 
 document.addEventListener("DOMContentLoaded", async function () {

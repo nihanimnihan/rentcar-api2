@@ -11,3 +11,29 @@
  *
  * Do NOT import from airport-transfer pages.
  */
+
+/* ── Page shell (flex sticky-footer pattern) ───────────────────────────────
+ *
+ * <main class="cars-page-main">          ← flex column, full viewport height
+ *   <header>                             ← position:fixed → out of flex flow
+ *   <div class="header-margin">          ← spacer for fixed header
+ *   <section> search </section>
+ *   <div id="carsDateError">             ← validation error (static, always in DOM)
+ *   <div class="cars-page-content">      ← flex:1 → grows to fill remaining space
+ *   <div id="minimal-footer-placeholder">← stays at bottom because content above grows
+ * </main>
+ *
+ * Result: footer is always pushed to the bottom in loading / error / empty
+ * states without any fixed or sticky positioning.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+.cars-page-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Content placeholder grows to fill space between search and footer */
+.cars-page-content {
+  flex: 1;
+}
