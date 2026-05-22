@@ -41,7 +41,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public void cancelPaymentForBooking(Booking booking) {
+    public void handleCancellationPayment(Booking booking) {
         Payment payment = getLatestPaymentForBooking(booking);
 
         if (payment.getStatus() == PaymentStatus.PAID) {

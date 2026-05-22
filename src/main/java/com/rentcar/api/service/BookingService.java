@@ -211,9 +211,58 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
         Booking savedBooking = bookingRepository.save(booking);
-        paymentService.cancelPaymentForBooking(savedBooking);
+        paymentService.handleCancellationPayment(savedBooking);
         log.info("Booking cancelled: id={}", id);
         return savedBooking;
+    }
+
+    /**
+     * Customer-facing cancellation identified by bookingReference + lastName.
+     * Evaluates the same policy rules as {@link #getCancellationPolicy} and
+     * throws {@link BookingCannotBeCancelledException} with a human-readable
+     * reason when cancellation is not allowed.
+     *
+     * <p>For PAID bookings that are refund-eligible the mock refund provider is
+     * invoked via {@link PaymentService#handleCancellationPayment}; it sets the
+     * payment status to {@code REFUNDED}.
+     *
+     * <p>The numeric booking id is never exposed to the caller — authentication
+     * is entirely through the reference + lastName pair.
+     */
+    @Transactional
+    public Booking cancelBookingByReference(String bookingReference, String lastName) {
+        // Step 1: Verify identity and check policy (non-locked read).
+        Booking booking = findBookingByReferenceAndLastName(bookingReference, lastName);
+        LocalDateTime now = businessTimezone.nowBusinessLocal();
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new BookingCannotBeCancelledException("This booking has already been cancelled.");
+        }
+        if (booking.getPickupDateTime().isBefore(now)) {
+            throw new BookingCannotBeCancelledException("The booking can no longer be modified after the pickup date.");
+        }
+        if (booking.getStatus() == BookingStatus.FAILED) {
+            throw new BookingCannotBeCancelledException("This booking payment has already failed.");
+        }
+        // PENDING, CONFIRMED are all cancellable.
+
+        // Step 2: Re-fetch with PESSIMISTIC_WRITE lock so concurrent
+        // cancel + completePayment requests are serialised.
+        Booking locked = bookingRepository.findByIdForUpdate(booking.getId())
+                .orElseThrow(() -> new BookingNotFoundException(booking.getId()));
+
+        // Re-check status under lock in case another request won the race.
+        if (locked.getStatus() == BookingStatus.CANCELLED) {
+            throw new BookingCannotBeCancelledException("This booking has already been cancelled.");
+        }
+
+        locked.setStatus(BookingStatus.CANCELLED);
+        Booking saved = bookingRepository.save(locked);
+        // cancelPaymentForBooking handles both PAID (issues mock refund → REFUNDED)
+        // and PENDING/FAILED (voids the record → CANCELLED).
+        paymentService.handleCancellationPayment(saved);
+        log.info("Booking cancelled by customer: reference={}, bookingId={}, status={}", bookingReference, saved.getId(), saved.getStatus());
+        return saved;
     }
 
     @Transactional

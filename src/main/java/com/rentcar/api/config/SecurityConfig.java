@@ -78,6 +78,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/bookings/manage").permitAll()
                         // Cancellation policy preview — public, same identity rules as manage lookup.
                         .requestMatchers(HttpMethod.GET, "/api/bookings/manage/cancellation-policy").permitAll()
+                        // Customer-facing cancel — authenticated by reference + lastName, no numeric id.
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/manage/cancel").permitAll()
 
                         // ── Public API — add-ons list (must come BEFORE the admin rule below) ─
                         .requestMatchers(HttpMethod.GET, "/api/addons/active").permitAll()

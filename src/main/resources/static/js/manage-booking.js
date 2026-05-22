@@ -9,6 +9,12 @@
 
 'use strict';
 
+// ── Module-level state ────────────────────────────────────────────────────────
+// Stored after a successful lookup so the cancel flow can authenticate without
+// re-prompting the user and without exposing the numeric booking id.
+let _currentRef      = null;
+let _currentLastName = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('mfSubmitBtn');
   if (btn) btn.addEventListener('click', lookupBooking);
@@ -68,6 +74,10 @@ async function lookupBooking() {
     }
 
     const booking = await resp.json();
+
+    // Store for the cancel flow — no numeric id, just the reference + lastName.
+    _currentRef      = bookingReference;
+    _currentLastName = lastName;
 
     // Fetch cancellation policy for this booking. Runs after the main lookup so
     // a policy failure never prevents the booking card from rendering.
@@ -194,9 +204,9 @@ function cancellationPolicySectionHtml(policy) {
 
   const actionsHtml = policy.cancellable
     ? `<div class="manage-booking-actions">
-         <button class="manage-booking-cancel-btn" disabled>
+         <button class="manage-booking-cancel-btn manage-booking-cancel-btn--active"
+                 onclick="confirmAndCancelBooking()">
            Cancel booking
-           <span class="rc-badge rc-badge--warning">Coming soon</span>
          </button>
        </div>`
     : '';
@@ -211,6 +221,83 @@ function cancellationPolicySectionHtml(policy) {
       ${refundHtml}
     </div>
     ${actionsHtml}`;
+}
+
+/**
+ * Called when the customer clicks "Cancel booking".
+ * Prompts for confirmation then calls POST /api/bookings/manage/cancel.
+ * Authentication is by bookingReference + lastName stored at lookup time.
+ */
+async function confirmAndCancelBooking() {
+  if (!_currentRef || !_currentLastName) return;
+
+  const confirmed = window.confirm(
+    'Are you sure you want to cancel this booking?\n\n' +
+    'Reference: ' + _currentRef + '\n\n' +
+    'This action cannot be undone.'
+  );
+  if (!confirmed) return;
+
+  const btn = document.querySelector('.manage-booking-cancel-btn--active');
+  if (btn) { btn.disabled = true; btn.textContent = 'Cancelling…'; }
+
+  try {
+    const resp = await fetch('/api/bookings/manage/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingReference: _currentRef, lastName: _currentLastName }),
+    });
+
+    if (resp.ok) {
+      const updated = await resp.json();
+      // Re-render the card with the updated booking (status=CANCELLED).
+      // Fetch a fresh policy (now not cancellable) to update the cancellation section.
+      let freshPolicy = null;
+      try {
+        const pr = await fetch(
+          `/api/bookings/manage/cancellation-policy?bookingReference=${encodeURIComponent(_currentRef)}&lastName=${encodeURIComponent(_currentLastName)}`
+        );
+        if (pr.ok) freshPolicy = await pr.json();
+      } catch (_) { /* ignore */ }
+
+      renderResult(updated, freshPolicy);
+
+      // Show a success banner above the card.
+      const section = document.getElementById('mfResultSection');
+      if (section) {
+        const banner = document.createElement('div');
+        banner.innerHTML = buildErrorPanel(
+          'Booking cancelled',
+          'Your booking ' + escHtml(_currentRef) + ' has been successfully cancelled.',
+          'success'
+        );
+        section.prepend(banner);
+      }
+    } else {
+      let msg = 'Your booking could not be cancelled. Please try again.';
+      try {
+        const body = await resp.json();
+        if (body?.message) msg = body.message;
+      } catch (_) { /* ignore */ }
+      // Re-enable the button so the user can retry.
+      if (btn) { btn.disabled = false; btn.textContent = 'Cancel booking'; }
+      showCancelError(msg);
+    }
+  } catch (_err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Cancel booking'; }
+    showCancelError('Network error. Please check your connection and try again.');
+  }
+}
+
+function showCancelError(msg) {
+  const section = document.getElementById('mfResultSection');
+  if (!section) return;
+  // Remove any existing cancel error banner first.
+  section.querySelectorAll('.manage-cancel-error').forEach(el => el.remove());
+  const div = document.createElement('div');
+  div.className = 'manage-cancel-error';
+  div.innerHTML = buildErrorPanel('', msg, 'error');
+  section.prepend(div);
 }
 
 /**
