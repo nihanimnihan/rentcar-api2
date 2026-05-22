@@ -34,11 +34,6 @@ public class BookingController {
                 bookingService.findBookingByReferenceAndLastName(bookingReference, lastName));
     }
 
-    @PostMapping("/{id}/cancel")
-    public BookingResponse cancelBooking(@PathVariable Long id) {
-        return bookingMapper.toResponse(bookingService.cancelBooking(id));
-    }
-
     @PostMapping("/{id}/payments/process")
     public BookingResponse processPayment(@PathVariable Long id,
                                           @Valid @RequestBody ProcessPaymentRequest request) {

@@ -12,6 +12,7 @@ import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.customer.Customer;
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentStatus;
+import com.rentcar.api.dto.booking.CancellationPolicyResponse;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
 import com.rentcar.api.exception.BookingCannotBeCancelledException;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import com.rentcar.api.util.BookingReferenceGenerator;
 import com.rentcar.api.util.BusinessTimezone;
 import java.text.Normalizer;
@@ -240,6 +242,74 @@ public class BookingService {
         log.info("Payment completed: bookingId={} bookingStatus={} paymentStatus={}",
                 bookingId, saved.getStatus(), payment.getStatus());
         return saved;
+    }
+
+    /**
+     * Returns a cancellation policy preview for the booking identified by
+     * {@code bookingReference} + {@code lastName} (accent-insensitive).
+     *
+     * <p>Policy rules (evaluated in order):
+     * <ol>
+     *   <li>CANCELLED → not cancellable</li>
+     *   <li>pickup in the past → not cancellable</li>
+     *   <li>CONFIRMED + pickup &gt; 24 h away → cancellable, full refund</li>
+     *   <li>CONFIRMED + pickup ≤ 24 h away → cancellable, no refund (MVP)</li>
+     *   <li>PENDING / FAILED → cancellable, no charge (never paid)</li>
+     * </ol>
+     *
+     * TODO: when STAY_FLEXIBLE is implemented, rule 4 should grant a free
+     * cancellation regardless of the 24-h window for that option type.
+     */
+    public CancellationPolicyResponse getCancellationPolicy(String bookingReference, String lastName) {
+        Booking booking = findBookingByReferenceAndLastName(bookingReference, lastName);
+        LocalDateTime now = businessTimezone.nowBusinessLocal();
+
+        // Rule 1 — already cancelled
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            return blocked(
+                    "Booking is already cancelled.",
+                    "This booking has already been cancelled and cannot be modified.");
+        }
+
+        // Rule 2 — pickup date has passed (applies to any non-cancelled status)
+        if (booking.getPickupDateTime().isBefore(now)) {
+            return blocked(
+                    "Your pickup date has passed.",
+                    "The booking can no longer be modified after the pickup date.");
+        }
+
+        // Rule 3 & 4 — CONFIRMED bookings: refund depends on 24-h window
+        if (booking.getStatus() == BookingStatus.CONFIRMED) {
+            boolean moreThan24h = booking.getPickupDateTime().isAfter(now.plusHours(24));
+            if (moreThan24h) {
+                return new CancellationPolicyResponse(
+                        true, null, true,
+                        booking.getTotalPrice().setScale(2, RoundingMode.HALF_UP),
+                        BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
+                        "Full refund will be applied.");
+            } else {
+                return new CancellationPolicyResponse(
+                        true, null, false,
+                        BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
+                        BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
+                        "Cancellation within 24 hours of pickup — no refund applies.");
+            }
+        }
+
+        // Rule 5 — PENDING or FAILED: payment was never collected
+        return new CancellationPolicyResponse(
+                true, null, false,
+                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
+                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
+                "Your booking has not been paid — no charge applies.");
+    }
+
+    private static CancellationPolicyResponse blocked(String reason, String policyMessage) {
+        return new CancellationPolicyResponse(
+                false, reason, false,
+                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
+                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
+                policyMessage);
     }
 
     private String generateUniqueReference() {

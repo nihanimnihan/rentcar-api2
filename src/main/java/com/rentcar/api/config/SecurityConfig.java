@@ -76,6 +76,8 @@ public class SecurityConfig {
                         // Manage booking lookup — public, requires reference + lastName (no auth).
                         // Must come BEFORE the admin GET /api/bookings/** rule below.
                         .requestMatchers(HttpMethod.GET, "/api/bookings/manage").permitAll()
+                        // Cancellation policy preview — public, same identity rules as manage lookup.
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/manage/cancellation-policy").permitAll()
 
                         // ── Public API — add-ons list (must come BEFORE the admin rule below) ─
                         .requestMatchers(HttpMethod.GET, "/api/addons/active").permitAll()
