@@ -10,8 +10,9 @@ import { test, expect, type Page } from '@playwright/test';
  *   review.html?carId=1&...
  *     → fill customer form
  *     → click "Pay and Book"
- *   POST /api/bookings          (intercepted)
- *   POST /api/bookings/42/payments/process  (intercepted)
+ *   POST /api/bookings                           (intercepted)
+ *   POST /api/bookings/42/payments/intent        (intercepted)
+ *   POST /api/bookings/42/payments/process       (intercepted)
  *     → success panel visible (happy path)
  *     OR error message visible (failure paths)
  */
@@ -47,6 +48,16 @@ const MOCK_BOOKING_PENDING   = { id: BOOKING_ID, bookingReference: 'RC-260521-K8
 const MOCK_BOOKING_CONFIRMED = { id: BOOKING_ID, bookingReference: 'RC-260521-K8P4', status: 'CONFIRMED', carId: CAR_ID, totalPrice: 100.00 };
 const MOCK_BOOKING_FAILED    = { id: BOOKING_ID, bookingReference: 'RC-260521-K8P4', status: 'FAILED',    carId: CAR_ID, totalPrice: 100.00 };
 
+const MOCK_PAYMENT_INTENT = {
+  bookingId:        BOOKING_ID,
+  bookingReference: 'RC-260521-K8P4',
+  amount:           100.00,
+  currencyCode:     'EUR',
+  providerName:     'FAKE',
+  clientSecret:     null,
+  paymentReference: `PAY-${BOOKING_ID}`,
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function mockPageLoadApis(page: Page): Promise<void> {
@@ -81,6 +92,22 @@ async function mockPaymentProcess(page: Page, response: object, status = 200): P
   return { wasCalled: () => called };
 }
 
+/**
+ * Mocks the payment intent endpoint and returns a recorder that captures
+ * whether the endpoint was called.
+ */
+async function mockPaymentIntent(page: Page, response: object, status = 200): Promise<{ wasCalled: () => boolean }> {
+  let called = false;
+  await page.route(
+    new RegExp(`/api/bookings/${BOOKING_ID}/payments/intent`),
+    route => {
+      called = true;
+      route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(response) });
+    }
+  );
+  return { wasCalled: () => called };
+}
+
 /** Fill all required form fields and click the confirm button. */
 async function fillAndSubmit(page: Page): Promise<void> {
   await page.fill('#rfEmail',     'john@example.com');
@@ -101,6 +128,7 @@ test('happy path: successful payment shows confirmation screen with booking refe
 
   await mockPageLoadApis(page);
   await mockBookingCreation(page);
+  const intent  = await mockPaymentIntent(page, MOCK_PAYMENT_INTENT);
   const payment = await mockPaymentProcess(page, MOCK_BOOKING_CONFIRMED);
 
   await page.goto(`/review.html?${REVIEW_QUERY}`);
@@ -115,7 +143,8 @@ test('happy path: successful payment shows confirmation screen with booking refe
   // Status badge must use rc-badge--success class, not inline styles
   await expect(successPanel.locator('.rc-badge--success')).toBeVisible();
 
-  // Payment endpoint was called (ordering: booking → payment)
+  // Payment endpoint was called (ordering: booking → intent → process)
+  expect(intent.wasCalled()).toBe(true);
   expect(payment.wasCalled()).toBe(true);
 
   // Form replaced by success screen — confirm button is gone
@@ -131,6 +160,7 @@ test('payment failure: provider declines → specific error message shown, butto
 
   await mockPageLoadApis(page);
   await mockBookingCreation(page);
+  const intent  = await mockPaymentIntent(page, MOCK_PAYMENT_INTENT);
   const payment = await mockPaymentProcess(page, MOCK_BOOKING_FAILED);
 
   await page.goto(`/review.html?${REVIEW_QUERY}`);
@@ -140,8 +170,8 @@ test('payment failure: provider declines → specific error message shown, butto
 
   // Error panel must appear as rc-alert with specific message, not raw text
   await expect(page.locator('#rfBookingError')).toBeVisible({ timeout: 5000 });
-  // Payment endpoint was still called — booking was created first, payment attempted second
-  // (checked after awaiting UI so the async flow has completed)
+  // Intent and process endpoints were both called
+  expect(intent.wasCalled()).toBe(true);
   expect(payment.wasCalled()).toBe(true);
   await expect(page.locator('#rfBookingError .rc-alert--error')).toBeVisible();
   await expect(page.locator('#rfBookingError .rc-alert__message')).toContainText(
@@ -160,6 +190,7 @@ test('payment network error: 500 with backend message → backend message shown,
 
   await mockPageLoadApis(page);
   await mockBookingCreation(page);
+  await mockPaymentIntent(page, MOCK_PAYMENT_INTENT);
   // Backend returns a JSON body with a message on 500 → must be surfaced to user
   const payment = await mockPaymentProcess(page, { message: 'Payment service temporarily unavailable' }, 500);
 
@@ -197,6 +228,7 @@ test('payment network error: 500 with no message body → fallback message shown
 
   await mockPageLoadApis(page);
   await mockBookingCreation(page);
+  await mockPaymentIntent(page, MOCK_PAYMENT_INTENT);
   // Backend returns 500 with no parseable message → must fall back to generic copy
   await page.route(`**/api/bookings/${BOOKING_ID}/payments/process`, route =>
     route.fulfill({ status: 500, contentType: 'text/plain', body: '' })
@@ -221,6 +253,41 @@ test('payment network error: 500 with no message body → fallback message shown
     !e.includes('font') &&
     !e.includes('500') &&
     !e.includes('Failed to load resource')
+  );
+  expect(realErrors, `Unexpected console errors: ${realErrors.join(', ')}`).toHaveLength(0);
+});
+
+test('payment intent failure: 500 from intent endpoint → error shown, process not called, button re-enabled', async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.text()); });
+
+  await mockPageLoadApis(page);
+  await mockBookingCreation(page);
+  // Intent endpoint fails — process must never be reached
+  const intent  = await mockPaymentIntent(page, { message: 'Intent creation failed' }, 500);
+  const process = await mockPaymentProcess(page, MOCK_BOOKING_CONFIRMED);
+
+  await page.goto(`/review.html?${REVIEW_QUERY}`);
+  await expect(page.locator('#rfConfirmBtn')).toBeVisible({ timeout: 5000 });
+
+  await fillAndSubmit(page);
+
+  // Intent was attempted, process must NOT have been called
+  await expect(page.locator('#rfBookingError')).toBeVisible({ timeout: 5000 });
+  expect(intent.wasCalled()).toBe(true);
+  expect(process.wasCalled()).toBe(false);
+
+  await expect(page.locator('#rfBookingError .rc-alert--error')).toBeVisible();
+  await expect(page.locator('#rfSuccessPanel')).not.toBeVisible();
+  await expect(page.locator('#rfConfirmBtn')).toBeEnabled();
+
+  const realErrors = consoleErrors.filter(e =>
+    !e.includes('favicon') &&
+    !e.includes('font') &&
+    !e.includes('500') &&
+    !e.includes('Failed to load resource') &&
+    // Intent failure is the point of this test — the catch block console.error is expected
+    !e.includes('Payment intent creation failed')
   );
   expect(realErrors, `Unexpected console errors: ${realErrors.join(', ')}`).toHaveLength(0);
 });

@@ -300,6 +300,32 @@ async function submitBooking() {
 
     if (res.ok) {
       const booking = await res.json();
+      if (confirmBtn) confirmBtn.textContent = t('review.processing');
+
+      // Step 2: Create payment intent — amount/currency come from the booking,
+      // never from the frontend.
+      let intent;
+      try {
+        intent = await createPaymentIntent(booking.id);
+      } catch (err) {
+        console.error("Payment intent creation failed:", err);
+        showBookingFormError(err.message || t('review.bookingCreatedPaymentFailed'));
+        return; // paymentSucceeded stays false → finally re-enables button
+      }
+
+      // TODO (Stripe): when real Stripe is enabled, replace the process call below
+      // with a stripe.confirmCardPayment() call using the clientSecret from the intent:
+      //
+      //   const { error } = await stripe.confirmCardPayment(intent.clientSecret, {
+      //     payment_method: {
+      //       card: cardElement,           // Stripe Elements card element
+      //       billing_details: { name: `${firstName} ${lastName}`, email },
+      //     },
+      //   });
+      //   if (error) { showBookingFormError(error.message); return; }
+      //   // On success, stripe.js will have confirmed the PaymentIntent server-side.
+      //   // Then call processBookingPayment() to advance the booking to CONFIRMED.
+
       if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
       paymentSucceeded = await processBookingPayment(booking.id, firstName);
     } else if (res.status === 409) {
@@ -327,6 +353,31 @@ async function submitBooking() {
 // ── Payment processing ────────────────────────────────────────────────────────
 
 /**
+ * Calls POST /api/bookings/{bookingId}/payments/intent.
+ *
+ * Returns the intent payload: { bookingId, bookingReference, amount, currencyCode,
+ * providerName, clientSecret, paymentReference }.
+ *
+ * Amount and currency are always derived server-side from the booking — the
+ * frontend never sends them.  clientSecret is null in dev/fake mode and is
+ * the real Stripe secret in production.
+ *
+ * Throws with a user-visible message on non-OK responses.
+ */
+async function createPaymentIntent(bookingId) {
+  const res = await fetch(`/api/bookings/${bookingId}/payments/intent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) {
+    let msg;
+    try { msg = (await res.json()).message; } catch (_) {}
+    throw new Error(msg || t('review.bookingCreatedPaymentFailed'));
+  }
+  return res.json();
+}
+
+/**
  * Returns the payment method ID to send to the backend.
  *
  * MVP: always returns the mock valid token.  The radio buttons on the review
@@ -341,8 +392,8 @@ function getSelectedPaymentMethodId() {
 
 /**
  * Calls POST /api/bookings/{bookingId}/payments/process.
- * The booking already exists; this call transitions it from
- * PENDING → CONFIRMED (success) or FAILED (provider decline / error).
+ * The booking already exists and a payment intent has been created;
+ * this call transitions it from PENDING → CONFIRMED (success) or FAILED (decline).
  *
  * Returns true if the booking reached CONFIRMED, false on any failure.
  * The error panel is shown before returning false.
