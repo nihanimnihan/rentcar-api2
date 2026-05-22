@@ -42,6 +42,17 @@ public class PaymentService {
         return paymentRepository.findAll();
     }
 
+    /**
+     * Returns the full payment history for a booking, newest first.
+     *
+     * <p>A booking may accumulate multiple payment records over its lifetime
+     * (e.g. one FAILED attempt followed by one PAID record after retry).
+     * All records are preserved for audit — none are deleted on retry.
+     */
+    public List<Payment> getPaymentsForBooking(Booking booking) {
+        return paymentRepository.findAllByBookingOrderByCreatedAtDescIdDesc(booking);
+    }
+
     @Transactional
     public void handleCancellationPayment(Booking booking) {
         Payment payment = getLatestPaymentForBooking(booking);
@@ -107,7 +118,7 @@ public class PaymentService {
     }
 
     public Optional<Payment> findLatestPayment(Booking booking) {
-        return paymentRepository.findTopByBookingOrderByCreatedAtDesc(booking);
+        return paymentRepository.findTopByBookingOrderByCreatedAtDescIdDesc(booking);
     }
 
     /**
@@ -124,7 +135,7 @@ public class PaymentService {
     }
 
     private Payment getLatestPaymentForBooking(Booking booking) {
-        return paymentRepository.findTopByBookingOrderByCreatedAtDesc(booking)
+        return paymentRepository.findTopByBookingOrderByCreatedAtDescIdDesc(booking)
                 .orElseThrow(() -> new PaymentNotFoundException(booking.getId()));
     }
 

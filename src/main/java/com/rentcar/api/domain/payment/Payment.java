@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,6 +73,16 @@ public class Payment {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    /**
+     * Timestamp of the last status update on this payment record.
+     *
+     * <p>Set to {@code createdAt} on initial persist and updated on every subsequent
+     * {@code save()}. Useful for Stripe webhook handlers that need to know when the
+     * last state transition (e.g. REFUND_PENDING → REFUNDED) occurred.
+     */
+    @Column(nullable = false)
+    private Instant updatedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
@@ -81,7 +92,9 @@ public class Payment {
         // Instant.now() is intentional: JPA lifecycle callbacks cannot receive Spring beans,
         // so AppClock cannot be injected here. The JVM is pinned to UTC in RentcarApiApplication,
         // making Instant.now() deterministic across all environments.
-        this.createdAt = Instant.now();
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
         if (this.status == null) {
             this.status = PaymentStatus.PENDING;
         }
@@ -91,5 +104,12 @@ public class Payment {
             this.paymentReference = "PAY-" + UUID.randomUUID()
                     .toString().replace("-", "").substring(0, 8).toUpperCase();
         }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        // Track every status transition. Used by Stripe webhook handlers to determine
+        // when a payment last changed state (e.g. REFUND_PENDING → REFUNDED timestamp).
+        this.updatedAt = Instant.now();
     }
 }

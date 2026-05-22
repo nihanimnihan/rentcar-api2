@@ -18,6 +18,8 @@ public record PaymentResponse(
         PaymentStatus status,
         String providerReference,
         Instant paidAt,
+        Instant createdAt,
+        Instant updatedAt,
         Long bookingId
 ) {
 
