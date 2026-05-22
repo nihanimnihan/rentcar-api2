@@ -17,3 +17,6 @@ rentcar:
   admin:
     username: admin
     password: change-me
+
+app:
+  public-base-url: http://localhost:8091

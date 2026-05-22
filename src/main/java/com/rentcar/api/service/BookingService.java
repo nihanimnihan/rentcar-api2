@@ -17,6 +17,8 @@ import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.dto.booking.CancellationPolicyResponse;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
+import com.rentcar.api.email.ConfirmationEmailData;
+import com.rentcar.api.email.EmailService;
 import com.rentcar.api.exception.BookingCannotBeCancelledException;
 import com.rentcar.api.exception.BookingNotFoundException;
 import com.rentcar.api.exception.CarNotAvailableException;
@@ -25,17 +27,18 @@ import com.rentcar.api.exception.InvalidBookingStateException;
 import com.rentcar.api.repository.AddonRepository;
 import com.rentcar.api.repository.BookingAddonRepository;
 import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.util.BookingReferenceGenerator;
+import com.rentcar.api.util.BusinessTimezone;
+import com.rentcar.api.util.NameNormalizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import com.rentcar.api.util.BookingReferenceGenerator;
-import com.rentcar.api.util.BusinessTimezone;
-import com.rentcar.api.util.NameNormalizer;
 import java.util.List;
 
 
@@ -53,6 +56,16 @@ public class BookingService {
     private final BookingAddonRepository bookingAddonRepository;
     private final BusinessTimezone businessTimezone;
     private final BookingReferenceGenerator referenceGenerator;
+    private final EmailService emailService;
+
+    /**
+     * Optional public base URL of the application (e.g. {@code http://localhost:8091}).
+     * Used to build manage-booking deep-links in confirmation emails.
+     * Configure via {@code app.public-base-url} in application properties.
+     * Defaults to empty — manage-booking link omitted from email if blank.
+     */
+    @Value("${app.public-base-url:}")
+    private String publicBaseUrl;
 
     private static final String MANAGE_NOT_FOUND_MSG =
             "We couldn't find a booking with these details. Please check your reference and last name.";
@@ -289,6 +302,18 @@ public class BookingService {
         Booking saved = bookingRepository.save(booking);
         log.info("Payment completed: bookingId={} bookingStatus={} paymentStatus={}",
                 bookingId, saved.getStatus(), payment.getStatus());
+
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            // Fire confirmation email. Failure must NEVER rollback the confirmed booking:
+            // the booking is already saved; we only log a warning if the email layer fails.
+            try {
+                emailService.sendBookingConfirmation(buildConfirmationEmailData(saved));
+            } catch (Exception e) {
+                log.warn("Confirmation email failed for bookingId={} reference={}: {}",
+                        bookingId, saved.getBookingReference(), e.getMessage());
+            }
+        }
+
         return saved;
     }
 
@@ -391,6 +416,23 @@ public class BookingService {
                     .setScale(2, RoundingMode.HALF_UP);
         }
         return addon.getPrice().setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private ConfirmationEmailData buildConfirmationEmailData(Booking booking) {
+        String manageUrl = (publicBaseUrl != null && !publicBaseUrl.isBlank())
+                ? publicBaseUrl + "/manage-booking.html?bookingReference=" + booking.getBookingReference()
+                : null;
+        return new ConfirmationEmailData(
+                booking.getBookingReference(),
+                booking.getCustomer().getEmail(),
+                booking.getCustomer().getFullName(),
+                booking.getPickupDateTime(),
+                booking.getPickupLocation(),
+                booking.getDropoffDateTime(),
+                booking.getDropoffLocation(),
+                booking.getTotalPrice(),
+                manageUrl
+        );
     }
 
 }
