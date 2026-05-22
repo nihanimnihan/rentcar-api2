@@ -155,7 +155,10 @@ function renderResult(booking, policy) {
         </div>
       </div>
 
-      <!-- ⑤ Cancellation policy (conditionally rendered) -->
+      <!-- ⑤ Payment status -->
+      ${paymentSectionHtml(booking)}
+
+      <!-- ⑥ Cancellation policy (conditionally rendered) -->
       ${cancellationPolicySectionHtml(policy)}
 
     </div>`;
@@ -211,7 +214,48 @@ function cancellationPolicySectionHtml(policy) {
 }
 
 /**
- * Builds an inline alert panel using the reusable .rc-alert component
+ * Renders a compact Payment section embedded in the booking card.
+ * Returns '' when paymentStatus is absent (e.g. transfer bookings or legacy rows).
+ *
+ * Status → label + badge variant mapping:
+ *   PAID        → "Paid"             success (green)
+ *   PENDING     → "Payment pending"  warning (yellow)
+ *   FAILED      → "Payment failed"   error   (red)
+ *   REFUNDED    → "Refunded"         info    (blue)
+ *   CANCELLED   → "Payment cancelled" neutral (grey)
+ *   NOT_STARTED → omit section
+ */
+function paymentSectionHtml(booking) {
+  const s = booking.paymentStatus;
+  if (!s || s === 'NOT_STARTED') return '';
+
+  const map = {
+    PAID:       { label: 'Paid',              variant: 'success' },
+    PENDING:    { label: 'Payment pending',   variant: 'warning' },
+    FAILED:     { label: 'Payment failed',    variant: 'error'   },
+    REFUNDED:   { label: 'Refunded',          variant: 'info'    },
+    CANCELLED:  { label: 'Payment cancelled', variant: 'neutral' },
+  };
+  const { label, variant } = map[s] ?? { label: s, variant: 'neutral' };
+
+  const methodLabel = booking.paymentMethod === 'CARD'  ? 'Card'
+                    : booking.paymentMethod === 'POST'   ? 'Post'
+                    : null;
+  const methodHtml = methodLabel
+    ? `<span class="manage-booking-meta__sub">${escHtml(methodLabel)}</span>`
+    : '';
+
+  return `
+    <div class="manage-booking-section manage-booking-section--payment">
+      <div class="manage-booking-meta__label">Payment</div>
+      <div class="manage-booking-payment-row">
+        <span class="rc-badge rc-badge--${variant}">${escHtml(label)}</span>
+        ${methodHtml}
+      </div>
+    </div>`;
+}
+
+/**
  * defined in css/components/alerts.css.
  *
  * @param {string} title   - Bold heading (optional — omit or pass '' to skip).

@@ -14,6 +14,8 @@ public interface BookingMapper {
     @Mapping(target = "carRentalTotal", source = "rentalCharge")
     @Mapping(target = "addonTotal", source = "addonCharge")
     @Mapping(target = "addons", source = "bookingAddons")
+    @Mapping(target = "paymentStatus", ignore = true)
+    @Mapping(target = "paymentMethod", ignore = true)
     BookingResponse toResponse(Booking booking);
 
     @Mapping(target = "addonId", source = "addon.id")

@@ -4,6 +4,8 @@ import com.rentcar.api.domain.booking.BookingOptionType;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.domain.booking.MileageOption;
+import com.rentcar.api.domain.payment.PaymentMethod;
+import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.dto.addon.BookingAddonResponse;
 import com.rentcar.api.dto.car.CarResponse;
 import com.rentcar.api.dto.customer.CustomerResponse;
@@ -35,6 +37,22 @@ public record BookingResponse(
         BookingOptionType bookingOptionType,
         BookingStatus status,
         BookingSource source,
-        List<BookingAddonResponse> addons
+        List<BookingAddonResponse> addons,
+        /** Latest payment status for this booking — null if no payment record exists. */
+        PaymentStatus paymentStatus,
+        /** Payment method used — null if no payment record exists. */
+        PaymentMethod paymentMethod
 ) {
+    /** Returns a new instance with payment fields replaced. Used to enrich mapper-produced responses. */
+    public BookingResponse withPayment(PaymentStatus paymentStatus, PaymentMethod paymentMethod) {
+        return new BookingResponse(
+                id, bookingReference, car, customer,
+                pickupDateTime, pickupLocation, dropoffDateTime, dropoffLocation,
+                rentalDays, baseDailyPrice, effectiveDailyPrice, discountPercentage,
+                carRentalTotal, addonTotal, totalPrice,
+                includedKmSnapshot, unlimitedKmPriceSnapshot, mileageOption,
+                bookingOptionType, status, source, addons,
+                paymentStatus, paymentMethod
+        );
+    }
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -90,6 +91,10 @@ public class PaymentService {
         }
 
         return paymentRepository.save(payment);
+    }
+
+    public Optional<Payment> findLatestPayment(Booking booking) {
+        return paymentRepository.findTopByBookingOrderByCreatedAtDesc(booking);
     }
 
     private Payment getLatestPaymentForBooking(Booking booking) {

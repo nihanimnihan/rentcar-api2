@@ -1,10 +1,12 @@
 package com.rentcar.api.controller;
 
+import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.dto.booking.BookingResponse;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
 import com.rentcar.api.dto.payment.ProcessPaymentRequest;
 import com.rentcar.api.mapper.BookingMapper;
 import com.rentcar.api.service.BookingService;
+import com.rentcar.api.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final BookingMapper bookingMapper;
+    private final PaymentService paymentService;
 
     @PostMapping
     public BookingResponse createBooking(@Valid @RequestBody CreateBookingRequest request) {
@@ -24,19 +27,27 @@ public class BookingController {
 
     @GetMapping("/{id}")
     public BookingResponse getBookingById(@PathVariable Long id) {
-        return bookingMapper.toResponse(bookingService.getBookingById(id));
+        Booking booking = bookingService.getBookingById(id);
+        return enrichWithPayment(bookingMapper.toResponse(booking), booking);
     }
 
     @GetMapping("/manage")
     public BookingResponse manageBooking(@RequestParam String bookingReference,
                                          @RequestParam String lastName) {
-        return bookingMapper.toResponse(
-                bookingService.findBookingByReferenceAndLastName(bookingReference, lastName));
+        Booking booking = bookingService.findBookingByReferenceAndLastName(bookingReference, lastName);
+        return enrichWithPayment(bookingMapper.toResponse(booking), booking);
     }
 
     @PostMapping("/{id}/payments/process")
     public BookingResponse processPayment(@PathVariable Long id,
                                           @Valid @RequestBody ProcessPaymentRequest request) {
         return bookingMapper.toResponse(bookingService.completePayment(id, request.paymentMethodId()));
+    }
+
+    /** Enriches a mapper-produced response with the latest payment status and method. */
+    private BookingResponse enrichWithPayment(BookingResponse base, Booking booking) {
+        return paymentService.findLatestPayment(booking)
+                .map(p -> base.withPayment(p.getStatus(), p.getMethod()))
+                .orElse(base);
     }
 }

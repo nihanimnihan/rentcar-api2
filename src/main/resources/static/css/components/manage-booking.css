@@ -221,18 +221,24 @@
   background: #fafbfc;
 }
 
-.manage-booking-cancel-btn {
-  width: 100%;
-  height: 46px;
-  border: 1.5px solid #cfd6e4;
-  border-radius: 10px;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  color: #8a94a6;
-  cursor: not-allowed;
+/* ── Payment section ──────────────────────────────────────────────────────── */
+
+.manage-booking-section--payment {
+  background: #fafbfc;
+}
+
+.manage-booking-payment-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 2px;
 }
+
+/* ── rc-badge variants ────────────────────────────────────────────────────── */
+/* Neutral (grey) variant used for cancelled/unknown payment states.           */
+
+.rc-badge--neutral {
+  background: #f2f4f7;
+  color: #667085;
+}
+
