@@ -4,6 +4,8 @@ import com.rentcar.api.domain.addon.Addon;
 import com.rentcar.api.domain.addon.AddonPricingType;
 import com.rentcar.api.domain.addon.BookingAddon;
 import com.rentcar.api.domain.booking.Booking;
+import com.rentcar.api.domain.booking.BookingActorType;
+import com.rentcar.api.domain.booking.BookingChannel;
 import com.rentcar.api.domain.booking.BookingOptionType;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
@@ -134,6 +136,9 @@ public class BookingService {
                 .bookingOptionType(BookingOptionType.BEST_PRICE)
                 .status(BookingStatus.PENDING)
                 .source(BookingSource.WEB)
+                // Audit metadata: standard WEB checkout is always an anonymous customer.
+                .createdByType(BookingActorType.CUSTOMER_ANONYMOUS)
+                .createdChannel(BookingChannel.WEB)
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
@@ -210,9 +215,15 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancelledByType(BookingActorType.ADMIN);
+        booking.setCancelledChannel(BookingChannel.ADMIN_PANEL);
+        booking.setCancelledAt(businessTimezone.nowBusiness().toInstant());
+        booking.setCancellationReason("Cancelled by admin");
         Booking savedBooking = bookingRepository.save(booking);
         paymentService.handleCancellationPayment(savedBooking);
-        log.info("Booking cancelled: id={}", id);
+        log.info("Booking cancelled by admin: bookingId={} reference={} status={} cancelledByType={} cancelledChannel={}",
+                savedBooking.getId(), savedBooking.getBookingReference(), savedBooking.getStatus(),
+                savedBooking.getCancelledByType(), savedBooking.getCancelledChannel());
         return savedBooking;
     }
 
@@ -257,11 +268,17 @@ public class BookingService {
         }
 
         locked.setStatus(BookingStatus.CANCELLED);
+        locked.setCancelledByType(BookingActorType.CUSTOMER_ANONYMOUS);
+        locked.setCancelledChannel(BookingChannel.WEB);
+        locked.setCancelledAt(businessTimezone.nowBusiness().toInstant());
+        locked.setCancellationReason("Customer requested cancellation from manage booking");
         Booking saved = bookingRepository.save(locked);
-        // cancelPaymentForBooking handles both PAID (issues mock refund → REFUNDED)
-        // and PENDING/FAILED (voids the record → CANCELLED).
+        // handleCancellationPayment handles PAID (mock refund → REFUNDED) and
+        // PENDING/FAILED (voids the record → CANCELLED).
         paymentService.handleCancellationPayment(saved);
-        log.info("Booking cancelled by customer: reference={}, bookingId={}, status={}", bookingReference, saved.getId(), saved.getStatus());
+        log.info("Booking cancelled by customer: bookingId={} reference={} status={} cancelledByType={} cancelledChannel={}",
+                saved.getId(), bookingReference, saved.getStatus(),
+                saved.getCancelledByType(), saved.getCancelledChannel());
         return saved;
     }
 

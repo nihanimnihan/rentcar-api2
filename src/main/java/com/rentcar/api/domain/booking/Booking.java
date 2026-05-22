@@ -178,6 +178,42 @@ public class Booking {
     @Column(length = 1000)
     private String notes;
 
+    // ── Booking audit metadata ────────────────────────────────────────────────
+    //
+    // Tracks who/what created and (optionally) cancelled the booking.
+    // Nullable on all fields so transfer bookings and legacy rows are unaffected.
+    //
+    // createdByType / createdChannel: set at booking creation time.
+    //   For the standard WEB checkout: CUSTOMER_ANONYMOUS + WEB.
+    //   Null for transfer bookings (created via TransferBookingService).
+    //
+    // cancelledByType / cancelledChannel / cancelledAt / cancellationReason:
+    //   Set only when the booking is cancelled.
+    //   cancelledByType=CUSTOMER_ANONYMOUS + cancelledChannel=WEB for manage-booking flow.
+    //   cancelledByType=ADMIN + cancelledChannel=ADMIN_PANEL for admin path.
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "created_by_type")
+    private BookingActorType createdByType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "created_channel")
+    private BookingChannel createdChannel;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancelled_by_type")
+    private BookingActorType cancelledByType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancelled_channel")
+    private BookingChannel cancelledChannel;
+
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
+    @Column(name = "cancellation_reason", length = 512)
+    private String cancellationReason;
+
     @Version
     @Column(nullable = false)
     private Long version;

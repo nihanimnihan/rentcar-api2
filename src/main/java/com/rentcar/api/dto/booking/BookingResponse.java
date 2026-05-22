@@ -1,5 +1,7 @@
 package com.rentcar.api.dto.booking;
 
+import com.rentcar.api.domain.booking.BookingActorType;
+import com.rentcar.api.domain.booking.BookingChannel;
 import com.rentcar.api.domain.booking.BookingOptionType;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
@@ -11,6 +13,7 @@ import com.rentcar.api.dto.car.CarResponse;
 import com.rentcar.api.dto.customer.CustomerResponse;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -41,7 +44,20 @@ public record BookingResponse(
         /** Latest payment status for this booking — null if no payment record exists. */
         PaymentStatus paymentStatus,
         /** Payment method used — null if no payment record exists. */
-        PaymentMethod paymentMethod
+        PaymentMethod paymentMethod,
+        // ── Audit metadata ────────────────────────────────────────────────────
+        /** Who created this booking (null for transfer bookings). */
+        BookingActorType createdByType,
+        /** Channel through which booking was created (null for transfer bookings). */
+        BookingChannel createdChannel,
+        /** Who cancelled this booking — null until the booking is cancelled. */
+        BookingActorType cancelledByType,
+        /** Channel through which cancellation was performed — null until cancelled. */
+        BookingChannel cancelledChannel,
+        /** UTC instant when the booking was cancelled — null until cancelled. */
+        Instant cancelledAt,
+        /** Free-text reason for cancellation — null until cancelled. */
+        String cancellationReason
 ) {
     /** Returns a new instance with payment fields replaced. Used to enrich mapper-produced responses. */
     public BookingResponse withPayment(PaymentStatus paymentStatus, PaymentMethod paymentMethod) {
@@ -52,7 +68,9 @@ public record BookingResponse(
                 carRentalTotal, addonTotal, totalPrice,
                 includedKmSnapshot, unlimitedKmPriceSnapshot, mileageOption,
                 bookingOptionType, status, source, addons,
-                paymentStatus, paymentMethod
+                paymentStatus, paymentMethod,
+                createdByType, createdChannel,
+                cancelledByType, cancelledChannel, cancelledAt, cancellationReason
         );
     }
 }
