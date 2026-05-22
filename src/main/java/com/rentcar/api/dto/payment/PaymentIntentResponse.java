@@ -11,6 +11,9 @@ import java.math.BigDecimal;
  *
  * <p>Amount and currency are always derived from the booking stored on the server —
  * the frontend must never supply or override these values.
+ *
+ * <p>{@link #paymentReference()} is the public-facing reference for this payment record
+ * (e.g. {@code PAY-3F4A8B2C}). The internal numeric id is not exposed.
  */
 public record PaymentIntentResponse(
         Long bookingId,
@@ -18,7 +21,7 @@ public record PaymentIntentResponse(
         BigDecimal amount,
         String currency,
         String provider,
-        String clientSecret,  // nullable: present for Stripe; synthetic for FakePaymentProvider
-        Long paymentId
+        String clientSecret,      // nullable: present for Stripe; synthetic for FakePaymentProvider
+        String paymentReference   // public payment reference, never the internal numeric id
 ) {
 }

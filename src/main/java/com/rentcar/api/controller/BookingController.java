@@ -44,9 +44,7 @@ public class BookingController {
     public PaymentIntentResponse createPaymentIntent(
             @PathVariable Long id,
             @RequestBody(required = false) CreatePaymentIntentRequest request) {
-        // request may be null if caller sends no body; defaults apply
-        if (request == null) request = CreatePaymentIntentRequest.defaults();
-        return bookingService.createPaymentIntent(id);
+        return bookingService.createPaymentIntent(id, request);
     }
 
     @PostMapping("/{id}/payments/process")

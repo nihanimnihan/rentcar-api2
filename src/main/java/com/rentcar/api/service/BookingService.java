@@ -16,6 +16,7 @@ import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.dto.booking.CancellationPolicyResponse;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
+import com.rentcar.api.dto.payment.CreatePaymentIntentRequest;
 import com.rentcar.api.dto.payment.PaymentIntentResponse;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
 import com.rentcar.api.email.ConfirmationEmailData;
@@ -280,14 +281,17 @@ public class BookingService {
     /**
      * Creates a payment intent for a PENDING or FAILED booking without charging the customer.
      *
-     * <p>Flow:
-     * <ol>
-     *   <li>Locks the booking row (prevents concurrent cancel + intent races).</li>
-     *   <li>CONFIRMED → rejected (already paid).</li>
-     *   <li>CANCELLED → rejected (no payment possible).</li>
-     *   <li>FAILED → creates a fresh PENDING payment, resets booking to PENDING, then creates intent.</li>
-     *   <li>PENDING → uses the existing PENDING payment record.</li>
-     * </ol>
+     * <p><b>State machine:</b>
+     * <ul>
+     *   <li>PENDING → uses the existing PENDING payment record (idempotent: repeated calls
+     *       return the same {@code paymentReference} and a deterministic {@code clientSecret}).</li>
+     *   <li>FAILED → creates a fresh PENDING payment, resets booking to PENDING.
+     *       The previous FAILED record is preserved for audit history.</li>
+     *   <li>CONFIRMED → rejected with 409 (booking is already paid — intent not needed).</li>
+     *   <li>CANCELLED → rejected with 409 (payment is not possible).</li>
+     * </ul>
+     *
+     * <p>The row lock prevents concurrent cancel + intent races.
      *
      * <p>The returned {@link PaymentIntentResponse#clientSecret()} is {@code null} for the
      * fake dev provider. Real Stripe returns a secret that the frontend passes to
@@ -296,11 +300,19 @@ public class BookingService {
      * <p>Amount and currency are always derived from the booking — the frontend must never
      * supply or override these values.
      */
-
     @Transactional
-    public PaymentIntentResponse createPaymentIntent(Long bookingId) {
+    public PaymentIntentResponse createPaymentIntent(Long bookingId, CreatePaymentIntentRequest request) {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        // TODO: when multi-method support is added (BANK_TRANSFER, SEPA, etc.),
+        //   map request.paymentMethodType() to PaymentMethod enum and pass it to
+        //   createPendingPayment so Payment.method is set correctly.
+        //   Currently only CARD is supported and paymentMethodType is intentionally ignored.
+        String requestedMethodType = request != null ? request.paymentMethodType() : null;
+        if (requestedMethodType != null) {
+            log.debug("paymentMethodType '{}' received but not yet applied — defaulting to CARD", requestedMethodType);
+        }
 
         return switch (booking.getStatus()) {
             case CONFIRMED -> throw new InvalidBookingStateException(
@@ -315,7 +327,7 @@ public class BookingService {
                 yield buildIntentResponse(booking, fresh);
             }
             default -> {
-                // PENDING — use the existing payment record.
+                // PENDING — idempotent: return intent for existing payment record.
                 Payment payment = paymentService.findLatestPayment(booking)
                         .orElseThrow(() -> new PaymentNotFoundException(bookingId));
                 yield buildIntentResponse(booking, payment);
@@ -325,8 +337,8 @@ public class BookingService {
 
     private PaymentIntentResponse buildIntentResponse(Booking booking, Payment payment) {
         var result = paymentService.createIntentForPayment(payment);
-        log.info("Payment intent created: bookingId={} paymentId={} provider={}",
-                booking.getId(), payment.getId(), result.providerName());
+        log.info("Payment intent created: bookingId={} paymentRef={} provider={}",
+                booking.getId(), payment.getPaymentReference(), result.providerName());
         return new PaymentIntentResponse(
                 booking.getId(),
                 booking.getBookingReference(),
@@ -334,7 +346,7 @@ public class BookingService {
                 payment.getCurrencyCode(),
                 result.providerName(),
                 result.clientSecret(),
-                payment.getId()
+                payment.getPaymentReference()
         );
     }
 

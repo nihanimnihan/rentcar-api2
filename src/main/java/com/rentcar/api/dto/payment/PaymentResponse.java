@@ -10,6 +10,7 @@ import java.time.Instant;
 
 public record PaymentResponse(
         Long id,
+        String paymentReference,
         BigDecimal amount,
         String currencyCode,
         PaymentMethod method,

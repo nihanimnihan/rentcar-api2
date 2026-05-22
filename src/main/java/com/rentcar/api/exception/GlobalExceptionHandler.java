@@ -122,6 +122,16 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.CONFLICT, "Invalid booking state", ex.getMessage());
     }
 
+    // ── 503 Service Unavailable ───────────────────────────────────────────────
+
+    @ExceptionHandler(PaymentProviderNotConfiguredException.class)
+    public ResponseEntity<?> handlePaymentProviderNotConfiguredException(
+            PaymentProviderNotConfiguredException ex) {
+        log.warn("Payment provider not configured: {}", ex.getMessage());
+        return error(HttpStatus.SERVICE_UNAVAILABLE, "Payment provider not configured",
+                "Payment processing is not available in this environment.");
+    }
+
     // ── 500 Internal Server Error ─────────────────────────────────────────────
 
     @ExceptionHandler(RefundFailedException.class)

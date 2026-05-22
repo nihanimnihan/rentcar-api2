@@ -21,6 +21,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payments")
@@ -56,6 +57,15 @@ public class Payment {
     @Column
     private String providerReference;
 
+    /**
+     * Public-facing payment reference (e.g. {@code PAY-3F4A8B2C}).
+     *
+     * <p>Generated once on persist; used in API responses instead of exposing
+     * the internal numeric {@link #id}. Unique per payment record.
+     */
+    @Column(unique = true, updatable = false)
+    private String paymentReference;
+
     @Column
     private Instant paidAt;
 
@@ -74,6 +84,12 @@ public class Payment {
         this.createdAt = Instant.now();
         if (this.status == null) {
             this.status = PaymentStatus.PENDING;
+        }
+        if (this.paymentReference == null) {
+            // PAY- prefix + first 8 hex chars of a random UUID, e.g. PAY-3F4A8B2C.
+            // UUID provides sufficient entropy for uniqueness across concurrent payments.
+            this.paymentReference = "PAY-" + UUID.randomUUID()
+                    .toString().replace("-", "").substring(0, 8).toUpperCase();
         }
     }
 }
