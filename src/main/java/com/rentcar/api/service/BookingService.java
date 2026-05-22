@@ -294,6 +294,10 @@ public class BookingService {
 
         Payment payment = paymentService.processLatestPaymentForBooking(booking, paymentMethodId);
 
+        // TODO (async): with real Stripe, payment may stay PENDING here while the provider
+        //   processes it (e.g. 3DS challenge, bank redirect). In that case, keep the booking
+        //   PENDING and let a PaymentWebhookHandler advance it to CONFIRMED when Stripe sends
+        //   'payment_intent.succeeded'. FakePaymentProvider resolves synchronously.
         if (payment.getStatus() == PaymentStatus.PAID) {
             booking.setStatus(BookingStatus.CONFIRMED);
         } else {

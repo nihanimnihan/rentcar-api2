@@ -46,6 +46,12 @@ public class PaymentService {
 
         if (payment.getStatus() == PaymentStatus.PAID) {
             // Money was collected — issue a full refund before cancelling.
+            //
+            // TODO (async): with real Stripe, call stripe.refunds.create() here and set
+            //   payment.setStatus(PaymentStatus.REFUND_PENDING) instead of REFUNDED.
+            //   A PaymentWebhookHandler will then advance REFUND_PENDING → REFUNDED
+            //   when Stripe sends the 'charge.refunded' event.
+            //   FakePaymentProvider skips REFUND_PENDING and returns successful immediately.
             PaymentResult result = paymentProvider.refund(payment);
             if (!result.successful()) {
                 log.warn("Refund failed for paymentId={} bookingId={} — manual intervention required",
@@ -81,6 +87,11 @@ public class PaymentService {
         payment.setProviderReference(result.providerReference());
 
         if (result.successful()) {
+            // TODO (async): with real Stripe, the synchronous charge call returns 'requires_action'
+            //   or 'processing' for many payment methods (3DS, SEPA, etc.).
+            //   A real implementation should set PENDING here and advance to PAID only when
+            //   Stripe sends the 'payment_intent.succeeded' webhook event.
+            //   FakePaymentProvider resolves synchronously — PAID immediately.
             payment.setStatus(PaymentStatus.PAID);
             payment.setPaidAt(appClock.nowUtc());
             log.info("Payment succeeded: paymentId={} bookingId={} ref={}",
