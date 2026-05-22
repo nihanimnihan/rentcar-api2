@@ -149,7 +149,20 @@ class ManageBookingTest {
                         "We couldn't find a booking with these details. Please check your reference and last name."));
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    @Test
+    void manage_extraSpacesInLastName_returnsBooking() throws Exception {
+        // Input lastName with surrounding and internal spaces must still match.
+        // Uses lastNameNormalized stored on the Customer entity (trimmed + collapsed).
+        String ref = createConfirmedBookingAndGetReference(996, 998, "Eve Güner", "eve.guner.acc5@test.com");
+
+        mockMvc.perform(get("/api/bookings/manage")
+                        .param("bookingReference", ref)
+                        .param("lastName", "  Guner  "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingReference").value(ref));
+    }
+
+
 
     /**
      * Creates a booking for the given customer name, processes payment (→ CONFIRMED),

@@ -35,9 +35,9 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import com.rentcar.api.util.BookingReferenceGenerator;
 import com.rentcar.api.util.BusinessTimezone;
-import java.text.Normalizer;
+import com.rentcar.api.util.NameNormalizer;
 import java.util.List;
-import java.util.Locale;
+
 
 @Slf4j
 @Service
@@ -169,39 +169,19 @@ public class BookingService {
     }
 
     public Booking findBookingByReferenceAndLastName(String bookingReference, String lastName) {
-        // Fetch by reference only — DB-level accent-insensitive comparison is dialect-dependent.
-        // Last-name matching is done in Java using Unicode NFD normalisation so "Güner" == "Guner".
-        Booking booking = bookingRepository.findByBookingReferenceEager(bookingReference.trim())
+        Booking booking = bookingRepository.findByBookingReferenceEager(bookingReference == null ? "" : bookingReference.trim())
                 .orElseThrow(() -> new BookingNotFoundException(MANAGE_NOT_FOUND_MSG));
 
-        // Always throw the same message for "wrong name" and "reference not found"
+        // Compare the stored lastNameNormalized against the normalized input.
+        // Using stored DB field avoids runtime string manipulation and enables future DB-level filtering.
+        // Always throw the same generic message for "wrong name" and "reference not found"
         // to avoid leaking which condition failed.
-        String storedLast = extractLastName(booking.getCustomer().getFullName());
-        if (!normalizeForComparison(storedLast).equals(normalizeForComparison(lastName.trim()))) {
+        String inputNormalized = NameNormalizer.normalize(lastName);
+        String storedNormalized = booking.getCustomer().getLastNameNormalized();
+        if (storedNormalized == null || !storedNormalized.equals(inputNormalized)) {
             throw new BookingNotFoundException(MANAGE_NOT_FOUND_MSG);
         }
         return booking;
-    }
-
-    /**
-     * Returns the last whitespace-delimited token of a full name.
-     * "Nihan Güner" → "Güner", "Doe" → "Doe".
-     */
-    static String extractLastName(String fullName) {
-        if (fullName == null || fullName.isBlank()) return "";
-        String[] parts = fullName.trim().split("\\s+");
-        return parts[parts.length - 1];
-    }
-
-    /**
-     * Strips diacritical marks (accents) and lowercases.
-     * NFD decomposition splits e.g. ü → u + combining diaeresis; the combining mark
-     * is then removed. This makes "Güner" and "Guner" compare equal.
-     */
-    static String normalizeForComparison(String input) {
-        if (input == null || input.isBlank()) return "";
-        String nfd = Normalizer.normalize(input, Normalizer.Form.NFD);
-        return nfd.replaceAll("\\p{InCombiningDiacriticalMarks}", "").toLowerCase(Locale.ROOT);
     }
 
     @Transactional
