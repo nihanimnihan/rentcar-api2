@@ -5,7 +5,7 @@ import com.rentcar.api.dto.booking.BookingResponse;
 import com.rentcar.api.dto.booking.CancellationPolicyResponse;
 import com.rentcar.api.dto.booking.ManageCancelRequest;
 import com.rentcar.api.mapper.BookingMapper;
-import com.rentcar.api.service.BookingService;
+import com.rentcar.api.service.BookingCancellationService;
 import com.rentcar.api.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class BookingCancellationController {
 
-    private final BookingService bookingService;
+    private final BookingCancellationService bookingCancellationService;
     private final BookingMapper bookingMapper;
     private final PaymentService paymentService;
 
     @GetMapping("/manage/cancellation-policy")
     public CancellationPolicyResponse cancellationPolicy(@RequestParam String bookingReference,
                                                          @RequestParam String lastName) {
-        return bookingService.getCancellationPolicy(bookingReference, lastName);
+        return bookingCancellationService.getCancellationPolicy(bookingReference, lastName);
     }
 
     /**
@@ -33,7 +33,7 @@ public class BookingCancellationController {
      */
     @PostMapping("/manage/cancel")
     public BookingResponse cancelByReference(@Valid @RequestBody ManageCancelRequest request) {
-        Booking booking = bookingService.cancelBookingByReference(
+        Booking booking = bookingCancellationService.cancelBookingByReference(
                 request.bookingReference(), request.lastName());
         return enrichWithPayment(bookingMapper.toResponse(booking), booking);
     }
@@ -41,7 +41,7 @@ public class BookingCancellationController {
     /** Admin-only cancellation by numeric id. */
     @PostMapping("/{id}/cancel")
     public BookingResponse cancelBooking(@PathVariable Long id) {
-        return bookingMapper.toResponse(bookingService.cancelBooking(id));
+        return bookingMapper.toResponse(bookingCancellationService.cancelBooking(id));
     }
 
     private BookingResponse enrichWithPayment(BookingResponse base, Booking booking) {
