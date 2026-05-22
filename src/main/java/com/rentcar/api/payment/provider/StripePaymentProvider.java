@@ -1,6 +1,7 @@
 package com.rentcar.api.payment.provider;
 
 import com.rentcar.api.domain.payment.Payment;
+import com.rentcar.api.payment.model.PaymentIntentResult;
 import com.rentcar.api.payment.model.PaymentResult;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -35,5 +36,20 @@ public class StripePaymentProvider implements PaymentProvider {
     public PaymentResult refund(Payment payment) {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
-}
 
+    /**
+     * TODO (Stripe): implement via {@code stripe.paymentIntents().create()} with
+     *   {@code amount} in smallest currency unit (cents), {@code currency},
+     *   and {@code metadata.bookingReference} for reconciliation.
+     *   Return the Stripe {@code PaymentIntent.clientSecret} and {@code PaymentIntent.id}.
+     */
+    @Override
+    public PaymentIntentResult createIntent(Payment payment) {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    }
+
+    @Override
+    public String providerName() {
+        return "STRIPE";
+    }
+}

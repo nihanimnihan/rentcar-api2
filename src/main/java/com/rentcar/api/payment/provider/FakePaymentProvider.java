@@ -1,6 +1,7 @@
 package com.rentcar.api.payment.provider;
 
 import com.rentcar.api.domain.payment.Payment;
+import com.rentcar.api.payment.model.PaymentIntentResult;
 import com.rentcar.api.payment.model.PaymentResult;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -43,5 +44,21 @@ public class FakePaymentProvider implements PaymentProvider {
     @Override
     public PaymentResult refund(Payment payment) {
         return new PaymentResult(true, "FAKE-REFUND-" + payment.getId());
+    }
+
+    @Override
+    public PaymentIntentResult createIntent(Payment payment) {
+        // Synthetic client secret for dev/test: deterministic per payment record.
+        // Real Stripe would return a "pi_xxx_secret_yyy" string from the Stripe API.
+        return new PaymentIntentResult(
+                providerName(),
+                "fake_client_secret_" + payment.getId(),
+                "fake_intent_" + payment.getId()
+        );
+    }
+
+    @Override
+    public String providerName() {
+        return "FAKE";
     }
 }

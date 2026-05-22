@@ -8,6 +8,7 @@ import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.exception.InvalidBookingStateException;
 import com.rentcar.api.exception.PaymentNotFoundException;
 import com.rentcar.api.exception.RefundFailedException;
+import com.rentcar.api.payment.model.PaymentIntentResult;
 import com.rentcar.api.payment.model.PaymentResult;
 import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.PaymentRepository;
@@ -30,10 +31,11 @@ public class PaymentService {
     private final AppClock appClock;
 
     @Transactional
-    public void createPendingPayment(Booking booking) {
+    public Payment createPendingPayment(Booking booking) {
         Payment saved = paymentRepository.save(buildPendingPayment(booking));
         log.debug("Pending payment created: paymentId={} bookingId={} amount={}",
                 saved.getId(), booking.getId(), booking.getTotalPrice());
+        return saved;
     }
 
     public List<Payment> getPayments() {
@@ -106,6 +108,19 @@ public class PaymentService {
 
     public Optional<Payment> findLatestPayment(Booking booking) {
         return paymentRepository.findTopByBookingOrderByCreatedAtDesc(booking);
+    }
+
+    /**
+     * Creates a payment intent with the configured provider without charging the customer.
+     * Used by {@code POST /api/bookings/{id}/payments/intent}.
+     */
+    public PaymentIntentResult createIntentForPayment(Payment payment) {
+        return paymentProvider.createIntent(payment);
+    }
+
+    /** Short provider name for API responses (e.g. {@code "FAKE"}, {@code "STRIPE"}). */
+    public String providerName() {
+        return paymentProvider.providerName();
     }
 
     private Payment getLatestPaymentForBooking(Booking booking) {

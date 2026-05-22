@@ -3,6 +3,8 @@ package com.rentcar.api.controller;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.dto.booking.BookingResponse;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
+import com.rentcar.api.dto.payment.CreatePaymentIntentRequest;
+import com.rentcar.api.dto.payment.PaymentIntentResponse;
 import com.rentcar.api.dto.payment.ProcessPaymentRequest;
 import com.rentcar.api.mapper.BookingMapper;
 import com.rentcar.api.service.BookingService;
@@ -36,6 +38,15 @@ public class BookingController {
                                          @RequestParam String lastName) {
         Booking booking = bookingService.findBookingByReferenceAndLastName(bookingReference, lastName);
         return enrichWithPayment(bookingMapper.toResponse(booking), booking);
+    }
+
+    @PostMapping("/{id}/payments/intent")
+    public PaymentIntentResponse createPaymentIntent(
+            @PathVariable Long id,
+            @RequestBody(required = false) CreatePaymentIntentRequest request) {
+        // request may be null if caller sends no body; defaults apply
+        if (request == null) request = CreatePaymentIntentRequest.defaults();
+        return bookingService.createPaymentIntent(id);
     }
 
     @PostMapping("/{id}/payments/process")

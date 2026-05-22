@@ -16,6 +16,7 @@ import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.dto.booking.CancellationPolicyResponse;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
+import com.rentcar.api.dto.payment.PaymentIntentResponse;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
 import com.rentcar.api.email.ConfirmationEmailData;
 import com.rentcar.api.email.EmailService;
@@ -24,6 +25,7 @@ import com.rentcar.api.exception.BookingNotFoundException;
 import com.rentcar.api.exception.CarNotAvailableException;
 import com.rentcar.api.exception.InvalidBookingDateException;
 import com.rentcar.api.exception.InvalidBookingStateException;
+import com.rentcar.api.exception.PaymentNotFoundException;
 import com.rentcar.api.repository.AddonRepository;
 import com.rentcar.api.repository.BookingAddonRepository;
 import com.rentcar.api.repository.BookingRepository;
@@ -273,6 +275,67 @@ public class BookingService {
                 saved.getId(), bookingReference, saved.getStatus(),
                 saved.getCancelledByType(), saved.getCancelledChannel());
         return saved;
+    }
+
+    /**
+     * Creates a payment intent for a PENDING or FAILED booking without charging the customer.
+     *
+     * <p>Flow:
+     * <ol>
+     *   <li>Locks the booking row (prevents concurrent cancel + intent races).</li>
+     *   <li>CONFIRMED → rejected (already paid).</li>
+     *   <li>CANCELLED → rejected (no payment possible).</li>
+     *   <li>FAILED → creates a fresh PENDING payment, resets booking to PENDING, then creates intent.</li>
+     *   <li>PENDING → uses the existing PENDING payment record.</li>
+     * </ol>
+     *
+     * <p>The returned {@link PaymentIntentResponse#clientSecret()} is {@code null} for the
+     * fake dev provider. Real Stripe returns a secret that the frontend passes to
+     * {@code stripe.confirmCardPayment()}.
+     *
+     * <p>Amount and currency are always derived from the booking — the frontend must never
+     * supply or override these values.
+     */
+
+    @Transactional
+    public PaymentIntentResponse createPaymentIntent(Long bookingId) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        return switch (booking.getStatus()) {
+            case CONFIRMED -> throw new InvalidBookingStateException(
+                    "Booking " + bookingId + " is already confirmed — payment intent not needed");
+            case CANCELLED -> throw new InvalidBookingStateException(
+                    "Booking " + bookingId + " is cancelled — payment is not possible");
+            case FAILED -> {
+                // Previous charge attempt failed — reset with a fresh PENDING payment.
+                Payment fresh = paymentService.createPendingPayment(booking);
+                booking.setStatus(BookingStatus.PENDING);
+                bookingRepository.save(booking);
+                yield buildIntentResponse(booking, fresh);
+            }
+            default -> {
+                // PENDING — use the existing payment record.
+                Payment payment = paymentService.findLatestPayment(booking)
+                        .orElseThrow(() -> new PaymentNotFoundException(bookingId));
+                yield buildIntentResponse(booking, payment);
+            }
+        };
+    }
+
+    private PaymentIntentResponse buildIntentResponse(Booking booking, Payment payment) {
+        var result = paymentService.createIntentForPayment(payment);
+        log.info("Payment intent created: bookingId={} paymentId={} provider={}",
+                booking.getId(), payment.getId(), result.providerName());
+        return new PaymentIntentResponse(
+                booking.getId(),
+                booking.getBookingReference(),
+                payment.getAmount(),
+                payment.getCurrencyCode(),
+                result.providerName(),
+                result.clientSecret(),
+                payment.getId()
+        );
     }
 
     @Transactional

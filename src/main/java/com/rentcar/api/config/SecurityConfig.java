@@ -71,6 +71,7 @@ public class SecurityConfig {
                         // ── Public API — booking and payment ───────────────────────────────
                         // These two must come BEFORE the admin /api/bookings/** rule below.
                         .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/*/payments/intent").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/bookings/*/payments/process").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/checkout").permitAll()
                         // Manage booking lookup — public, requires reference + lastName (no auth).
