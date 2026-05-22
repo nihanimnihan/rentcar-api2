@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') lookupBooking(); });
   });
+
+  // "Change" button in collapsed header → re-expand the form (result stays visible).
+  const changeBtn = document.getElementById('mfChangeBtn');
+  if (changeBtn) changeBtn.addEventListener('click', expandForm);
 });
 
 async function lookupBooking() {
@@ -64,7 +68,18 @@ async function lookupBooking() {
     }
 
     const booking = await resp.json();
-    renderResult(booking);
+
+    // Fetch cancellation policy for this booking. Runs after the main lookup so
+    // a policy failure never prevents the booking card from rendering.
+    let policy = null;
+    try {
+      const policyUrl = `/api/bookings/manage/cancellation-policy?bookingReference=${encodeURIComponent(bookingReference)}&lastName=${encodeURIComponent(lastName)}`;
+      const policyResp = await fetch(policyUrl);
+      if (policyResp.ok) policy = await policyResp.json();
+    } catch (_) { /* policy unavailable — section will be hidden */ }
+
+    renderResult(booking, policy);
+    collapseForm(bookingReference);
   } catch (_err) {
     showError('', trans('manage.networkError'));
   } finally {
@@ -72,7 +87,7 @@ async function lookupBooking() {
   }
 }
 
-function renderResult(booking) {
+function renderResult(booking, policy) {
   const section = document.getElementById('mfResultSection');
   if (!section) return;
 
@@ -80,45 +95,120 @@ function renderResult(booking) {
   const car    = booking.car
     ? `${booking.car.brand ?? ''} ${booking.car.model ?? ''}`.trim()
     : '—';
-  const pickup  = formatDatetime(booking.pickupDateTime);
-  const dropoff = formatDatetime(booking.dropoffDateTime);
+  const pickup   = booking.pickupDateTime  ? formatDatetime(booking.pickupDateTime)  : '—';
+  const dropoff  = booking.dropoffDateTime ? formatDatetime(booking.dropoffDateTime) : '—';
+  const pickupLoc  = booking.pickupLocation  ? escHtml(booking.pickupLocation)  : null;
+  const dropoffLoc = booking.dropoffLocation ? escHtml(booking.dropoffLocation) : null;
   const days    = booking.rentalDays ?? '—';
+  const dayWord = booking.rentalDays === 1 ? 'day' : 'days';
   const total   = booking.totalPrice != null
     ? `€${Number(booking.totalPrice).toFixed(2)}`
     : '—';
+  const daily   = booking.effectiveDailyPrice != null
+    ? `€${Number(booking.effectiveDailyPrice).toFixed(2)} / day`
+    : '';
 
   section.innerHTML = `
-    <div class="border-light rounded-8 px-24 py-24 mt-30">
-      <div class="d-flex justify-between items-center mb-4">
-        <h2 class="text-20 fw-700">${trans('manage.bookingDetails')}</h2>
-        ${statusBadgeHtml(booking.status)}
-      </div>
-      <div class="text-13 text-dark-1 mb-20">${ref}</div>
+    <div class="manage-booking-card">
 
-      <div class="text-14 fw-600 text-dark-1 mb-4">${trans('manage.vehicle')}</div>
-      <div class="text-16 mb-16">${escHtml(car)}</div>
-
-      <div class="row -sm-gap-y-20">
-        <div class="col-6">
-          <div class="text-14 fw-600 text-dark-1 mb-4">${trans('manage.pickupDate')}</div>
-          <div class="text-15">${pickup}</div>
-        </div>
-        <div class="col-6">
-          <div class="text-14 fw-600 text-dark-1 mb-4">${trans('manage.returnDate')}</div>
-          <div class="text-15">${dropoff}</div>
+      <!-- ① Header: title + status badge + reference -->
+      <div class="manage-booking-section">
+        <div class="d-flex justify-between items-start" style="gap:10px">
+          <div>
+            <div class="text-18 fw-700">${trans('manage.bookingDetails')}</div>
+            <div class="manage-booking-meta__ref">${ref}</div>
+          </div>
+          ${statusBadgeHtml(booking.status)}
         </div>
       </div>
 
-      <div class="d-flex justify-between items-center border-top-light mt-20 pt-20">
-        <div class="text-14 text-dark-1">${trans('manage.rentalDays')}: <strong>${days} ${trans('manage.days')}</strong></div>
-        <div class="text-18 fw-700">${total}</div>
+      <!-- ② Vehicle -->
+      <div class="manage-booking-section">
+        <div class="manage-booking-meta__label">${trans('manage.vehicle')}</div>
+        <div class="manage-booking-meta__value">${escHtml(car)}</div>
       </div>
+
+      <!-- ③ Pick-up | Return -->
+      <div class="manage-booking-grid">
+        <div class="manage-booking-grid__cell">
+          <div class="manage-booking-meta__label">${trans('manage.pickupDate')}</div>
+          <div class="manage-booking-meta__value">${pickupLoc ?? '—'}</div>
+          <div class="manage-booking-meta__sub">${pickup}</div>
+        </div>
+        <div class="manage-booking-grid__cell">
+          <div class="manage-booking-meta__label">${trans('manage.returnDate')}</div>
+          <div class="manage-booking-meta__value">${dropoffLoc ?? '—'}</div>
+          <div class="manage-booking-meta__sub">${dropoff}</div>
+        </div>
+      </div>
+
+      <!-- ④ Duration | Total -->
+      <div class="manage-booking-grid">
+        <div class="manage-booking-grid__cell">
+          <div class="manage-booking-meta__label">${trans('manage.rentalDays')}</div>
+          <div class="manage-booking-meta__value">${days} ${dayWord}</div>
+          ${daily ? `<div class="manage-booking-meta__sub">${escHtml(daily)}</div>` : ''}
+        </div>
+        <div class="manage-booking-grid__cell">
+          <div class="manage-booking-meta__label">Total</div>
+          <div class="manage-booking-meta__value manage-booking-meta__value--price">${total}</div>
+        </div>
+      </div>
+
+      <!-- ⑤ Cancellation policy (conditionally rendered) -->
+      ${cancellationPolicySectionHtml(policy)}
+
     </div>`;
 
   section.style.display = 'block';
 }
 
 /* ── helpers ─────────────────────────────────────────────────────────────*/
+
+/**
+ * Renders the cancellation policy + optional actions embedded at the
+ * bottom of the booking card.
+ * Returns '' when policy is null (fetch failed — sections silently omitted).
+ *
+ * Colour logic:
+ *   cancellable + refundEligible  → success (green)
+ *   cancellable + !refundEligible → info    (blue)
+ *   !cancellable                  → info    (blue, neutral)
+ */
+function cancellationPolicySectionHtml(policy) {
+  if (!policy) return '';
+
+  const isSuccess  = policy.cancellable && policy.refundEligible;
+  const rowVariant = isSuccess ? 'success' : 'info';
+  const icon       = isSuccess ? 'icon-check' : 'icon-notification';
+
+  const refundHtml = (policy.cancellable && policy.refundEligible && policy.refundAmount != null)
+    ? `<div class="manage-booking-policy__refund">
+         <span class="manage-booking-policy__refund-label">Refund amount</span>
+         <span class="manage-booking-policy__refund-amount">€${Number(policy.refundAmount).toFixed(2)}</span>
+       </div>`
+    : '';
+
+  const actionsHtml = policy.cancellable
+    ? `<div class="manage-booking-actions">
+         <button class="manage-booking-cancel-btn" disabled>
+           Cancel booking
+           <span class="rc-badge rc-badge--warning">Coming soon</span>
+         </button>
+       </div>`
+    : '';
+
+  return `
+    <div class="manage-booking-policy">
+      <div class="manage-booking-meta__label">Cancellation</div>
+      <div class="manage-booking-policy-row manage-booking-policy-row--${rowVariant}">
+        <div class="manage-booking-policy-row__icon"><i class="${icon}"></i></div>
+        <span>${escHtml(policy.policyMessage ?? '')}</span>
+      </div>
+      ${refundHtml}
+    </div>
+    ${actionsHtml}`;
+}
 
 /**
  * Builds an inline alert panel using the reusable .rc-alert component
@@ -196,6 +286,34 @@ function hideError() {
 function hideResult() {
   const el = document.getElementById('mfResultSection');
   if (el) el.style.display = 'none';
+}
+
+/**
+ * Collapses the full lookup form into a compact summary row after a
+ * successful booking lookup.  The result card appears immediately below.
+ */
+function collapseForm(bookingReference) {
+  const panel    = document.getElementById('mfFormPanel');
+  const collapsed = document.getElementById('mfCollapsedHeader');
+  const refLabel  = document.getElementById('mfCollapsedRef');
+  if (panel)    panel.style.display    = 'none';
+  if (refLabel) refLabel.textContent   = bookingReference;
+  if (collapsed) collapsed.style.display = 'flex';
+}
+
+/**
+ * Re-expands the lookup form (e.g. when user clicks "Change").
+ * Input values are preserved; the existing result stays visible until a
+ * new search is submitted.
+ */
+function expandForm() {
+  const panel    = document.getElementById('mfFormPanel');
+  const collapsed = document.getElementById('mfCollapsedHeader');
+  if (collapsed) collapsed.style.display = 'none';
+  if (panel)     panel.style.display     = 'block';
+  hideError();
+  // Focus first input for quick re-entry.
+  document.getElementById('mfReference')?.focus();
 }
 
 function setLoading(btn, isLoading) {

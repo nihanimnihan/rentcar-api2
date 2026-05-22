@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="css/vendors.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components/alerts.css">
+    <link rel="stylesheet" href="css/components/manage-booking.css">
     <title>Manage booking</title>
 </head>
 
@@ -24,19 +25,32 @@
             <div class="row justify-center">
                 <div class="col-xl-4 col-lg-5 col-md-8">
 
-                    <a href="index.html" class="d-inline-flex items-center mb-30">
+                    <!-- Collapsed summary row — hidden until a booking is found -->
+                    <div id="mfCollapsedHeader" class="manage-booking-collapsed-header" style="display:none">
+                        <div class="manage-booking-collapsed-header__info">
+                        <div class="manage-booking-collapsed-header__label" data-i18n="manage.title">Manage your booking</div>
+                        <div class="manage-booking-collapsed-header__ref" id="mfCollapsedRef"></div>
+                        </div>
+                        <button id="mfChangeBtn" type="button" class="manage-booking-change-btn">
+                        Change
+                        </button>
+                    </div>
+
+                    <!-- Full form panel — shown initially, collapsed after successful lookup -->
+                    <div id="mfFormPanel">
+                        <a href="index.html" class="d-inline-flex items-center mb-30">
                         <i class="icon-chevron-left text-20 mr-10"></i>
-                    </a>
+                        </a>
 
-                    <h1 class="text-30 fw-700 mb-15" data-i18n="manage.title">
+                        <h1 class="text-30 fw-700 mb-15" data-i18n="manage.title">
                         Manage your booking
-                    </h1>
+                        </h1>
 
-                    <p class="text-16 text-dark-1 mb-30" data-i18n="manage.description">
+                        <p class="text-16 text-dark-1 mb-30" data-i18n="manage.description">
                         Access your rental with your booking reference and last name.
-                    </p>
+                        </p>
 
-                    <form id="manageForm">
+                        <form id="manageForm">
                         <div class="mb-20">
                             <label class="text-14 fw-600 mb-8 d-block" data-i18n="manage.bookingNumber">
                                 Booking reference number
@@ -69,7 +83,8 @@
                                 data-i18n="manage.continue">
                             Continue
                         </button>
-                    </form>
+                        </form>
+                    </div>
 
                     <div id="mfResultSection" style="display:none"></div>
 

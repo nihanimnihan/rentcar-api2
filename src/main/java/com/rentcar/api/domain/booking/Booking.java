@@ -70,8 +70,16 @@ public class Booking {
     @Column(nullable = false)
     private LocalDateTime pickupDateTime;
 
+    /** Customer-entered pickup location name (e.g. "BCN Airport T1"). Nullable for legacy rows. */
+    @Column(length = 255)
+    private String pickupLocation;
+
     @Column(nullable = false)
     private LocalDateTime dropoffDateTime;
+
+    /** Customer-entered dropoff location name. Nullable for legacy rows. */
+    @Column(length = 255)
+    private String dropoffLocation;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

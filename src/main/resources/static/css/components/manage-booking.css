@@ -1,0 +1,238 @@
+/*
+ * css/components/manage-booking.css
+ *
+ * Scoped styles for the manage-booking.html result card and form accordion.
+ * Used only by manage-booking.html — do not import elsewhere.
+ *
+ * Component tree:
+ *   .manage-booking-collapsed-header   ← compact summary row (post-lookup)
+ *   .manage-booking-card               ← result card shell
+ *     .manage-booking-section          ← full-width padded block
+ *     .manage-booking-grid             ← 2-column padded grid (desktop)
+ *       .manage-booking-grid__cell     ← each column
+ *     .manage-booking-policy           ← cancellation text + refund row
+ *     .manage-booking-actions          ← cancel button
+ *   .manage-booking-meta__*            ← reusable label / value / sub atoms
+ */
+
+/* ── Collapsed form header (shown after successful lookup) ───────────────── */
+
+.manage-booking-collapsed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid #edf0f4;
+  border-radius: 12px;
+  background: #f8fafc;
+  margin-bottom: 20px;
+}
+
+.manage-booking-collapsed-header__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #051036;
+  margin-bottom: 2px;
+}
+
+.manage-booking-collapsed-header__ref {
+  font-size: 12px;
+  color: #667085;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.manage-booking-change-btn {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #175cd3;
+  background: none;
+  border: 1px solid #d8e7fb;
+  border-radius: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.manage-booking-change-btn:hover {
+  background: #edf4ff;
+  border-color: #b0ccf5;
+}
+
+/* ── Card shell ──────────────────────────────────────────────────────────── */
+
+.manage-booking-card {
+  border: 1px solid #edf0f4;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(5, 11, 44, 0.06);
+}
+
+/* Divider: every direct child after the first gets a top border. */
+.manage-booking-card > * + * {
+  border-top: 1px solid #edf0f4;
+}
+
+/* ── Full-width padded section ───────────────────────────────────────────── */
+
+.manage-booking-section {
+  padding: 16px 22px;
+}
+
+/* ── 2-column grid section ───────────────────────────────────────────────── */
+
+.manage-booking-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.manage-booking-grid__cell {
+  padding: 16px 22px;
+}
+
+/* Vertical divider between the two cells on desktop */
+.manage-booking-grid__cell + .manage-booking-grid__cell {
+  border-left: 1px solid #edf0f4;
+}
+
+/* Stack vertically on small screens */
+@media (max-width: 479px) {
+  .manage-booking-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manage-booking-grid__cell + .manage-booking-grid__cell {
+    border-left: none;
+    border-top: 1px solid #edf0f4;
+  }
+}
+
+/* ── Meta label / value / sub atoms ─────────────────────────────────────── */
+/* Reusable inside any section or grid cell. */
+
+.manage-booking-meta__label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #98a2b3;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+
+.manage-booking-meta__value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #051036;
+  line-height: 1.35;
+}
+
+/* Larger price variant */
+.manage-booking-meta__value--price {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Muted secondary line below value */
+.manage-booking-meta__sub {
+  font-size: 12px;
+  color: #667085;
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+/* Reference code in header */
+.manage-booking-meta__ref {
+  font-size: 12px;
+  color: #667085;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
+}
+
+/* ── Cancellation policy section ─────────────────────────────────────────── */
+
+.manage-booking-policy {
+  padding: 16px 22px 14px;
+  background: #fafbfc;
+}
+
+/* Icon + message inline row */
+.manage-booking-policy-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13px;
+  color: #444e5e;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+.manage-booking-policy-row__icon {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.manage-booking-policy-row--success .manage-booking-policy-row__icon {
+  background: #dcfae6;
+  color: #067647;
+}
+
+.manage-booking-policy-row--info .manage-booking-policy-row__icon {
+  background: #dbeafe;
+  color: #175cd3;
+}
+
+/* Refund amount row */
+.manage-booking-policy__refund {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e4e9f0;
+}
+
+.manage-booking-policy__refund-label {
+  font-size: 12px;
+  color: #667085;
+}
+
+.manage-booking-policy__refund-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #067647;
+}
+
+/* ── Actions section ─────────────────────────────────────────────────────── */
+
+.manage-booking-actions {
+  padding: 14px 22px 18px;
+  background: #fafbfc;
+}
+
+.manage-booking-cancel-btn {
+  width: 100%;
+  height: 46px;
+  border: 1.5px solid #cfd6e4;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a94a6;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
