@@ -8,6 +8,7 @@ import com.rentcar.api.dto.payment.PaymentResponse;
 import com.rentcar.api.dto.payment.ProcessPaymentRequest;
 import com.rentcar.api.mapper.BookingMapper;
 import com.rentcar.api.mapper.PaymentMapper;
+import com.rentcar.api.service.BookingPaymentService;
 import com.rentcar.api.service.BookingService;
 import com.rentcar.api.service.PaymentService;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingPaymentController {
 
+    private final BookingPaymentService bookingPaymentService;
     private final BookingService bookingService;
     private final BookingMapper bookingMapper;
     private final PaymentService paymentService;
@@ -30,13 +32,13 @@ public class BookingPaymentController {
     public PaymentIntentResponse createPaymentIntent(
             @PathVariable Long id,
             @RequestBody(required = false) CreatePaymentIntentRequest request) {
-        return bookingService.createPaymentIntent(id, request);
+        return bookingPaymentService.createPaymentIntent(id, request);
     }
 
     @PostMapping("/{id}/payments/process")
     public BookingResponse processPayment(@PathVariable Long id,
                                           @Valid @RequestBody ProcessPaymentRequest request) {
-        return bookingMapper.toResponse(bookingService.completePayment(id, request.paymentMethodId()));
+        return bookingMapper.toResponse(bookingPaymentService.completePayment(id, request.paymentMethodId()));
     }
 
     /**
