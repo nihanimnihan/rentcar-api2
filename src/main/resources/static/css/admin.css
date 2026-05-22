@@ -1,0 +1,192 @@
+/* ============================================================
+   Admin panel — minimal styles
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #1a1a2e;
+  background: #f5f6fa;
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
+
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 0 24px;
+  height: 56px;
+  background: #1a1a2e;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.admin-header__brand {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.admin-header__nav {
+  display: flex;
+  gap: 4px;
+}
+
+.admin-nav-link {
+  padding: 6px 14px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-nav-link:hover,
+.admin-nav-link.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.admin-main {
+  flex: 1;
+  padding: 24px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Page header ─────────────────────────────────────────── */
+
+.admin-page-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.admin-page-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  color: #1a1a2e;
+}
+
+/* ── Alerts ──────────────────────────────────────────────── */
+
+.admin-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.admin-alert--error {
+  background: #fff0f0;
+  border: 1px solid #ffa8a8;
+  color: #c0392b;
+}
+
+/* ── States ──────────────────────────────────────────────── */
+
+.admin-loading {
+  text-align: center;
+  padding: 48px;
+  color: #888;
+}
+
+.admin-empty {
+  text-align: center;
+  padding: 48px;
+  color: #888;
+}
+
+/* ── Table ───────────────────────────────────────────────── */
+
+#table-container {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+  background: #fafafa;
+}
+
+.admin-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tbody tr:hover td {
+  background: #f9fafb;
+}
+
+/* ── Badges ──────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.badge--confirmed { background: #ecfdf5; color: #059669; }
+.badge--pending   { background: #fffbeb; color: #d97706; }
+.badge--failed    { background: #fff0f0; color: #dc2626; }
+.badge--cancelled { background: #f3f4f6; color: #6b7280; }
+.badge--neutral   { background: #f3f4f6; color: #6b7280; }
+
+/* ── Misc ────────────────────────────────────────────────── */
+
+.monospace {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.admin-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.admin-link:hover {
+  text-decoration: underline;
+}

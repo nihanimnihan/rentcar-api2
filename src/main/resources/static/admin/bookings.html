@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin – Bookings | RentCar</title>
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <header class="admin-header">
+      <div class="admin-header__brand">RentCar Admin</div>
+      <nav class="admin-header__nav">
+        <a href="bookings.html" class="admin-nav-link active">Bookings</a>
+      </nav>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <h1 class="admin-page-title">Bookings</h1>
+        <!-- TODO: add search/filter by bookingReference, status, email -->
+      </div>
+
+      <div id="auth-error" class="admin-alert admin-alert--error" hidden>
+        Authentication required. Use HTTP Basic credentials to access this page.
+      </div>
+
+      <div id="load-error" class="admin-alert admin-alert--error" hidden></div>
+
+      <div id="loading" class="admin-loading">Loading bookings…</div>
+
+      <div id="empty" class="admin-empty" hidden>No bookings yet.</div>
+
+      <div id="table-container" hidden>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Status</th>
+              <th>Payment</th>
+              <th>Customer</th>
+              <th>Email</th>
+              <th>Car</th>
+              <th>Pickup</th>
+              <th>Dropoff</th>
+              <th>Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookings-tbody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/admin-bookings.js"></script>
+</body>
+</html>

@@ -57,6 +57,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ── Static frontend resources ──────────────────────────────────────
                         .requestMatchers("/", "/*.html").permitAll()
+                        .requestMatchers("/admin/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/fonts/**", "/partials/**").permitAll()
                         // H2 console (dev profile only — harmless to permit in prod since
                         // h2-console is disabled there via application-prod.yaml)
@@ -91,6 +92,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/transfer/bookings").permitAll()
 
                         // ── Admin-only ──────────────────────────────────────────────────────
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
                         // Booking reads and cancellation are admin-only.
                         // The public POST /api/bookings and POST /api/bookings/*/payments/process

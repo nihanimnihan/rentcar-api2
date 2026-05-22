@@ -33,4 +33,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             LocalDateTime newDropoff,
             LocalDateTime newPickup
     );
+
+    /**
+     * Returns all bookings, newest first, with customer and car eagerly fetched
+     * to avoid N+1 queries when mapping to {@code AdminBookingListItem}.
+     */
+    @Query("SELECT b FROM Booking b JOIN FETCH b.customer JOIN FETCH b.car ORDER BY b.createdAt DESC")
+    List<Booking> findAllOrderByCreatedAtDesc();
 }
