@@ -4,4 +4,6 @@ import com.rentcar.api.domain.addon.BookingAddon;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BookingAddonRepository extends JpaRepository<BookingAddon, Long> {
+
+    boolean existsByAddon_Id(Long addonId);
 }

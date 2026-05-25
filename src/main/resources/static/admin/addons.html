@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin – Add-ons | RentCar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/vendors.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/brand-theme.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-db-body">
+
+  <!-- ── Top header ─────────────────────────────────────────────────────── -->
+  <header class="admin-db-header">
+    <div class="admin-db-header__left">
+      <button class="admin-db-hamburger js-admin-sidebar-toggle" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="admin-db-header__brand">RentCar <span class="admin-db-header__badge">Admin</span></span>
+    </div>
+    <div class="admin-db-header__right">
+      <span class="admin-db-header__user">Administrator</span>
+    </div>
+  </header>
+
+  <!-- ── Dashboard shell ────────────────────────────────────────────────── -->
+  <div class="admin-db js-admin-db" id="adminDashboard">
+
+    <!-- Sidebar -->
+    <aside class="admin-db__sidebar">
+      <nav class="admin-db__nav">
+        <ul>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-home-1 text-16"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="bookings.html" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-car text-16"></span>
+              <span>Bookings</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item -is-active">
+            <a href="addons.html" class="admin-db__nav-link -is-active">
+              <span class="admin-db__nav-icon icon-star text-16"></span>
+              <span>Add-ons</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-price-tag text-16"></span>
+              <span>Vehicles</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-price-tag text-16"></span>
+              <span>Pricing</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-plane text-16"></span>
+              <span>Transfers</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="admin-db__nav-divider"></div>
+
+        <ul>
+          <li class="admin-db__nav-item">
+            <a href="../index.html" class="admin-db__nav-link admin-db__nav-link--logout">
+              <span class="admin-db__nav-icon icon-power text-16"></span>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Sidebar backdrop (mobile) -->
+    <div class="admin-db__backdrop js-admin-sidebar-toggle"></div>
+
+    <!-- Main content -->
+    <main class="admin-db__main">
+      <div class="admin-db__content">
+
+        <!-- Page heading -->
+        <div class="admin-db__page-header">
+          <div>
+            <h1 class="admin-db__page-title">Add-ons</h1>
+            <p class="admin-db__page-sub">Manage rental add-on products</p>
+          </div>
+          <button class="admin-btn admin-btn--primary" id="btn-new-addon">+ New Add-on</button>
+        </div>
+
+        <!-- Alerts -->
+        <div id="load-error" class="admin-alert admin-alert--error" hidden></div>
+
+        <!-- Loading / empty states -->
+        <div id="loading" class="admin-loading">Loading add-ons…</div>
+        <div id="empty" class="admin-empty" hidden>No add-ons yet. Create one above.</div>
+
+        <!-- Add-ons table card -->
+        <div id="table-container" class="bg-white shadow-3 rounded-4 overflow-x-scroll" hidden>
+          <table class="admin-table table-2 w-full">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Pricing Type</th>
+                <th>Recommended</th>
+                <th>Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="addons-tbody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ── Create / Edit modal ────────────────────────────────────────────── -->
+  <div class="admin-modal-overlay" id="modal-overlay" hidden>
+    <div class="admin-modal">
+      <div class="admin-modal__header">
+        <h2 class="admin-modal__title" id="modal-title">New Add-on</h2>
+        <button class="admin-modal__close" id="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="admin-modal__body">
+        <form id="addon-form" novalidate>
+          <input type="hidden" id="field-id">
+
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="field-name">Name <span class="req">*</span></label>
+              <input class="admin-form-input" type="text" id="field-name" required placeholder="e.g. GPS Unit">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="field-name-es">Name (ES)</label>
+              <input class="admin-form-input" type="text" id="field-name-es" placeholder="e.g. Unidad GPS">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="field-code">Code <span class="req">*</span></label>
+              <input class="admin-form-input" type="text" id="field-code" required placeholder="e.g. GPS-UNIT">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="field-price">Price (€) <span class="req">*</span></label>
+              <input class="admin-form-input" type="number" id="field-price" min="0" step="0.01" required placeholder="0.00">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="field-pricing-type">Pricing Type <span class="req">*</span></label>
+              <select class="admin-form-input" id="field-pricing-type" required>
+                <option value="DAILY">DAILY</option>
+                <option value="ONE_TIME">ONE_TIME</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="field-image-url">Image URL</label>
+              <input class="admin-form-input" type="text" id="field-image-url" placeholder="/img/addons/gps.png">
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="field-description">Description</label>
+            <textarea class="admin-form-input admin-form-textarea" id="field-description" rows="2" placeholder="Short description..."></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="field-description-es">Description (ES)</label>
+            <textarea class="admin-form-input admin-form-textarea" id="field-description-es" rows="2" placeholder="Descripción..."></textarea>
+          </div>
+
+          <div class="admin-form-checks">
+            <label class="admin-form-check">
+              <input type="checkbox" id="field-recommended">
+              <span>Recommended</span>
+            </label>
+            <label class="admin-form-check">
+              <input type="checkbox" id="field-active" checked>
+              <span>Active</span>
+            </label>
+          </div>
+
+          <div id="form-error" class="admin-alert admin-alert--error" hidden></div>
+        </form>
+      </div>
+      <div class="admin-modal__footer">
+        <button class="admin-btn admin-btn--ghost" id="btn-cancel">Cancel</button>
+        <button class="admin-btn admin-btn--primary" id="btn-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin-addons.js"></script>
+  <script>
+    document.querySelectorAll('.js-admin-sidebar-toggle').forEach(function(el) {
+      el.addEventListener('click', function() {
+        document.getElementById('adminDashboard').classList.toggle('-sidebar-open');
+      });
+    });
+  </script>
+</body>
+</html>

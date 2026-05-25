@@ -102,6 +102,11 @@ public class GlobalExceptionHandler {
 
     // ── 409 Conflict ──────────────────────────────────────────────────────────
 
+    @ExceptionHandler(DuplicateAddonCodeException.class)
+    public ResponseEntity<?> handleDuplicateAddonCodeException(DuplicateAddonCodeException ex) {
+        return error(HttpStatus.CONFLICT, "Duplicate add-on code", ex.getMessage());
+    }
+
     @ExceptionHandler(CarNotAvailableException.class)
     public ResponseEntity<?> handleCarNotAvailableException(CarNotAvailableException ex) {
         return error(HttpStatus.CONFLICT, "Car not available", ex.getMessage());
