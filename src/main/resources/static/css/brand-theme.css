@@ -1,0 +1,254 @@
+/*
+ * css/brand-theme.css — RentCar luxury charcoal / silver / mustard theme
+ *
+ * Load AFTER vendors.css, main.css, and all page-specific CSS files.
+ * To revert the entire rebrand: remove this file and its <link> tags.
+ *
+ * Strategy:
+ *   1. Remap the framework's CSS custom properties → covers all var() usages.
+ *   2. Override hardcoded hex values in main.css, airport-transfer.css, booking.css.
+ *   3. Targeted selector overrides use !important only where the source does.
+ */
+
+/* ── 1. Brand tokens ─────────────────────────────────────────────────────── */
+
+:root {
+  --rc-charcoal:      #1f2022;
+  --rc-charcoal-2:    #2b2c2f;
+  --rc-charcoal-3:    #38393c;
+  --rc-silver:        #c9c7c1;
+  --rc-silver-soft:   #e5e1d8;
+  --rc-mustard:       #c8a44d;
+  --rc-mustard-light: #d8b85f;
+  --rc-cream:         #f7f3ea;
+
+  /* ── 2. Framework dark tokens → charcoal/fume ──────────────────────────── *
+   * main.css utility classes (.bg-dark-N, .text-dark-N) and any component    *
+   * that uses var(--color-dark-N) will automatically inherit these values.    */
+  --color-dark-1: var(--rc-charcoal);     /* was #051036 navy */
+  --color-dark-2: var(--rc-charcoal-2);   /* was #0D2857 navy */
+  --color-dark-3: var(--rc-charcoal-3);   /* was #13357B navy */
+  --color-dark-4: #3e3f42;               /* was #163C8C navy */
+
+  /* ── Framework blue-1 → muted mustard (CTAs, active states, links) ─────── */
+  --color-blue-1: var(--rc-mustard);      /* was #3554D1 blue */
+  --color-blue-2: #f5edd8;               /* was #E5F0FD light-blue → warm cream */
+}
+
+/* ── 3. Home page header ─────────────────────────────────────────────────── *
+ * Was bright yellow (#f8d448) with navy text. Now muted mustard with charcoal. */
+
+.rentcar-home-yellow-header {
+  background: var(--rc-mustard) !important;
+}
+
+.rentcar-home-yellow-header .text-dark-1,
+.rentcar-home-yellow-header a,
+.rentcar-home-yellow-header button {
+  color: var(--rc-charcoal) !important;
+}
+
+.rentcar-home-yellow-header .button {
+  background: var(--rc-charcoal) !important;
+  color: #fff !important;
+  border-color: var(--rc-charcoal) !important;
+}
+
+/* ── 4. Home hero gradient ───────────────────────────────────────────────── *
+ * Was yellow/navy overlay. Now muted mustard/charcoal — premium, warm feel.  */
+
+.rentcar-home-hero {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(200, 164, 77, 0.72) 0%,
+      rgba(200, 164, 77, 0.48) 30%,
+      rgba(31,  32,  34, 0.28) 60%,
+      rgba(31,  32,  34, 0.55) 100%
+    ),
+    url("../img/masthead/1.png");
+  background-size: cover;
+  background-position: center right;
+}
+
+/* ── 5. Airport transfer hero overlay ───────────────────────────────────── *
+ * Was rgba(5,16,54,…) navy layers. Now charcoal/fume — keeps text readable.  */
+
+.airport-transfer-hero {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(31, 32, 34, 0.95) 0%,
+      rgba(31, 32, 34, 0.80) 36%,
+      rgba(31, 32, 34, 0.48) 68%,
+      rgba(31, 32, 34, 0.75) 100%
+    ),
+    url("../img/masthead/1.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* ── 6. Airport transfer page background (full-page dark canvas) ─────────── */
+
+.airport-transfer-body,
+.airport-transfer-page {
+  background: var(--rc-charcoal) !important;
+}
+
+/* ── 7. Minimal header (header-minimal.html partial, bg-dark-3 class) ───── *
+ * bg-dark-3 is covered by the token remap above.                             *
+ * airport-mini-header has a hardcoded override in airport-transfer.css.      */
+
+.airport-mini-header {
+  background: var(--rc-charcoal) !important;
+}
+
+/* ── 8. Minimal footer (footer-minimal.html partial) ────────────────────── *
+ * Hardcoded #051036 in main.css — must be overridden explicitly.             */
+
+.rentcar-account-footer {
+  background: var(--rc-charcoal) !important;
+}
+
+.rentcar-account-footer__inner a:hover {
+  color: var(--rc-mustard) !important;
+}
+
+/* ── 9. Transfer search submit button ───────────────────────────────────── *
+ * Base was #FFC700 gold — keep as mustard gold. Hover to mustard-light.      */
+
+.transfer-submit {
+  background: var(--rc-mustard) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+.transfer-submit:hover {
+  background: var(--rc-mustard-light) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+/* ── 10. Transfer offer / next / continue buttons ────────────────────────── *
+ * Base was navy #051036. Now charcoal. Hover was yellow — now mustard.       */
+
+.transfer-offer-bottom button,
+.transfer-next-btn {
+  background: var(--rc-charcoal) !important;
+  color: #fff !important;
+}
+
+.transfer-offer-bottom button:hover,
+.transfer-next-btn:hover {
+  background: var(--rc-mustard) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+/* ── 11. Time picker dropdowns (tdt + dt) ───────────────────────────────── *
+ * Hover: was light-blue/blue → now warm cream/charcoal.                      *
+ * Active: was navy → now charcoal.                                            */
+
+.tdt-time-option:hover,
+.dt-time-option:hover {
+  background: var(--rc-cream) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+.tdt-time-option.is-active,
+.dt-time-option.is-active {
+  background: var(--rc-charcoal) !important;
+  color: #fff !important;
+}
+
+/* ── 12. Date/time trigger hover labels ─────────────────────────────────── */
+
+.tdt-trigger:hover,
+.dt-pickup-trigger:hover {
+  border-color: var(--rc-mustard) !important;
+}
+
+.dt-pickup-trigger:hover .transfer-summary-label {
+  color: var(--rc-mustard) !important;
+}
+
+/* ── 13. Date apply button ──────────────────────────────────────────────── */
+
+.dt-btn-apply {
+  background: var(--rc-charcoal) !important;
+  color: #fff !important;
+}
+
+.dt-btn-apply:hover {
+  background: var(--rc-mustard) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+/* ── 14. Duration picker ────────────────────────────────────────────────── */
+
+.dur-trigger:hover .transfer-summary-label {
+  color: var(--rc-mustard) !important;
+}
+
+.dur-option:hover {
+  background: var(--rc-cream) !important;
+  border-color: var(--rc-mustard) !important;
+}
+
+.dur-option.is-active {
+  background: var(--rc-charcoal) !important;
+  border-color: var(--rc-charcoal) !important;
+}
+
+/* ── 15. Passenger dropdown ─────────────────────────────────────────────── */
+
+.transfer-passengers-dropdown li:hover,
+.transfer-passengers-dropdown li.is-active {
+  background: var(--rc-cream) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+/* ── 16. Booking form — Book Now button (primary CTA) ───────────────────── *
+ * Changed to mustard (action color) with charcoal text. Hover → charcoal.   */
+
+.atb-book-btn {
+  background: var(--rc-mustard) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+.atb-book-btn:hover {
+  background: var(--rc-charcoal) !important;
+  color: #fff !important;
+}
+
+/* ── 17. Voucher button ─────────────────────────────────────────────────── */
+
+.atb-voucher-btn {
+  border-color: var(--rc-charcoal) !important;
+  color: var(--rc-charcoal) !important;
+}
+
+.atb-voucher-btn:hover {
+  background: var(--rc-charcoal) !important;
+  color: #fff !important;
+}
+
+/* ── 18. Counter +/− buttons ────────────────────────────────────────────── */
+
+.atb-counter-dec:hover,
+.atb-counter-inc:hover {
+  background: var(--rc-charcoal) !important;
+  color: #fff !important;
+}
+
+/* ── 19. Booking form focus ring (booking.css hardcoded blue) ────────────── */
+
+.atb-field input:focus,
+.atb-field select:focus,
+.atb-field textarea:focus {
+  border-color: var(--rc-mustard) !important;
+  box-shadow: 0 0 0 4px rgba(200, 164, 77, 0.18) !important;
+}
+
+/* ── 20. Section heading (booking/manage pages) ─────────────────────────── */
+
+.rentcar-review-section-title {
+  color: var(--rc-charcoal) !important;
+}

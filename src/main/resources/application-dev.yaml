@@ -16,7 +16,7 @@ spring:
 rentcar:
   admin:
     username: admin
-    password: change-me
+    password: admin
 
 app:
   public-base-url: http://localhost:8091
