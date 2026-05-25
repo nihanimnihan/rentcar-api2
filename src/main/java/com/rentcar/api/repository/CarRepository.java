@@ -23,6 +23,9 @@ public interface CarRepository extends JpaRepository<Car, Long> {
 
     List<Car> findByActiveTrue();
 
+    @Query("SELECT c FROM Car c LEFT JOIN FETCH c.chauffeurCategory ORDER BY c.id DESC")
+    List<Car> findAllOrderByIdDesc();
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Car c WHERE c.id = :id")
     Optional<Car> findByIdForUpdate(@Param("id") Long id);

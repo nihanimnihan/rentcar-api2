@@ -68,6 +68,11 @@ public class GlobalExceptionHandler {
 
     // ── 400 Bad Request ────────────────────────────────────────────────────────
 
+    @ExceptionHandler(InvalidCarConfigurationException.class)
+    public ResponseEntity<?> handleInvalidCarConfigurationException(InvalidCarConfigurationException ex) {
+        return error(HttpStatus.BAD_REQUEST, "Invalid car configuration", ex.getMessage());
+    }
+
     @ExceptionHandler(InvalidBookingDateException.class)
     public ResponseEntity<?> handleInvalidBookingDateException(InvalidBookingDateException ex) {
         return error(HttpStatus.BAD_REQUEST, "Invalid booking dates", ex.getMessage());

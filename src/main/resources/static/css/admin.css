@@ -411,11 +411,13 @@
   justify-content: center;
   padding: 20px;
   opacity: 0;
+  pointer-events: none;   /* never block clicks while invisible */
   transition: opacity 0.2s ease;
 }
 
 .admin-modal-overlay.-visible {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .admin-modal {
@@ -549,3 +551,42 @@
   cursor: pointer;
 }
 
+
+/* ── Vehicles page extras ──────────────────────────────────────────────────── */
+.admin-car-thumb {
+  width: 60px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.admin-no-img {
+  color: #999;
+  font-size: 12px;
+}
+
+.admin-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .3px;
+}
+
+.admin-badge--success  { background: #e6f9ee; color: #1a7a40; }
+.admin-badge--danger   { background: #fdecea; color: #c62828; }
+.admin-badge--warning  { background: #fff3e0; color: #a96200; }
+.admin-badge--info     { background: #e3f2fd; color: #1565c0; }
+.admin-badge--neutral  { background: #f0f0f0; color: #666;    }
+
+/* Wide modal for vehicles form */
+.admin-modal--wide {
+  max-width: 760px;
+  width: 95vw;
+}
+
+.admin-form-group--full {
+  grid-column: 1 / -1;
+}
