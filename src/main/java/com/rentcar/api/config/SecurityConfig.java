@@ -91,8 +91,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/transfer/offers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/transfer/bookings").permitAll()
 
-                        // ── Admin-only ──────────────────────────────────────────────────────
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // ── Admin (DEMO: open for presentation — TODO before production: restore hasRole("ADMIN")) ──
+                        .requestMatchers("/api/admin/**").permitAll() // TODO: .hasRole("ADMIN")
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
                         // Booking reads and cancellation are admin-only.
                         // The public POST /api/bookings and POST /api/bookings/*/payments/process

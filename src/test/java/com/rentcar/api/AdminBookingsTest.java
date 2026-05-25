@@ -1,6 +1,7 @@
 package com.rentcar.api;
 
 import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -41,6 +42,9 @@ class AdminBookingsTest {
 
     // ── Security ──────────────────────────────────────────────────────────────
 
+    // TODO before production: restore hasRole("ADMIN") in SecurityConfig, then re-enable these tests.
+
+    @Disabled("Demo mode: /api/admin/** is temporarily permitAll — re-enable when auth is restored")
     @Test
     void listBookings_withoutAuth_returns401() throws Exception {
         mockMvc.perform(get("/api/admin/bookings"))
@@ -48,6 +52,7 @@ class AdminBookingsTest {
                 .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 
+    @Disabled("Demo mode: /api/admin/** is temporarily permitAll — re-enable when auth is restored")
     @Test
     void listBookings_withWrongCredentials_returns401() throws Exception {
         mockMvc.perform(get("/api/admin/bookings")

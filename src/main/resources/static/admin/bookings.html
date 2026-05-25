@@ -4,55 +4,143 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin – Bookings | RentCar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/vendors.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/brand-theme.css">
   <link rel="stylesheet" href="../css/admin.css">
 </head>
-<body>
-  <div class="admin-layout">
-    <header class="admin-header">
-      <div class="admin-header__brand">RentCar Admin</div>
-      <nav class="admin-header__nav">
-        <a href="bookings.html" class="admin-nav-link active">Bookings</a>
+<body class="admin-db-body">
+
+  <!-- ── Top header ─────────────────────────────────────────────────────── -->
+  <header class="admin-db-header">
+    <div class="admin-db-header__left">
+      <!-- Mobile sidebar toggle -->
+      <button class="admin-db-hamburger js-admin-sidebar-toggle" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="admin-db-header__brand">RentCar <span class="admin-db-header__badge">Admin</span></span>
+    </div>
+    <div class="admin-db-header__right">
+      <span class="admin-db-header__user">Administrator</span>
+    </div>
+  </header>
+
+  <!-- ── Dashboard shell ────────────────────────────────────────────────── -->
+  <div class="admin-db js-admin-db" id="adminDashboard">
+
+    <!-- Sidebar -->
+    <aside class="admin-db__sidebar">
+      <nav class="admin-db__nav">
+        <ul>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-home-1 text-16"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item -is-active">
+            <a href="bookings.html" class="admin-db__nav-link -is-active">
+              <span class="admin-db__nav-icon icon-car text-16"></span>
+              <span>Bookings</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-star text-16"></span>
+              <span>Vehicles</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-price-tag text-16"></span>
+              <span>Pricing</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="#" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-plane text-16"></span>
+              <span>Transfers</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="admin-db__nav-divider"></div>
+
+        <ul>
+          <li class="admin-db__nav-item">
+            <a href="../index.html" class="admin-db__nav-link admin-db__nav-link--logout">
+              <span class="admin-db__nav-icon icon-power text-16"></span>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
       </nav>
-    </header>
+    </aside>
 
-    <main class="admin-main">
-      <div class="admin-page-header">
-        <h1 class="admin-page-title">Bookings</h1>
-        <!-- TODO: add search/filter by bookingReference, status, email -->
-      </div>
+    <!-- Sidebar backdrop (mobile) -->
+    <div class="admin-db__backdrop js-admin-sidebar-toggle"></div>
 
-      <div id="auth-error" class="admin-alert admin-alert--error" hidden>
-        Authentication required. Use HTTP Basic credentials to access this page.
-      </div>
+    <!-- Main content -->
+    <main class="admin-db__main">
+      <div class="admin-db__content">
 
-      <div id="load-error" class="admin-alert admin-alert--error" hidden></div>
+        <!-- Page heading -->
+        <div class="admin-db__page-header">
+          <div>
+            <h1 class="admin-db__page-title">Bookings</h1>
+            <p class="admin-db__page-sub">All rental reservations — newest first</p>
+          </div>
+          <!-- TODO: search/filter bar (bookingReference, status, email) -->
+        </div>
 
-      <div id="loading" class="admin-loading">Loading bookings…</div>
+        <!-- TODO before production: restore ADMIN auth — this message should only appear if credentials are wrong -->
+        <div id="auth-error" class="admin-alert admin-alert--error" hidden>
+          Could not load bookings. Please check your connection or reload the page.
+        </div>
+        <div id="load-error" class="admin-alert admin-alert--error" hidden></div>
 
-      <div id="empty" class="admin-empty" hidden>No bookings yet.</div>
+        <!-- Loading / empty states -->
+        <div id="loading" class="admin-loading">Loading bookings…</div>
+        <div id="empty" class="admin-empty" hidden>No bookings yet.</div>
 
-      <div id="table-container" hidden>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Reference</th>
-              <th>Status</th>
-              <th>Payment</th>
-              <th>Customer</th>
-              <th>Email</th>
-              <th>Car</th>
-              <th>Pickup</th>
-              <th>Dropoff</th>
-              <th>Total</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="bookings-tbody"></tbody>
-        </table>
+        <!-- Bookings table card -->
+        <div id="table-container" class="bg-white shadow-3 rounded-4 overflow-x-scroll" hidden>
+          <table class="admin-table table-2 w-full">
+            <thead>
+              <tr class="admin-table__head-row">
+                <th>Reference</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Car</th>
+                <th>Pickup</th>
+                <th>Dropoff</th>
+                <th>Total</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-tbody"></tbody>
+          </table>
+        </div>
+
       </div>
     </main>
   </div>
 
   <script src="../js/admin-bookings.js"></script>
+  <script>
+    // Mobile sidebar toggle
+    document.querySelectorAll('.js-admin-sidebar-toggle').forEach(function(el) {
+      el.addEventListener('click', function() {
+        document.getElementById('adminDashboard').classList.toggle('-sidebar-open');
+      });
+    });
+  </script>
 </body>
 </html>
