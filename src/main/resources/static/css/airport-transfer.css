@@ -15,7 +15,7 @@
 .airport-mini-header {
   position: relative !important;
   height: 90px;
-  background: #051036 !important;
+  background: #202124 !important;
 }
 
 .airport-mini-header .header-logo img {
@@ -25,19 +25,20 @@
 /* ── airport-transfer.html — hero + booking card ─────────────────────────── */
 
 .airport-transfer-hero {
-  min-height: 720px;
   background:
     linear-gradient(
       90deg,
-      rgba(5,16,54,0.96) 0%,
-      rgba(5,16,54,0.82) 36%,
-      rgba(5,16,54,0.55) 68%,
-      rgba(5,16,54,0.78) 100%
+      rgba(24,24,24,.92) 0%,
+      rgba(24,24,24,.72) 40%,
+      rgba(24,24,24,.55) 70%,
+      rgba(24,24,24,.78) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(248,212,72,.08) 0%,
+      rgba(0,0,0,0) 45%
     ),
     url("../img/masthead/1.png");
-  background-size: cover;
-  background-position: center;
-  padding: 70px 0 90px;
 }
 
 .airport-transfer-layout {
@@ -152,8 +153,8 @@
   width: 100%;
   height: 58px;
   border-radius: 12px;
-  background: #FFC700;
-  color: #051036;
+  background: #F8D448;
+  color: #202124;
   font-size: 17px;
   font-weight: 700;
   margin-top: 2px;
@@ -177,7 +178,7 @@
 }
 
 .airport-transfer-copy strong {
-  color: #FFC700;
+  color: #F8D448;
 }
 
 @media (max-width: 991px) {
@@ -210,7 +211,7 @@
 }
 
 .tdt-trigger:hover {
-  border-color: #3554D1;
+  border-color: #F8D448;
 }
 
 .tdt-trigger span {
@@ -249,14 +250,14 @@
   padding: 10px 16px;
   cursor: pointer;
   font-size: 14px;
-  color: #051036;
+  color: #202124;
   border-bottom: 1px solid #f3f4f6;
   transition: background .1s;
 }
 
 .tdt-time-option:last-child { border-bottom: none; }
-.tdt-time-option:hover      { background: #EBF0FB; color: #3554D1; }
-.tdt-time-option.is-active  { background: #051036; color: #fff; }
+.tdt-time-option:hover      { background: #FFF8DD; color: #F8D448; }
+.tdt-time-option.is-active  { background: #202124; color: #fff; }
 
 @media (max-width: 480px) {
   .tdt-popup      { left: 0; right: 0; min-width: auto; }
@@ -344,7 +345,7 @@
 .transfer-offer-card {
   background: #fff;
   border: 1px solid #eeeeee;
-  box-shadow: 0 6px 18px rgba(5, 16, 54, 0.10);
+  box-shadow: 0 6px 18px rgba(15, 16, 18, 0.10);
   border-radius: 0;
   padding: 28px;
   min-height: 520px;
@@ -355,7 +356,7 @@
 .transfer-offer-card h3 {
   font-size: 30px;
   font-weight: 700;
-  color: #051036;
+  color: #202124;
   text-transform: none;
   margin-bottom: 4px;
 }
@@ -405,7 +406,7 @@
   align-items: flex-start;
   white-space: nowrap;
   font-weight: 800;
-  color: #051036;
+  color: #202124;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -428,7 +429,7 @@
 /* Next button */
 .transfer-offer-bottom button,
 .transfer-next-btn {
-  background: #051036;
+  background: #202124;
   color: #fff;
   border-radius: 4px;
   min-width: 110px;
@@ -441,7 +442,7 @@
 .transfer-offer-bottom button:hover,
 .transfer-next-btn:hover {
   background: #f8d448;
-  color: #051036;
+  color: #202124;
 }
 
 /* ── airport-transfer-offers.html — passenger dropdown (was inline <style>) ─ */
@@ -468,13 +469,13 @@
   padding: 10px 18px;
   cursor: pointer;
   font-size: 14px;
-  color: #051036;
+  color: #202124;
 }
 
 .transfer-passengers-dropdown li:hover,
 .transfer-passengers-dropdown li.is-active {
-  background: #EBF0FB;
-  color: #3554D1;
+  background: #FFF8DD;
+  color: #F8D448;
 }
 
 /* ── airport-transfer-offers.html — date/time edit panel ─────────────────── */
@@ -484,7 +485,7 @@
   user-select: none;
 }
 
-.dt-pickup-trigger:hover .transfer-summary-label { color: #3554D1; }
+.dt-pickup-trigger:hover .transfer-summary-label { color: #F8D448; }
 .dt-pickup-trigger:hover .transfer-summary-value  { text-decoration: underline dotted; text-underline-offset: 3px; }
 
 .dt-edit-panel {
@@ -505,7 +506,7 @@
   margin-bottom: 20px;
   font-size: 15px;
   font-weight: 700;
-  color: #051036;
+  color: #202124;
 }
 
 .dt-edit-close {
@@ -518,7 +519,7 @@
   padding: 0 4px;
 }
 
-.dt-edit-close:hover { color: #051036; }
+.dt-edit-close:hover { color: #202124; }
 
 .dt-edit-body {
   display: grid;
@@ -552,14 +553,14 @@
   padding: 10px 16px;
   cursor: pointer;
   font-size: 14px;
-  color: #051036;
+  color: #202124;
   border-bottom: 1px solid #f3f4f6;
   transition: background .1s;
 }
 
 .dt-time-option:last-child  { border-bottom: none; }
-.dt-time-option:hover       { background: #EBF0FB; color: #3554D1; }
-.dt-time-option.is-active   { background: #051036; color: #fff; }
+.dt-time-option:hover       { background: #FFF8DD; color: #F8D448; }
+.dt-time-option.is-active   { background: #202124; color: #fff; }
 
 .dt-edit-footer {
   display: flex;
@@ -584,7 +585,7 @@
   padding: 10px 28px;
   border-radius: 100px;
   border: none;
-  background: #051036;
+  background: #202124;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -592,7 +593,7 @@
   transition: background .15s, color .15s;
 }
 
-.dt-btn-apply:hover { background: #F8D448; color: #051036; }
+.dt-btn-apply:hover { background: #F8D448; color: #202124; }
 
 /* ── airport-transfer-offers.html — duration edit panel ─────────────────── */
 
@@ -601,7 +602,7 @@
   user-select: none;
 }
 
-.dur-trigger:hover .transfer-summary-label { color: #3554D1; }
+.dur-trigger:hover .transfer-summary-label { color: #F8D448; }
 .dur-trigger:hover .transfer-summary-value  { text-decoration: underline dotted; text-underline-offset: 3px; }
 
 .dur-options-list {
@@ -619,10 +620,10 @@
   transition: background .12s, border-color .12s;
 }
 
-.dur-option .dur-opt-name { font-size: 15px; font-weight: 700; color: #051036; }
+.dur-option .dur-opt-name { font-size: 15px; font-weight: 700; color: #202124; }
 .dur-option .dur-opt-km   { font-size: 13px; color: #697488; margin-top: 2px; }
-.dur-option:hover          { background: #eef2ff; border-color: #3554D1; }
-.dur-option.is-active      { background: #051036; border-color: #051036; }
+.dur-option:hover          { background: #FFF8DD; border-color: #F8D448; }
+.dur-option.is-active      { background: #202124; border-color: #202124; }
 
 .dur-option.is-active .dur-opt-name,
 .dur-option.is-active .dur-opt-km  { color: #fff; }
@@ -630,7 +631,7 @@
 /* ── Transfer body/page theme ─────────────────────────────────────────────── */
 
 .airport-transfer-body {
-  background: #051036;
+  background: #202124;
   margin: 0;
 }
 
@@ -638,7 +639,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #051036;
+  background: #202124;
 }
 
 /* Override the hero min-height inside the flex page layout */
@@ -669,7 +670,7 @@
   font-size: 42px;
   line-height: 1.15;
   font-weight: 800;
-  color: #051036;
+  color: #202124;
   margin-bottom: 32px;
 }
 
@@ -679,7 +680,7 @@
   border-radius: 22px;
   padding: 34px;
   margin-bottom: 24px;
-  box-shadow: 0 18px 45px rgba(5, 16, 54, 0.06);
+  box-shadow: 0 18px 45px rgba(15, 16, 18, 0.06);
 }
 
 /* ── airport-transfer-booking.html — accordions ──────────────────────────── */
@@ -694,7 +695,7 @@
   padding: 18px 0;
   font-size: 16px;
   font-weight: 700;
-  color: #051036;
+  color: #202124;
   cursor: pointer;
   gap: 10px;
   font-family: inherit;
@@ -716,7 +717,7 @@
   align-items: center;
   padding: 14px 0;
   border-bottom: 1px solid #edf0f5;
-  color: #051036;
+  color: #202124;
   font-size: 15px;
 }
 
@@ -733,14 +734,14 @@
   border-radius: 50%;
   border: 1px solid #cfd6e4;
   background: #fff;
-  color: #051036;
+  color: #202124;
   font-size: 18px;
   cursor: pointer;
 }
 
 .atb-counter-dec:hover,
 .atb-counter-inc:hover {
-  background: #051036;
+  background: #202124;
   color: #fff;
 }
 
@@ -753,13 +754,13 @@
   border: 1px solid #e3e8f0;
   border-radius: 22px;
   padding: 28px;
-  box-shadow: 0 18px 45px rgba(5, 16, 54, 0.08);
+  box-shadow: 0 18px 45px rgba(15, 16, 18, 0.08);
 }
 
 .atb-summary-title {
   font-size: 22px;
   font-weight: 800;
-  color: #051036;
+  color: #202124;
   margin-bottom: 20px;
 }
 
@@ -773,7 +774,7 @@
 .atb-summary-name {
   font-size: 22px;
   font-weight: 800;
-  color: #051036;
+  color: #202124;
   margin-bottom: 6px;
 }
 
@@ -787,7 +788,7 @@
   display: flex;
   gap: 16px;
   font-size: 14px;
-  color: #051036;
+  color: #202124;
   margin-bottom: 18px;
 }
 
@@ -807,7 +808,7 @@
 }
 
 .atb-summary-row span:last-child {
-  color: #051036;
+  color: #202124;
   font-weight: 700;
   text-align: right;
 }
@@ -816,7 +817,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #051036;
+  color: #202124;
   font-size: 17px;
   font-weight: 800;
   margin-top: 14px;
@@ -833,7 +834,7 @@
   height: 58px;
   border: 0;
   border-radius: 12px;
-  background: #051036;
+  background: #202124;
   color: #fff;
   font-size: 17px;
   font-weight: 800;
@@ -844,7 +845,7 @@
 
 .atb-book-btn:hover {
   background: #F8D448;
-  color: #051036;
+  color: #202124;
 }
 
 /* ── airport-transfer-booking.html — voucher row ─────────────────────────── */
@@ -859,16 +860,16 @@
 .atb-voucher-btn {
   height: 56px;
   padding: 0 24px;
-  border: 1.5px solid #051036;
+  border: 1.5px solid #202124;
   border-radius: 12px;
   background: #fff;
-  color: #051036;
+  color: #202124;
   font-weight: 700;
   cursor: pointer;
 }
 
 .atb-voucher-btn:hover {
-  background: #051036;
+  background: #202124;
   color: #fff;
 }
 
@@ -891,3 +892,4 @@
     padding: 24px;
   }
 }
+

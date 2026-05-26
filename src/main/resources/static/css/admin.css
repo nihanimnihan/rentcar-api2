@@ -9,11 +9,11 @@
   --adm-sidebar-w: 240px;
   --adm-header-h: 60px;
   --adm-bg: #f5f6fa;
-  --adm-charcoal: var(--rc-charcoal, #1f2022);
-  --adm-charcoal-2: var(--rc-charcoal-2, #2b2c2f);
-  --adm-mustard: var(--rc-mustard, #c8a44d);
-  --adm-silver: var(--rc-silver, #c9c7c1);
-  --adm-text: #1a1a2e;
+  --adm-charcoal: var(--rc-graphite, #191B1E);
+  --adm-charcoal-2: var(--rc-graphite-2, #24272B);
+  --adm-mustard: var(--rc-yellow, #F8D448);
+  --adm-silver: #c9c7c1;
+  --adm-text: #191B1E;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
