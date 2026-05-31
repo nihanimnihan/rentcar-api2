@@ -32,7 +32,7 @@
 .manage-booking-collapsed-header__label {
   font-size: 13px;
   font-weight: 700;
-  color: #051036;
+  color: var(--rc-dark);
   margin-bottom: 2px;
 }
 
@@ -47,9 +47,9 @@
   flex-shrink: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #175cd3;
+  color: var(--rc-amber);
   background: none;
-  border: 1px solid #d8e7fb;
+  border: 1px solid rgba(248, 212, 72, 0.25);
   border-radius: 8px;
   padding: 5px 12px;
   cursor: pointer;
@@ -58,8 +58,8 @@
 }
 
 .manage-booking-change-btn:hover {
-  background: #edf4ff;
-  border-color: #b0ccf5;
+  background: rgba(248, 212, 72, 0.10);
+  border-color: var(--rc-amber);
 }
 
 /* ── Card shell ──────────────────────────────────────────────────────────── */
@@ -125,7 +125,7 @@
 .manage-booking-meta__value {
   font-size: 14px;
   font-weight: 600;
-  color: #051036;
+  color: var(--rc-dark);
   line-height: 1.35;
 }
 
@@ -189,8 +189,8 @@
 }
 
 .manage-booking-policy-row--info .manage-booking-policy-row__icon {
-  background: #dbeafe;
-  color: #175cd3;
+  background: rgba(201, 199, 193, 0.18);
+  color: var(--rc-dark);
 }
 
 /* Refund amount row */

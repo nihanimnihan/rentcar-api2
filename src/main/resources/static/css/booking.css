@@ -15,7 +15,7 @@
 .rentcar-review-section-title {
   font-size: 24px;
   font-weight: 800;
-  color: #051036;
+  color: var(--rc-dark);
   margin-bottom: 28px;
 }
 
@@ -40,7 +40,7 @@
   padding: 0 16px;
   font-size: 16px;
   font-weight: 500;
-  color: #051036;
+  color: var(--rc-dark);
   font-family: inherit;
 }
 
@@ -54,8 +54,8 @@
 .atb-field select:focus,
 .atb-field textarea:focus {
   outline: none;
-  border-color: #3554d1;
-  box-shadow: 0 0 0 4px rgba(53, 84, 209, 0.12);
+  border-color: var(--rc-amber);
+  box-shadow: 0 0 0 4px var(--rc-warm-glow);
 }
 
 /* ── Phone row (country code + number) ───────────────────────────────────── */
