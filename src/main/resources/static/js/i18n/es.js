@@ -28,8 +28,8 @@ window.i18nTranslations['es'] = {
   // home page
   'home.heroTitle': 'Encuentra las Mejores Ofertas de Alquiler',
   'home.heroSubtitle': 'Reserva el coche perfecto en cualquier parte del mundo.',
-  'home.whyChooseUs': 'Por qué elegirnos',
-  'home.whyChooseUsText': 'Sin cargos ocultos, precios transparentes y tarifas diarias competitivas.',
+  'home.whyChooseUs': 'Experiencia Premium de Alquiler',
+  'home.whyChooseUsText': 'Disfruta de vehículos premium, precios transparentes y un servicio excepcional.',
   'home.bestPrice': 'Mejor precio garantizado',
   'home.bestPriceText': 'Alquila vehículos premium al mejor precio.',
   'home.easyBooking': 'Reserva fácil y rápida',

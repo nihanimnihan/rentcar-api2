@@ -28,8 +28,8 @@ window.i18nTranslations['en'] = {
   // home page
   'home.heroTitle': 'Search for the Best Car Deals',
   'home.heroSubtitle': 'Book better cars from local hosts across the US and around the world.',
-  'home.whyChooseUs': 'Why Choose Us',
-  'home.whyChooseUsText': 'No hidden fees, transparent pricing, and competitive daily rates.',
+  'home.whyChooseUs': 'Premium Rental Experience',
+  'home.whyChooseUsText': 'Enjoy premium vehicles, transparent pricing, and exceptional service.',
   'home.bestPrice': 'Best Price Guarantee',
   'home.bestPriceText': 'Rent premium with the best price.',
   'home.easyBooking': 'Easy & Quick Booking',
