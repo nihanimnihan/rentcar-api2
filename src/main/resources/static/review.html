@@ -331,69 +331,7 @@
 
                 <!-- Right: sticky summary ─────────────────────────────────── -->
                 <div class="col-lg-4">
-                    <div class="rentcar-addon-summary" id="reviewSummary">
-
-                        <!-- Car -->
-                        <div class="d-flex x-gap-15 items-center">
-                            <img id="summaryCarImage"
-                                 src="img/lists/car/1/1.png"
-                                 alt="car"
-                                 class="rentcar-summary-car-image">
-                            <div>
-                                <h3 id="summaryCarName" class="text-18 fw-700">Car</h3>
-                                <div id="summaryCarSubtitle" class="text-14 text-light-1">or similar</div>
-                            </div>
-                        </div>
-
-                        <!-- Pickup / return -->
-                        <div class="mt-30">
-                            <h4 class="text-18 fw-700 mb-15" data-i18n="summary.pickupAndReturn">Pickup and return</h4>
-
-                            <div class="rentcar-summary-route">
-                                <div>
-                                    <div class="text-14 text-light-1" data-i18n="summary.pickup">Pickup</div>
-                                    <div id="summaryPickupLocation" class="text-16 fw-600">-</div>
-                                    <div id="summaryPickupDate" class="text-14 text-light-1">-</div>
-                                </div>
-
-                                <div class="mt-20">
-                                    <div class="text-14 text-light-1" data-i18n="summary.return">Return</div>
-                                    <div id="summaryDropoffLocation" class="text-16 fw-600">-</div>
-                                    <div id="summaryDropoffDate" class="text-14 text-light-1">-</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Included features -->
-                        <div class="border-top-light mt-25 pt-25">
-                            <h4 class="text-18 fw-700 mb-10" data-i18n="summary.includedFeatures">Included features</h4>
-                            <div class="text-15 mb-8" data-i18n="summary.thirdPartyInsurance">✓ Third party insurance</div>
-                            <div class="text-15 mb-8" data-i18n="summary.breakdown">✓ 24/7 breakdown assistance</div>
-                            <div class="text-15 mb-8" data-i18n="summary.freeCancellation">✓ Free cancellation</div>
-                        </div>
-
-                        <!-- Added features -->
-                        <div class="border-top-light mt-25 pt-25">
-                            <h4 class="text-18 fw-700 mb-10" data-i18n="summary.addedFeatures">ADDED ADD-ONS</h4>
-                            <div id="summaryAddedFeatures" class="text-15 text-light-1" data-i18n="summary.noAddons">
-                                No add-ons selected yet.
-                            </div>
-                        </div>
-
-                        <!-- Total -->
-                        <div class="border-top-light mt-25 pt-25">
-                            <div class="d-flex justify-between items-center">
-                                <span class="text-18 fw-700" data-i18n="summary.total">Total</span>
-                                <strong id="summaryTotal" class="text-26 fw-800">€-</strong>
-                            </div>
-                            <button type="button"
-                                    id="reviewSummaryPriceDetailsBtn"
-                                    class="rentcar-price-details mt-8" data-i18n="price.title">
-                                Price details
-                            </button>
-                        </div>
-
-                    </div>
+                    <div id="bookingSummaryCard"></div>
                 </div><!-- /col-lg-4 -->
 
             </div><!-- /row -->

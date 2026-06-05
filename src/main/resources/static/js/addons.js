@@ -7,7 +7,6 @@ const mileageOption = new URLSearchParams(window.location.search).get("mileageOp
 document.addEventListener("DOMContentLoaded", () => {
   loadAddonPage();
   document.getElementById("continueButton")?.addEventListener("click", goToBooking);
-  document.getElementById("summaryContinueButton")?.addEventListener("click", goToBooking);
 });
 
 async function loadAddonPage() {
@@ -195,7 +194,8 @@ function renderSummary() {
     params,
     mileageOption,
     selectedAddonIds: selectedAddons,
-    availableAddons
+    availableAddons,
+    pageType: 'addons'
   });
 
   const { total } = calcBookingTotal(selectedCar, mileageOption, selectedAddons, availableAddons);

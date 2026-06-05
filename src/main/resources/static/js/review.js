@@ -88,7 +88,8 @@ async function loadReviewPage() {
       params,
       mileageOption: reviewMileageOption,
       selectedAddonIds: reviewAddonIds,
-      availableAddons: reviewAllAddons
+      availableAddons: reviewAllAddons,
+      pageType: 'review'
     });
 
     // Render page-specific total
@@ -152,10 +153,18 @@ function initConfirmButtons() {
   const footerBtn = document.getElementById("rfConfirmBtn");
   if (footerBtn) footerBtn.addEventListener("click", () => submitBooking());
 
-  // Price details buttons — footer card + summary card
+  // Price details buttons — footer card + summary card (direct binding if present)
   ["rfPriceDetailsBtn", "reviewSummaryPriceDetailsBtn"].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener("click", buildAndOpenPriceModal);
+  });
+
+  // Robust delegated handler: catches clicks on dynamically rendered summary button
+  document.addEventListener("click", function (event) {
+    if (event.target.closest("#reviewSummaryPriceDetailsBtn, [data-summary-price-details]")) {
+      event.preventDefault();
+      buildAndOpenPriceModal();
+    }
   });
 }
 
@@ -504,7 +513,8 @@ document.addEventListener('languageChanged', function () {
       params: new URLSearchParams(window.location.search),
       mileageOption: reviewMileageOption,
       selectedAddonIds: reviewAddonIds,
-      availableAddons: reviewAllAddons
+      availableAddons: reviewAllAddons,
+      pageType: 'review'
     });
   }
 });

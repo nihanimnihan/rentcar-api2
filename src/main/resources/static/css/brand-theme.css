@@ -1145,3 +1145,28 @@ section.bg-dark-2 {
   font-weight: 800;
   color: #191B1E;
 }
+
+/* Shared summary route layout */
+.rentcar-summary-route {
+ display: flex;
+ justify-content: space-between;
+ gap: 18px;
+ align-items: flex-start;
+}
+
+.rentcar-summary-route > div {
+ flex: 1 1 0;
+}
+
+.rentcar-summary-included-list {
+ margin-top: 8px;
+}
+
+/* keep arrow visually centered between pickup/dropoff blocks */
+.rentcar-summary-arrow {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ min-width: 28px;
+ color: #191B1E;
+}
