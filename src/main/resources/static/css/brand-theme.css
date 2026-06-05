@@ -1053,3 +1053,95 @@ section.bg-dark-2 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
   border-radius: 12px !important; /* Sol taraftaki kartlarla köşeleri eşitler */
 }
+
+/* ADDONS summary — clean premium version */
+
+.rentcar-addon-summary {
+  background: #FCFBF7 !important;
+  border: 1px solid #ECE7DB !important;
+  border-radius: 24px !important;
+  padding: 30px !important;
+  box-shadow: 0 24px 70px rgba(25, 27, 30, 0.08) !important;
+  position: sticky;
+  top: 120px;
+}
+
+.rentcar-summary-title {
+  font-size: 22px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  color: #191B1E !important;
+  margin: 0 !important;
+}
+
+.rentcar-summary-subtitle {
+  margin-top: 4px;
+  font-size: 14px !important;
+  color: #6B7280 !important;
+  font-weight: 500 !important;
+}
+
+.rentcar-summary-divider {
+  height: 1px;
+  background: rgba(25, 27, 30, 0.10);
+  margin: 24px 0;
+}
+
+.rentcar-summary-section-label {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  color: #6B7280 !important;
+  margin-bottom: 10px !important;
+  text-transform: uppercase;
+}
+
+.rentcar-summary-main-text {
+  font-size: 20px !important;
+  line-height: 1.3 !important;
+  font-weight: 700 !important;
+  color: #191B1E !important;
+}
+
+.rentcar-summary-muted-text {
+  margin-top: 8px !important;
+  font-size: 15px !important;
+  line-height: 1.4 !important;
+  color: #7A808C !important;
+  font-weight: 500 !important;
+}
+
+.rentcar-summary-arrow {
+  margin: 16px 0;
+  font-size: 18px;
+  color: #191B1E;
+}
+
+.rentcar-summary-added-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+  font-size: 15px;
+  color: #6B7280;
+}
+
+.rentcar-summary-added-list > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.rentcar-summary-added-list span:last-child {
+  font-weight: 700;
+  color: #191B1E;
+}
+
+.rentcar-summary-added-list strong,
+.rentcar-summary-added-list span:last-child {
+  font-weight: 800;
+  color: #191B1E;
+}

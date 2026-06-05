@@ -7,6 +7,7 @@ const mileageOption = new URLSearchParams(window.location.search).get("mileageOp
 document.addEventListener("DOMContentLoaded", () => {
   loadAddonPage();
   document.getElementById("continueButton")?.addEventListener("click", goToBooking);
+  document.getElementById("summaryContinueButton")?.addEventListener("click", goToBooking);
 });
 
 async function loadAddonPage() {
