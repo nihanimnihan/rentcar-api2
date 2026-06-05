@@ -777,3 +777,279 @@ section.bg-dark-2 {
   background: rgba(248, 212, 72, 0.18) !important;
   color: #191B1E !important;
 }
+
+/* =========================================================
+   CARS PAGE — premium graphite header + controls
+   ========================================================= */
+
+.cars-page-main .header.bg-dark-3 {
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(248, 212, 72, 0.16) !important;
+  box-shadow: none !important;
+}
+
+.cars-page-main .header-logo img {
+  max-height: 34px !important;
+}
+
+/* Booking summary pill */
+.cars-page-main #headerBookingSummary {
+  background: rgba(251, 247, 236, 0.10) !important;
+  border: 1px solid rgba(248, 212, 72, 0.18) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+}
+
+.cars-page-main #headerBookingSummary #headerRouteText {
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+.cars-page-main #headerBookingSummary #headerDateText {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Edit search button */
+.cars-page-main #editSearchButton {
+  background: rgba(248, 212, 72, 0.16) !important;
+  border: 1px solid rgba(248, 212, 72, 0.28) !important;
+}
+
+.cars-page-main #editSearchButton i {
+  color: #F8D448 !important;
+}
+
+/* Login button same as home CTA */
+.cars-page-main .header .button[href*="signup"] {
+  background: linear-gradient(180deg, #FFD84A 0%, #F4BE22 100%) !important;
+  border: 1px solid #F4BE22 !important;
+  color: #111 !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+/* Language */
+.cars-page-main .js-lang-toggle,
+.cars-page-main .js-lang-toggle span,
+.cars-page-main .js-lang-toggle i {
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
+.cars-page-main .js-lang-toggle:hover,
+.cars-page-main .js-lang-toggle:hover span,
+.cars-page-main .js-lang-toggle:hover i {
+  color: #F8D448 !important;
+}
+
+/* Page background */
+.cars-page-main {
+  background: linear-gradient(180deg, #F7F3EA 0%, #FFFFFF 34%) !important;
+}
+
+/* Filter / Sort buttons */
+#carsFilterSortBar .button {
+  height: 44px !important;
+  padding: 0 22px !important;
+  border-radius: 999px !important;
+  background: rgba(251, 247, 236, 0.95) !important;
+  border: 1px solid rgba(25, 27, 30, 0.08) !important;
+  color: #191B1E !important;
+  font-weight: 700 !important;
+  box-shadow: 0 12px 35px rgba(25, 27, 30, 0.06) !important;
+}
+
+#carsFilterSortBar .button i {
+  color: #F4BE22 !important;
+}
+
+#carsFilterSortBar .button:hover {
+  border-color: rgba(248, 212, 72, 0.45) !important;
+  box-shadow: 0 18px 45px rgba(25, 27, 30, 0.10) !important;
+}
+/* =========================================================
+   CARS PAGE — cards + footer + popup blue cleanup
+   ========================================================= */
+
+/* Car cards */
+.cars-page-main .rentcar-premium-card,
+.cars-page-main .carCard,
+.cars-page-main #carsList > [class*="col"] > * {
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  border: 1px solid rgba(25, 27, 30, 0.08) !important;
+  box-shadow: 0 22px 60px rgba(25, 27, 30, 0.07) !important;
+  transition: all 0.25s ease !important;
+}
+
+.cars-page-main .rentcar-premium-card:hover,
+.cars-page-main .carCard:hover,
+.cars-page-main #carsList > [class*="col"] > *:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(248, 212, 72, 0.42) !important;
+  box-shadow: 0 30px 80px rgba(25, 27, 30, 0.12) !important;
+}
+
+/* Badges */
+.cars-page-main .rentcar-premium-card .badge,
+.cars-page-main .carCard .badge,
+.cars-page-main .rounded-100.bg-light-2,
+.cars-page-main .rounded-100.bg-blue-1-05 {
+  background: rgba(248, 212, 72, 0.14) !important;
+  color: #191B1E !important;
+  border: 1px solid rgba(248, 212, 72, 0.24) !important;
+  font-weight: 700 !important;
+}
+
+/* Price: remove red */
+.cars-page-main .text-red-1,
+.cars-page-main [class*="text-red"] {
+  color: #191B1E !important;
+}
+
+.cars-page-main .rentcar-premium-card .text-red-1,
+.cars-page-main .carCard .text-red-1 {
+  color: #F4BE22 !important;
+}
+
+/* View Detail button */
+/* Car list View Detail button — calm premium */
+.cars-page-main #carsList .rentcar-premium-card button,
+.cars-page-main #carsList .carCard button {
+  background: #191B1E !important;
+  border: 1px solid #191B1E !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  min-width: 112px !important;
+  height: 48px !important;
+  box-shadow: none !important;
+}
+
+.cars-page-main #carsList .rentcar-premium-card button:hover,
+.cars-page-main #carsList .carCard button:hover {
+  background: #050505 !important;
+  border-color: #F8D448 !important;
+  color: #F8D448 !important;
+}
+
+/* =========================================================
+   CARS DETAIL PANEL — premium proportions
+   ========================================================= */
+
+.cars-page-main [id^="car-detail-"] {
+  border-radius: 24px !important;
+  border: 1px solid rgba(248, 212, 72, 0.20) !important;
+  box-shadow: 0 32px 90px rgba(25, 27, 30, 0.10) !important;
+}
+
+.cars-page-main [id^="car-detail-"] h2,
+.cars-page-main [id^="car-detail-"] .text-30,
+.cars-page-main [id^="car-detail-"] .text-40 {
+  font-size: 34px !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.cars-page-main [id^="car-detail-"] img {
+  transform: scale(1.12) !important;
+  transform-origin: center !important;
+}
+
+.cars-page-main [id^="car-detail-"] .mainSearch__submit,
+.cars-page-main [id^="car-detail-"] button {
+  border-radius: 12px !important;
+}
+
+.cars-page-main [id^="car-detail-"] .text-red-1,
+.cars-page-main [id^="car-detail-"] [class*="text-red"] {
+  color: #191B1E !important;
+}
+
+.cars-page-main [id^="car-detail-"] a:hover {
+  color: #F4BE22 !important;
+}
+
+.cars-page-main .rentcar-premium-card .button:hover,
+.cars-page-main .carCard .button:hover {
+  background: linear-gradient(180deg, #FFE16A 0%, #E9B516 100%) !important;
+  color: #111 !important;
+}
+
+/* Search drawer popup blue cleanup */
+.cars-page-main .js-search-option:hover,
+.cars-page-main .js-search-option:focus,
+.cars-page-main .js-search-option.-is-active,
+.cars-page-main .js-search-option.is-active {
+  background: rgba(248, 212, 72, 0.14) !important;
+  color: #191B1E !important;
+}
+
+.cars-page-main .js-search-option:hover *,
+.cars-page-main .js-search-option:focus * {
+  color: #191B1E !important;
+}
+
+/* Calendar drawer */
+.cars-page-main .rc-cal-day:hover {
+  background: rgba(248, 212, 72, 0.14) !important;
+  color: #191B1E !important;
+}
+
+.cars-page-main .rc-cal-active,
+.cars-page-main .rc-cal-day.rc-cal-active {
+  background: rgba(248, 212, 72, 0.18) !important;
+  color: #191B1E !important;
+  border: 1px solid rgba(248, 212, 72, 0.55) !important;
+}
+
+/* Minimal footer */
+.cars-page-main .rentcar-account-footer {
+  background: #050505 !important;
+  border-top: 1px solid rgba(248, 212, 72, 0.16) !important;
+  color: rgba(255,255,255,.78) !important;
+}
+
+.cars-page-main .rentcar-account-footer a,
+.cars-page-main .rentcar-account-footer span {
+  color: rgba(255,255,255,.78) !important;
+}
+
+.cars-page-main .rentcar-account-footer__brand {
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+.cars-page-main .rentcar-account-footer a:hover {
+  color: #F8D448 !important;
+}
+
+/* ADDONS continue button */
+#continueButton {
+  background: linear-gradient(180deg, #FFD84A 0%, #F4BE22 100%) !important;
+  border: 1px solid #F4BE22 !important;
+  color: #111 !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+#continueButton:hover {
+  background: linear-gradient(180deg, #FFE16A 0%, #E9B516 100%) !important;
+}
+
+/* Eklenti Kartları İçin */
+.addon-card {
+  border: none !important; /* Eski gri ve kırmızı çerçeveleri kesinlikle kaldırır */
+  background-color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important; /* Modern hafif gölge */
+  border-radius: 12px !important; /* Köşeleri yuvarlar */
+}
+
+/* Sağdaki Özet Kartı İçin */
+.summary-card, .pickup-return-card {
+  /* Not: Sağdaki kartın class adı HTML'inizde neyse onu yazın */
+  background-color: #ffffff !important; /* Kirli krem rengini beyaza çevirir */
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 12px !important; /* Sol taraftaki kartlarla köşeleri eşitler */
+}

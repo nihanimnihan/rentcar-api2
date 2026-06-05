@@ -36,7 +36,10 @@
   }
 
   function updateLanguageButtons(lang) {
-    var label = lang === 'es' ? t('header.spanish') : t('header.english');
+    var label;
+    if (lang === 'es') label = t('header.spanish');
+    else if (lang === 'tr') label = t('header.turkish');
+    else label = t('header.english');
     document.querySelectorAll('.js-language-mainTitle').forEach(function (el) {
       el.textContent = label;
     });
@@ -55,7 +58,10 @@
   // including right after a partial is injected into the DOM.
   function updateCurrentLanguageLabels() {
     var lang  = localStorage.getItem(STORAGE_KEY) || DEFAULT_LANG;
-    var label = lang === 'es' ? 'Español' : 'English';
+    var label;
+    if (lang === 'es') label = 'Español';
+    else if (lang === 'tr') label = 'Türkçe';
+    else label = 'English';
     document.querySelectorAll('[data-current-language-label]').forEach(function (el) {
       el.textContent = label;
     });

@@ -3,6 +3,7 @@ window.i18nTranslations['en'] = {
   // header
   'header.english': 'English',
   'header.spanish': 'Español',
+  'header.turkish': 'Türkçe',
   'header.signIn': 'Sign In / Register',
   'header.logIn': 'Log In / Register',
 
@@ -10,6 +11,7 @@ window.i18nTranslations['en'] = {
   'lang.selectLanguage': 'Select your language',
   'lang.english': 'English',
   'lang.spanish': 'Español',
+  'lang.turkish': 'Türkçe',
 
   // search form
   'search.pickupLocation': 'Pick up location',

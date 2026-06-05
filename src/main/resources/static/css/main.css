@@ -12856,11 +12856,8 @@ table.table-5 td {
 }
 
 .rentcar-price-modal-title {
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1;
-  margin-bottom: 28px;
-  color: #050b2c;
+    color: #191B1E !important;
+    letter-spacing: -0.03em !important;
 }
 
 .rentcar-price-section-title {
@@ -12908,8 +12905,14 @@ table.table-5 td {
 }
 
 .rentcar-addon-card.is-selected {
-  border-color: #ff5a1f;
-  box-shadow: 0 0 0 1px #ff5a1f;
+  border-color: rgba(248, 212, 72, 0.45) !important;
+  box-shadow: 0 14px 36px rgba(25, 27, 30, 0.06) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+}
+
+.rentcar-addon-card.is-selected .rentcar-addon-button:hover {
+  background: #050505 !important;
+  color: #F8D448 !important;
 }
 
 .rentcar-addon-image {
@@ -12954,15 +12957,14 @@ table.table-5 td {
 }
 
 .rentcar-addon-card.is-selected .rentcar-addon-button {
-  background: #ffda44;
+  background: #191B1E !important;
+  color: #fff !important;
 }
 
 .rentcar-addon-summary {
-  background: #f5f5f5;
-  border-radius: 18px;
-  padding: 28px;
-  position: sticky;
-  top: 100px;
+  background: #F6F5F1 !important;
+  border: 1px solid rgba(25, 27, 30, 0.08) !important;
+  box-shadow: 0 24px 70px rgba(25, 27, 30, 0.08) !important;
 }
 
 .rentcar-summary-car-image {
