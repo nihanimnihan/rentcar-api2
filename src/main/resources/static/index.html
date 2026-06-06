@@ -90,14 +90,15 @@
               <div class="rentcar-search-top">
                   <div class="rentcar-search-tabs">
                       <button type="button" class="rentcar-search-tab is-active">
-                          <i class="icon-car text-14 mr-8"></i>
+                          <i class="text-14 mr-8"></i>
                           <span data-i18n="search.cars">Cars</span>
                       </button>
 
-                      <a href="airport-transfer.html" class="rentcar-search-tab">
+                      <!-- TODO: Later -->
+                      <!--  <a href="airport-transfer.html" class="rentcar-search-tab">
                           <i class="icon-taxi text-14 mr-8"></i>
                           <span data-i18n="search.airportTransfer">Airport Transfer</span>
-                      </a>
+                      </a> -->
                   </div>
 
                   <a href="manage-booking.html"
@@ -139,10 +140,6 @@
                       <button type="button" class="rcss-loc-item" data-loc="BCN Airport T2"><i class="icon-location-2"></i> BCN Airport T2</button>
                       <button type="button" class="rcss-loc-item" data-loc="Office"><i class="icon-location-2"></i> Office</button>
                     </div>
-                    <label class="rcss-diff-return">
-                      <input type="checkbox" id="rcssDiffReturn">
-                      <span data-i18n="search.returnDifferentLocation">Return to a different location</span>
-                    </label>
                   </div>
                   <input type="hidden" id="dropoffLocation" value="BCN Airport T1">
                 </div>
@@ -204,6 +201,10 @@
                 </div>
 
               </div>
+              <label class="rcss-diff-return">
+                  <input type="checkbox" id="rcssDiffReturn">
+                  <span data-i18n="search.returnDifferentLocation">Return to a different location</span>
+              </label>
         </div>
 
         <div class="masthead-slider overflow-hidden js-masthead-slider-8">

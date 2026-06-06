@@ -13904,7 +13904,8 @@ body:not(.airport-transfer-body) {
 ── */
 
 .rentcar-account-footer {
-  background: #051036;
+  background: #202124;
+  border-top: 1px solid rgba(248, 212, 72, 0.12);
   padding: 22px 0;
   margin-top: 60px;
 }
