@@ -129,6 +129,14 @@ public class PaymentService {
         return paymentProvider.createIntent(payment);
     }
 
+    /**
+     * Persist a payment record. Public helper used by higher-level services that
+     * orchestrate provider operations and need to save provider-side ids.
+     */
+    public Payment save(Payment payment) {
+        return paymentRepository.save(payment);
+    }
+
     /** Short provider name for API responses (e.g. {@code "FAKE"}, {@code "STRIPE"}). */
     public String providerName() {
         return paymentProvider.providerName();

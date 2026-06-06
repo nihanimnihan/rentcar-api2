@@ -142,6 +142,11 @@ public class BookingPaymentService {
 
     private PaymentIntentResponse buildIntentResponse(Booking booking, Payment payment) {
         var result = paymentService.createIntentForPayment(payment);
+        // Persist provider intent id (Stripe PaymentIntent) when present for reconciliation/audit.
+        if (result.providerIntentId() != null) {
+            payment.setStripePaymentIntentId(result.providerIntentId());
+            paymentService.save(payment);
+        }
         log.info("Payment intent created: bookingId={} paymentRef={} provider={}",
                 booking.getId(), payment.getPaymentReference(), result.providerName());
         return new PaymentIntentResponse(

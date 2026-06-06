@@ -4,24 +4,30 @@ import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.exception.PaymentProviderNotConfiguredException;
 import com.rentcar.api.payment.model.PaymentIntentResult;
 import com.rentcar.api.payment.model.PaymentResult;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
+import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.net.RequestOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /**
- * Placeholder for the Stripe payment provider.
+ * Minimal Stripe payment provider implementation for MVP intent creation.
  *
- * <p>Full Stripe integration is deferred for post-MVP. All methods throw
- * {@link PaymentProviderNotConfiguredException}, which is converted to a
- * {@code 503 Service Unavailable} response — never a raw 500 or NPE.
- *
- * <p>TODO (post-MVP): replace stub bodies with real Stripe SDK calls once
- *   {@code stripe.api-key} is configured and end-to-end payment flows are
- *   verified. Re-add {@code @Value("${stripe.api-key}")}, {@code @PostConstruct
- *   init()}, and the Stripe SDK imports that were removed from this placeholder.
+ * <p>When {@code stripe.api-key} is not configured (or this class is directly
+ * instantiated in unit tests), methods throw {@link PaymentProviderNotConfiguredException}
+ * to yield a 503 Service Unavailable instead of a raw NPE or 500.
  */
 @Profile("prod")
 @Component
 public class StripePaymentProvider implements PaymentProvider {
+
+    @Value("${stripe.api-key:}")
+    private String stripeApiKey;
 
     @Override
     public PaymentResult pay(Payment payment, String paymentMethodId) {
@@ -33,15 +39,32 @@ public class StripePaymentProvider implements PaymentProvider {
         throw new PaymentProviderNotConfiguredException("Stripe");
     }
 
-    /**
-     * TODO (Stripe): implement via {@code stripe.paymentIntents().create()} with
-     *   {@code amount} in smallest currency unit (cents), {@code currency},
-     *   and {@code metadata.bookingReference} for reconciliation.
-     *   Return the Stripe {@code PaymentIntent.clientSecret} and {@code PaymentIntent.id}.
-     */
     @Override
     public PaymentIntentResult createIntent(Payment payment) {
-        throw new PaymentProviderNotConfiguredException("Stripe");
+        if (stripeApiKey == null || stripeApiKey.isBlank()) {
+            throw new PaymentProviderNotConfiguredException("Stripe");
+        }
+
+        try {
+            // Convert amount (BigDecimal with scale 2) to smallest currency unit (cents)
+            BigDecimal amount = payment.getAmount().setScale(2, RoundingMode.UNNECESSARY);
+            long amountInCents = amount.multiply(BigDecimal.valueOf(100)).longValueExact();
+
+            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                    .setAmount(amountInCents)
+                    .setCurrency(payment.getCurrencyCode().toLowerCase())
+                    .addPaymentMethodType("card")
+                    .putMetadata("bookingReference", payment.getBooking().getBookingReference())
+                    .build();
+
+            RequestOptions requestOptions = RequestOptions.builder().setApiKey(stripeApiKey).build();
+            PaymentIntent pi = PaymentIntent.create(params, requestOptions);
+
+            return new PaymentIntentResult(providerName(), pi.getClientSecret(), pi.getId());
+        } catch (StripeException e) {
+            // Surface a clear error for higher layers; GlobalExceptionHandler will map to 500.
+            throw new RuntimeException("Stripe error: " + e.getMessage(), e);
+        }
     }
 
     @Override

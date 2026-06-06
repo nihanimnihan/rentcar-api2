@@ -59,6 +59,13 @@ public class Payment {
     private String providerReference;
 
     /**
+     * Stripe PaymentIntent id for reconciliation (e.g. {@code pi_1JXXXX}).
+     * Nullable: present only when an intent has been created with the provider.
+     */
+    @Column(name = "stripe_payment_intent_id")
+    private String stripePaymentIntentId;
+
+    /**
      * Public-facing payment reference (e.g. {@code PAY-3F4A8B2C}).
      *
      * <p>Generated once on persist; used in API responses instead of exposing
