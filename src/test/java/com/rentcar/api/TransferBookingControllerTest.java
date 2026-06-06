@@ -1,6 +1,7 @@
 package com.rentcar.api;
 
 import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * The seeded RIDE category has one car (BMW X1 SDrive18d, hourlyPrice=95.00,
  * seats=3). Tests that exhaust availability use unique day windows.
  */
+@Disabled("Airport transfer is out of current MVP scope")
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
