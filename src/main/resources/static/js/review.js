@@ -374,7 +374,11 @@ async function submitBooking() {
         intent = await createPaymentIntent(booking.id);
       } catch (err) {
         console.error("Payment intent creation failed:", err);
-        showBookingFormError(err.message || t('review.bookingCreatedPaymentFailed'));
+        showReviewFlowModal({
+          title: "Payment could not be started",
+          message: err.message || "Your booking was created, but payment could not be started. Please try again.",
+          buttonText: "Try again"
+        });
         return; // paymentSucceeded stays false → finally re-enables button
       }
 
@@ -411,7 +415,11 @@ async function submitBooking() {
           if (result.error) {
             // Show Stripe error to user and allow retry
             console.error('Stripe confirm error', result.error);
-            showBookingFormError(result.error.message || 'Payment failed. Please try another card.');
+            showReviewFlowModal({
+              title: "Payment could not be completed",
+              message: result.error.message || "Payment failed. Please check your card details or try another card.",
+              buttonText: "Try again"
+            });
             return;
           }
 
@@ -420,15 +428,27 @@ async function submitBooking() {
             // Backend verifies intent status before confirming booking
             paymentSucceeded = await processBookingPayment(booking.id, firstName);
           } else if (paymentIntent && (paymentIntent.status === 'processing' || paymentIntent.status === 'requires_action' || paymentIntent.status === 'requires_confirmation' || paymentIntent.status === 'requires_capture')) {
-            showBookingFormError('Payment is processing or requires additional action. Please follow the instructions or try again later.');
+            showReviewFlowModal({
+              title: "Payment is still processing",
+              message: "Your payment is still processing or requires additional action. Please try again in a moment.",
+              buttonText: "OK"
+            });
             return;
           } else {
-            showBookingFormError('Payment did not complete successfully.');
+            showReviewFlowModal({
+              title: "Payment was not completed",
+              message: "Payment did not complete successfully. Please check your card details or try again.",
+              buttonText: "Try again"
+            });
             return;
           }
         } catch (err) {
           console.error('Stripe confirmation failed', err);
-          showBookingFormError('Payment failed due to a network error. Please try again.');
+          showReviewFlowModal({
+            title: "Network error",
+            message: "Payment failed due to a network error. Please check your connection and try again.",
+            buttonText: "Try again"
+          });
           return;
         } finally {
           // Hide Stripe card to avoid leaving sensitive UI mounted after flow
@@ -441,11 +461,21 @@ async function submitBooking() {
         paymentSucceeded = await processBookingPayment(booking.id, firstName);
       }    } else if (res.status === 409) {
       const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
-      showBookingFormError(msg);
+      showReviewFlowModal({
+        title: "Car no longer available",
+        message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
+        buttonText: "Choose another car",
+        onClose: goBackToCarsWithSameSearch
+      });
     } else if (res.status === 400) {
       const data = await res.json().catch(() => null);
       const msg = data?.message || t('error.checkDetails');
-      showBookingFormError(msg);
+      showReviewFlowModal({
+        title: "Car no longer available status400",
+        message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
+        buttonText: "Choose another car",
+        onClose: goBackToCarsWithSameSearch
+      });
     } else {
       showBookingFormError(t('error.somethingWrong'));
     }
@@ -528,11 +558,21 @@ async function processBookingPayment(bookingId, firstName) {
 
     // Payment failed: prefer backend message, fall back to generic copy.
     const fallback = t('review.bookingCreatedPaymentFailed');
-    showBookingFormError(data?.message || fallback);
+    showReviewFlowModal({
+
+      title: "Payment could not be completed",
+      message: data?.message || fallback,
+      buttonText: "Try again"
+    });
     return false;
   } catch (err) {
     console.error("Payment processing failed:", err);
-    showBookingFormError(t('review.bookingCreatedPaymentFailed'));
+    showReviewFlowModal({
+
+      title: "Payment could not be completed",
+      message: t('review.bookingCreatedPaymentFailed'),
+      buttonText: "Try again"
+    });
     return false;
   }
 }
@@ -566,6 +606,31 @@ function showBookingSuccess(booking, firstName) {
 }
 
 // ── Error helpers ─────────────────────────────────────────────────────────────
+
+function showReviewFlowModal({ icon, title, message, buttonText, onClose }) {
+  const modal = document.getElementById("reviewFlowModal");
+  if (!modal) {
+    showBookingFormError(message);
+    return;
+  }
+
+  document.getElementById("reviewFlowModalIcon").textContent = icon || "⚠️";
+  document.getElementById("reviewFlowModalTitle").textContent = title || "";
+  document.getElementById("reviewFlowModalMessage").textContent = message || "";
+
+  const btn = document.getElementById("reviewFlowModalBtn");
+  btn.textContent = buttonText || "OK";
+  btn.onclick = () => {
+    modal.style.display = "none";
+    if (typeof onClose === "function") onClose();
+  };
+
+  modal.style.display = "flex";
+}
+
+function goBackToCarsWithSameSearch() {
+  window.location.href = "cars.html" + window.location.search;
+}
 
 function showBookingFormError(message) {
   const div = document.getElementById("rfBookingError");

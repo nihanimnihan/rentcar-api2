@@ -41,5 +41,5 @@ playwright-report/
 test-results/
 .playwright-cache/
 
-src/main/resources/application-stripe-local.yaml
-src/main/resources/application-local-postgres.yaml
+!**/src/main/resources/application-stripe-local.yaml
+!**/src/main/resources/application-local-postgres.yaml
