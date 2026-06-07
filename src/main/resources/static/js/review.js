@@ -357,30 +357,98 @@ async function submitBooking() {
   // Track whether payment completed so the finally block knows not to re-enable the button.
   let paymentSucceeded = false;
   try {
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-
-    if (res.ok) {
-      const booking = await res.json();
-      if (confirmBtn) confirmBtn.textContent = t('review.processing');
-
-      // Step 2: Create payment intent — amount/currency come from the booking,
-      // never from the frontend.
-      let intent;
+    // Check for existing pending booking owned by this session
+    const storedId = sessionStorage.getItem('rentcarPendingBookingId');
+    const storedToken = sessionStorage.getItem('rentcarCheckoutSessionToken');
+    let booking;
+    if (storedId && storedToken) {
       try {
-        intent = await createPaymentIntent(booking.id);
-      } catch (err) {
-        console.error("Payment intent creation failed:", err);
-        showReviewFlowModal({
-          title: "Payment could not be started",
-          message: err.message || "Your booking was created, but payment could not be started. Please try again.",
-          buttonText: "Try again"
-        });
-        return; // paymentSucceeded stays false → finally re-enables button
+        // Verify ownership and that booking matches current search (car & dates)
+        const checkRes = await fetch(`/api/bookings/${storedId}`, { headers: { 'X-Checkout-Session-Token': storedToken } });
+        if (checkRes.ok) {
+          const existing = await checkRes.json();
+          // validate matching search params
+          if (Number(existing.car.id) === carId && existing.pickupDateTime === pickupDateTime && existing.dropoffDateTime === dropoffDateTime && existing.status === 'PENDING') {
+            booking = existing; // reuse
+          } else {
+            // not matching or not pending — clear and create fresh
+            sessionStorage.removeItem('rentcarPendingBookingId');
+            sessionStorage.removeItem('rentcarCheckoutSessionToken');
+          }
+        } else {
+          // token rejected or booking not found — clear stored and proceed to create
+          sessionStorage.removeItem('rentcarPendingBookingId');
+          sessionStorage.removeItem('rentcarCheckoutSessionToken');
+        }
+      } catch (e) {
+        // network error — fall back to creating a new booking
+        console.warn('Failed to verify stored pending booking, creating new booking', e);
+        sessionStorage.removeItem('rentcarPendingBookingId');
+        sessionStorage.removeItem('rentcarCheckoutSessionToken');
       }
+    }
+
+    // If no reusable booking found, create one
+    if (!booking) {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        booking = await res.json();
+        // read token header if present and store for retries
+        const tokenHeader = res.headers.get('X-Checkout-Session-Token');
+        if (tokenHeader) {
+          sessionStorage.setItem('rentcarPendingBookingId', String(booking.id));
+          sessionStorage.setItem('rentcarCheckoutSessionToken', tokenHeader);
+        }
+        if (confirmBtn) confirmBtn.textContent = t('review.processing');
+      } else if (res.status === 409) {
+        const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
+        showReviewFlowModal({
+          title: "Car no longer available",
+          message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
+          buttonText: "Choose another car",
+          onClose: goBackToCarsWithSameSearch
+        });
+        return;
+      } else if (res.status === 400) {
+        const data = await res.json().catch(() => null);
+        const msg = data?.message || t('error.checkDetails');
+        showReviewFlowModal({
+          title: "Car no longer available status400",
+          message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
+          buttonText: "Choose another car",
+          onClose: goBackToCarsWithSameSearch
+        });
+        return;
+      } else {
+        showBookingFormError(t('error.somethingWrong'));
+        return;
+      }
+    }
+
+    // Step 2: Create payment intent — amount/currency come from the booking,
+    // never from the frontend.
+    let intent;
+    try {
+      intent = await createPaymentIntent(booking.id);
+    } catch (err) {
+      console.error("Payment intent creation failed:", err);
+      // If token rejected, clear stored token so user can create a fresh booking
+      if (err.message && err.message.toLowerCase().includes('checkout')) {
+        sessionStorage.removeItem('rentcarPendingBookingId');
+        sessionStorage.removeItem('rentcarCheckoutSessionToken');
+      }
+      showReviewFlowModal({
+        title: "Payment could not be started",
+        message: err.message || "Your booking was created, but payment could not be started. Please try again.",
+        buttonText: "Try again"
+      });
+      return; // paymentSucceeded stays false → finally re-enables button
+    }
 
      const provider = intent?.providerName || intent?.provider;
      if (provider === "STRIPE" && intent?.clientSecret) {      // Stripe flow: confirm the PaymentIntent client-side with Stripe Elements.
@@ -506,9 +574,12 @@ async function submitBooking() {
  * Throws with a user-visible message on non-OK responses.
  */
 async function createPaymentIntent(bookingId) {
+  const token = sessionStorage.getItem('rentcarCheckoutSessionToken');
+  const body = token ? { checkoutSessionToken: token } : {};
   const res = await fetch(`/api/bookings/${bookingId}/payments/intent`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   });
   if (!res.ok) {
     let msg;

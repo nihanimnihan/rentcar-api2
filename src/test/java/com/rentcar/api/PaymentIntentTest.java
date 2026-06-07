@@ -62,7 +62,7 @@ class PaymentIntentTest {
 
         MvcResult result = mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(intentRequestBody()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(bookingId))
                 .andExpect(jsonPath("$.bookingReference").value(matchesPattern("RC-\\d{6}-[A-Z0-9]{4}")))
@@ -84,7 +84,9 @@ class PaymentIntentTest {
     void createIntent_noBody_returnsOk() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1610, 1612), daysFromNow(1610), daysFromNow(1612));
 
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent"))
+        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(intentRequestBody()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.provider").value("FAKE"))
                 .andExpect(jsonPath("$.paymentReference").value(matchesPattern("PAY-[0-9A-F]{8}")));
@@ -100,7 +102,7 @@ class PaymentIntentTest {
         String ref1 = JsonPath.read(
                 mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{}"))
+                                .content(intentRequestBody()))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.paymentReference");
@@ -108,7 +110,7 @@ class PaymentIntentTest {
         String ref2 = JsonPath.read(
                 mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{}"))
+                                .content(intentRequestBody()))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.paymentReference");
@@ -135,7 +137,7 @@ class PaymentIntentTest {
         // Now request an intent on the FAILED booking — should succeed with a new payment record
         MvcResult intentResult = mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(intentRequestBody()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(bookingId))
                 .andExpect(jsonPath("$.paymentReference").value(matchesPattern("PAY-[0-9A-F]{8}")))
@@ -148,7 +150,7 @@ class PaymentIntentTest {
         String refFromSecondIntent = JsonPath.read(
                 mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{}"))
+                                .content(intentRequestBody()))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
                 "$.paymentReference");
@@ -163,7 +165,7 @@ class PaymentIntentTest {
     void createIntent_unknownBookingId_returns404() throws Exception {
         mockMvc.perform(post("/api/bookings/999999/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(intentRequestBody()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Not found"));
     }
@@ -182,7 +184,7 @@ class PaymentIntentTest {
 
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(intentRequestBody()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("Invalid booking state"));
     }
@@ -201,7 +203,7 @@ class PaymentIntentTest {
 
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content(intentRequestBody()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("Invalid booking state"));
     }
@@ -212,9 +214,13 @@ class PaymentIntentTest {
     void createIntent_arbitraryPaymentMethodType_amountIsFromBackend() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1650, 1652), daysFromNow(1650), daysFromNow(1652));
 
+        String bodyWithMethod = lastCheckoutToken != null
+                ? String.format("{\"paymentMethodType\": \"BANK_TRANSFER\", \"checkoutSessionToken\": \"%s\"}", lastCheckoutToken)
+                : "{\"paymentMethodType\": \"BANK_TRANSFER\"}";
+
         MvcResult result = mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodType\": \"BANK_TRANSFER\"}"))
+                        .content(bodyWithMethod))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.amount").isNumber())
                 .andExpect(jsonPath("$.provider").value("FAKE")) // provider unchanged
@@ -238,13 +244,23 @@ class PaymentIntentTest {
         return ids.get(0).longValue();
     }
 
+    private String lastCheckoutToken = null;
+
     private long createBooking(long carId, String pickup, String dropoff) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bookingBody(carId, pickup, dropoff)))
                 .andExpect(status().isOk())
                 .andReturn();
+        lastCheckoutToken = result.getResponse().getHeader("X-Checkout-Session-Token");
         return ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.id")).longValue();
+    }
+
+    private String intentRequestBody() {
+        if (lastCheckoutToken != null) {
+            return String.format("{\"checkoutSessionToken\": \"%s\"}", lastCheckoutToken);
+        }
+        return "{}";
     }
 
     private String daysFromNow(int days) {

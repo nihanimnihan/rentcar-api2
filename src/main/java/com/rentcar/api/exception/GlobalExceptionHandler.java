@@ -132,6 +132,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.CONFLICT, "Invalid booking state", ex.getMessage());
     }
 
+    @ExceptionHandler(CheckoutSessionUnauthorizedException.class)
+    public ResponseEntity<?> handleCheckoutSessionUnauthorizedException(CheckoutSessionUnauthorizedException ex) {
+        return error(HttpStatus.FORBIDDEN, "Forbidden", ex.getMessage());
+    }
+
     // ── 503 Service Unavailable ───────────────────────────────────────────────
 
     @ExceptionHandler(PaymentProviderNotConfiguredException.class)

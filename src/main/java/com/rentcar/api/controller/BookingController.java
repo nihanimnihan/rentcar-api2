@@ -32,8 +32,15 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public BookingResponse getBookingById(@PathVariable Long id) {
+    public BookingResponse getBookingById(@PathVariable Long id,
+                                          @RequestHeader(value = "X-Checkout-Session-Token", required = false) String token) {
         Booking booking = bookingService.getBookingById(id);
+        // If booking is still owned by a checkout session, require the token to view via numeric id.
+        if (booking.getCheckoutSessionToken() != null) {
+            if (token == null || !token.equals(booking.getCheckoutSessionToken())) {
+                throw new com.rentcar.api.exception.CheckoutSessionUnauthorizedException("Missing or invalid checkout session token");
+            }
+        }
         return enrichWithPayment(bookingMapper.toResponse(booking), booking);
     }
 

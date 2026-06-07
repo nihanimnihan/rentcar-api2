@@ -65,10 +65,48 @@ public class BookingPaymentService {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
-        // NOTE: checkoutSessionToken is generated at booking creation and returned
-        // in the X-Checkout-Session-Token header. Ownership enforcement (requiring
-        // the token to retry payments) will be gated behind feature rollout; for
-        // backward compatibility we do not yet reject requests that omit the token.
+        String token = request != null ? request.checkoutSessionToken() : null;
+
+        // Ownership & state validation rules (strict):
+        // - PENDING: must present valid token matching booking.checkoutSessionToken and expiresAt must be in future
+        // - FAILED: allow retry only if token matches and expiresAt is in future
+        // - CONFIRMED/CANCELLED/EXPIRED: reject
+        if (booking.getStatus() == BookingStatus.PENDING) {
+            if (booking.getCheckoutSessionToken() == null) {
+                // Booking has no ownership token (legacy) — allow existing behavior
+            } else {
+                if (token == null || !token.equals(booking.getCheckoutSessionToken())) {
+                    throw new com.rentcar.api.exception.CheckoutSessionUnauthorizedException("Invalid or missing checkout session token");
+                }
+                if (booking.getExpiresAt() == null || !booking.getExpiresAt().isAfter(appClock.nowUtc())) {
+                    // Expired — mark as EXPIRED and reject
+                    booking.setStatus(com.rentcar.api.domain.booking.BookingStatus.EXPIRED);
+                    booking.setExpiresAt(null);
+                    booking.setCheckoutSessionToken(null);
+                    bookingRepository.save(booking);
+                    throw new InvalidBookingStateException("Booking hold has expired");
+                }
+            }
+        } else if (booking.getStatus() == BookingStatus.FAILED) {
+            // Allow retry only if token matches
+            if (booking.getCheckoutSessionToken() != null) {
+                if (token == null || !token.equals(booking.getCheckoutSessionToken())) {
+                    throw new com.rentcar.api.exception.CheckoutSessionUnauthorizedException("Invalid or missing checkout session token");
+                }
+                if (booking.getExpiresAt() == null || !booking.getExpiresAt().isAfter(appClock.nowUtc())) {
+                    booking.setStatus(com.rentcar.api.domain.booking.BookingStatus.EXPIRED);
+                    booking.setExpiresAt(null);
+                    booking.setCheckoutSessionToken(null);
+                    bookingRepository.save(booking);
+                    throw new InvalidBookingStateException("Booking hold has expired");
+                }
+            } else {
+                // legacy failed booking without token — reject to avoid allowing arbitrary retries
+                throw new com.rentcar.api.exception.CheckoutSessionUnauthorizedException("Missing checkout session token for failed booking");
+            }
+        } else if (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus() == BookingStatus.EXPIRED) {
+            throw new InvalidBookingStateException("Booking " + bookingId + " is not in a state that permits creating a payment intent");
+        }
 
         // TODO: when multi-method support is added (BANK_TRANSFER, SEPA, etc.),
         //   map request.paymentMethodType() to PaymentMethod enum and pass it to

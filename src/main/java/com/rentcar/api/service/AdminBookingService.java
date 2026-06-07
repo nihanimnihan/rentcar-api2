@@ -1,5 +1,6 @@
 package com.rentcar.api.service;
 
+import com.rentcar.api.dto.admin.AdminBookingDetailedListItem;
 import com.rentcar.api.dto.admin.AdminBookingListItem;
 import com.rentcar.api.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +43,27 @@ public class AdminBookingService {
                     );
                 })
                 .toList();
+    }
+
+    public AdminBookingDetailedListItem getBookingById(Long id) {
+        var booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
+        var paymentStatus = paymentService.findLatestPayment(booking)
+                .map(p -> p.getStatus())
+                .orElse(null);
+        return new AdminBookingDetailedListItem(
+                booking.getId(),
+                booking.getBookingReference(),
+                booking.getStatus(),
+                booking.getCustomer().getFullName(),
+                booking.getCustomer().getEmail(),
+                booking.getCar().getBrand(),
+                booking.getCar().getModel(),
+                booking.getPickupDateTime(),
+                booking.getDropoffDateTime(),
+                booking.getTotalPrice(),
+                paymentStatus,
+                booking.getCheckoutSessionToken()
+        );
     }
 }

@@ -79,7 +79,7 @@ function renderRow(b) {
       <td>${formatDateTime(b.dropoffDateTime)}</td>
       <td>${formatPrice(b.totalPrice)}</td>
       <td>
-        <a class="admin-link" href="/api/bookings/${b.id}" target="_blank">Detail ↗</a>
+        <a class="admin-link" href="/api/admin/bookings/${b.id}" target="_blank">Detail ↗</a>
       </td>
     </tr>
   `;

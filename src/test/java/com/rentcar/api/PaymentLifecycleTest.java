@@ -60,6 +60,8 @@ class PaymentLifecycleTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private String lastCheckoutToken = null;
+
     // ── 1. Latest payment returns the newest attempt ──────────────────────────
     //      After failure + successful retry, history has 2 records.
     //      The newest (PAID) is returned by findLatestPayment.
@@ -128,7 +130,7 @@ class PaymentLifecycleTest {
         String freshPayRef = JsonPath.read(
                 mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{}"))
+                                .content(intentRequestBody()))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.paymentReference").value(matchesPattern("PAY-[0-9A-F]{8}")))
                         .andReturn().getResponse().getContentAsString(),
@@ -271,7 +273,15 @@ class PaymentLifecycleTest {
                         .content(bookingBody(carId, pickup, dropoff)))
                 .andExpect(status().isOk())
                 .andReturn();
+        lastCheckoutToken = result.getResponse().getHeader("X-Checkout-Session-Token");
         return ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.id")).longValue();
+    }
+
+    private String intentRequestBody() {
+        if (lastCheckoutToken != null) {
+            return String.format("{\"checkoutSessionToken\": \"%s\"}", lastCheckoutToken);
+        }
+        return "{}";
     }
 
     private String daysFromNow(int days) {
