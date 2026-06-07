@@ -47,6 +47,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b WHERE b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt < :now")
     java.util.List<Booking> findPendingBookingsExpired(java.time.Instant now);
 
+    boolean existsByCheckoutSessionToken(String checkoutSessionToken);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT b FROM Booking b WHERE b.id = :id AND b.checkoutSessionToken = :token")
+    Optional<Booking> findByIdAndCheckoutSessionTokenForUpdate(@Param("id") Long id, @Param("token") String token);
+
     /**
      * Returns all bookings, newest first, with customer and car eagerly fetched
      * to avoid N+1 queries when mapping to {@code AdminBookingListItem}.

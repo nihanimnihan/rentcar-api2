@@ -18,10 +18,16 @@ public record CreatePaymentIntentRequest(
          * Optional — defaults to {@code CARD} if absent.
          * Currently only {@code CARD} is supported.
          */
-        String paymentMethodType
+        String paymentMethodType,
+
+        /**
+         * Checkout session ownership token returned at booking creation. Required when retrying
+         * payments on an existing pending booking. Nullable for legacy rows.
+         */
+        String checkoutSessionToken
 ) {
     /** Canonical default when no body is supplied. */
     public static CreatePaymentIntentRequest defaults() {
-        return new CreatePaymentIntentRequest(null);
+        return new CreatePaymentIntentRequest(null, null);
     }
 }

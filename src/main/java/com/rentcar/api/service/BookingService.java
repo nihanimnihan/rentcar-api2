@@ -133,6 +133,7 @@ public class BookingService {
                 .bookingOptionType(BookingOptionType.BEST_PRICE)
                 .status(BookingStatus.PENDING)
                 .expiresAt(appClock.nowUtc().plus(Duration.ofMinutes(15)))
+                .checkoutSessionToken(generateUniqueCheckoutSessionToken())
                 .source(BookingSource.WEB)
                 // Audit metadata: standard WEB checkout is always an anonymous customer.
                 .createdByType(BookingActorType.CUSTOMER_ANONYMOUS)
@@ -160,6 +161,20 @@ public class BookingService {
                 savedBooking.getId(), car.getId(), customer.getId(),
                 price.rentalDays(), mileageOption, savedBooking.getTotalPrice());
         return savedBooking;
+    }
+
+    private String generateUniqueCheckoutSessionToken() {
+        java.util.Base64.Encoder enc = java.util.Base64.getUrlEncoder().withoutPadding();
+        java.security.SecureRandom rnd = new java.security.SecureRandom();
+        for (int attempt = 0; attempt < 10; attempt++) {
+            byte[] bytes = new byte[32];
+            rnd.nextBytes(bytes);
+            String token = enc.encodeToString(bytes);
+            if (!bookingRepository.existsByCheckoutSessionToken(token)) {
+                return token;
+            }
+        }
+        throw new IllegalStateException("Failed to generate unique checkout session token");
     }
 
     public Booking getBookingById(Long id) {

@@ -31,10 +31,11 @@ public class BookingExpiryScheduler {
             try {
                 b.setStatus(BookingStatus.EXPIRED);
                 b.setExpiresAt(null);
-                bookingRepository.save(b);
-                log.info("Expired booking id={} reference={}", b.getId(), b.getBookingReference());
+            b.setCheckoutSessionToken(null);
+            bookingRepository.save(b);
+            log.info("Expired booking id={} reference={}", b.getId(), b.getBookingReference());
             } catch (Exception e) {
-                log.warn("Failed to expire booking id={}: {}", b.getId(), e.getMessage());
+            log.warn("Failed to expire booking id={}: {}", b.getId(), e.getMessage());
             }
         }
     }

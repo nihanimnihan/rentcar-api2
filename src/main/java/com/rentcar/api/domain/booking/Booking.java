@@ -144,6 +144,9 @@ public class Booking {
     @Column(name = "expires_at")
     private Instant expiresAt;
 
+    @Column(name = "checkout_session_token", length = 255)
+    private String checkoutSessionToken;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingSource source;

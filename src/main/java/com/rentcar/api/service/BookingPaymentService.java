@@ -65,6 +65,11 @@ public class BookingPaymentService {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
 
+        // NOTE: checkoutSessionToken is generated at booking creation and returned
+        // in the X-Checkout-Session-Token header. Ownership enforcement (requiring
+        // the token to retry payments) will be gated behind feature rollout; for
+        // backward compatibility we do not yet reject requests that omit the token.
+
         // TODO: when multi-method support is added (BANK_TRANSFER, SEPA, etc.),
         //   map request.paymentMethodType() to PaymentMethod enum and pass it to
         //   createPendingPayment so Payment.method is set correctly.
@@ -134,9 +139,10 @@ public class BookingPaymentService {
         if (payment.getStatus() == PaymentStatus.PAID) {
             booking.setStatus(BookingStatus.CONFIRMED);
             booking.setExpiresAt(null);
+            booking.setCheckoutSessionToken(null);
         } else if (payment.getStatus() == PaymentStatus.FAILED) {
             booking.setStatus(BookingStatus.FAILED);
-            booking.setExpiresAt(null);
+            // Keep expiresAt so the owner retains the hold during the session window.
         } else {
             // Keep booking PENDING for processing/pending payment intents
             booking.setStatus(BookingStatus.PENDING);
