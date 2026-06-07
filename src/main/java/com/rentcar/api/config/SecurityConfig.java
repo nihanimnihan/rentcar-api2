@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // Actuator health — public so load balancers / uptime monitors can probe
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/config/**").permitAll()
 
                         // ── Public API — car browsing ───────────────────────────────────────
                         .requestMatchers(HttpMethod.GET, "/api/cars/search", "/api/cars/popular").permitAll()

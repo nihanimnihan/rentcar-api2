@@ -34,6 +34,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             LocalDateTime newPickup
     );
 
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END FROM Booking b WHERE b.car = :car " +
+            "AND (b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED OR (b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt > :now)) " +
+            "AND b.pickupDateTime < :newDropoff AND b.dropoffDateTime > :newPickup")
+    boolean existsByCarAndActiveStatusAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
+            Car car,
+            LocalDateTime newDropoff,
+            LocalDateTime newPickup,
+            java.time.Instant now
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt < :now")
+    java.util.List<Booking> findPendingBookingsExpired(java.time.Instant now);
+
     /**
      * Returns all bookings, newest first, with customer and car eagerly fetched
      * to avoid N+1 queries when mapping to {@code AdminBookingListItem}.

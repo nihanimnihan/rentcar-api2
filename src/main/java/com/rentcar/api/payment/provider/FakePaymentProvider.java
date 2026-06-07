@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  *       until the {@code charge.refunded} webhook confirms the refund.</li>
  * </ul>
  */
-@Profile({"dev", "local-postgres"})
+@Profile({"dev & !stripe-local", "!local-postgres & !stripe-local"})
 @Component
 public class FakePaymentProvider implements PaymentProvider {
 
@@ -61,4 +61,11 @@ public class FakePaymentProvider implements PaymentProvider {
     public String providerName() {
         return "FAKE";
     }
+
+    @Override
+    public String fetchPaymentIntentStatus(com.rentcar.api.domain.payment.Payment payment) {
+        // Fake provider resolves synchronously to 'succeeded' for local testing flows.
+        return "succeeded";
+    }
 }
+

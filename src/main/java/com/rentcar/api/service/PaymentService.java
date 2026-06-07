@@ -117,6 +117,49 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
+    /**
+     * Verifies the latest provider-side PaymentIntent (Stripe) for the booking and
+     * updates local Payment record accordingly.
+     *
+     * Mapping:
+     *  - Stripe 'succeeded' => PaymentStatus.PAID
+     *  - Stripe 'requires_payment_method'|'canceled'|'failed' => PaymentStatus.FAILED
+     *  - Stripe 'processing'|'requires_action'|'requires_confirmation'|'requires_capture' => keep PENDING
+     */
+    @Transactional
+    public Payment verifyLatestPaymentIntentForBooking(Booking booking) {
+        Payment payment = getLatestPaymentForBooking(booking);
+
+        String intentStatus;
+        try {
+            intentStatus = paymentProvider.fetchPaymentIntentStatus(payment);
+        } catch (UnsupportedOperationException e) {
+            throw new IllegalStateException("Payment provider does not support intent verification");
+        }
+
+        if (intentStatus == null) {
+            throw new IllegalStateException("Provider returned null intent status");
+        }
+
+        switch (intentStatus) {
+            case "succeeded" -> {
+                payment.setStatus(PaymentStatus.PAID);
+                payment.setPaidAt(appClock.nowUtc());
+                log.info("Payment intent succeeded: paymentId={} bookingId={} intentStatus={}", payment.getId(), booking.getId(), intentStatus);
+            }
+            case "requires_payment_method", "canceled", "failed" -> {
+                payment.setStatus(PaymentStatus.FAILED);
+                log.info("Payment intent failed: paymentId={} bookingId={} intentStatus={}", payment.getId(), booking.getId(), intentStatus);
+            }
+            default -> {
+                // processing, requires_action, requires_confirmation, requires_capture, etc.
+                log.info("Payment intent pending: paymentId={} bookingId={} intentStatus={}", payment.getId(), booking.getId(), intentStatus);
+            }
+        }
+
+        return paymentRepository.save(payment);
+    }
+
     public Optional<Payment> findLatestPayment(Booking booking) {
         return paymentRepository.findTopByBookingOrderByCreatedAtDescIdDesc(booking);
     }

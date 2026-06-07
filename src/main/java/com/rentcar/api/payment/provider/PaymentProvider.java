@@ -27,4 +27,14 @@ public interface PaymentProvider {
      * Examples: {@code "FAKE"}, {@code "STRIPE"}.
      */
     String providerName();
+
+    /**
+     * Fetch the provider-side PaymentIntent status for a payment (e.g. Stripe PaymentIntent.status).
+     * Default implementation throws UnsupportedOperationException and should be overridden by providers
+     * that support external intent verification (e.g. Stripe, Fake for local testing).
+     */
+    default String fetchPaymentIntentStatus(com.rentcar.api.domain.payment.Payment payment) {
+        throw new UnsupportedOperationException("fetchPaymentIntentStatus not supported by provider");
+    }
 }
+

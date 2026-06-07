@@ -141,6 +141,9 @@ public class Booking {
     @Column(nullable = false)
     private BookingStatus status;
 
+    @Column(name = "expires_at")
+    private Instant expiresAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingSource source;

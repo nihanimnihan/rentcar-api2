@@ -8,6 +8,7 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
+@org.springframework.scheduling.annotation.EnableScheduling
 public class RentcarApiApplication {
 
 	public static void main(String[] args) {

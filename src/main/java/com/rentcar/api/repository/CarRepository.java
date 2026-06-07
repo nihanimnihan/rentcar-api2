@@ -57,9 +57,9 @@ public interface CarRepository extends JpaRepository<Car, Long> {
         AND NOT EXISTS (
             SELECT b FROM Booking b
             WHERE b.car = c
-            AND b.status IN (
-                com.rentcar.api.domain.booking.BookingStatus.PENDING,
-                com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+            AND (
+                b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+                OR (b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt > :now)
             )
             AND b.pickupDateTime  < :dropoffDateTime
             AND b.dropoffDateTime > :pickupDateTime
@@ -75,8 +75,10 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             @Param("fuelType")        FuelType fuelType,
             @Param("minSeats")        Integer minSeats,
             @Param("minBags")         Integer minBags,
-            @Param("minDriverAge")    Integer minDriverAge
+            @Param("minDriverAge")    Integer minDriverAge,
+            @Param("now")             java.time.Instant now
     );
+
 
     /**
      * Search without date availability filter (used when dates are not provided).
@@ -120,9 +122,9 @@ public interface CarRepository extends JpaRepository<Car, Long> {
         AND NOT EXISTS (
             SELECT b FROM Booking b
             WHERE b.car = c
-            AND b.status IN (
-                com.rentcar.api.domain.booking.BookingStatus.PENDING,
-                com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+            AND (
+                b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+                OR (b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt > :now)
             )
             AND b.pickupDateTime  < :dropoffDateTime
             AND b.dropoffDateTime > :pickupDateTime
@@ -133,6 +135,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             @Param("category")        ChauffeurCategory category,
             @Param("pickupDateTime")  LocalDateTime pickupDateTime,
             @Param("dropoffDateTime") LocalDateTime dropoffDateTime,
-            @Param("passengerCount")  Integer passengerCount
+            @Param("passengerCount")  Integer passengerCount,
+            @Param("now")             java.time.Instant now
     );
 }

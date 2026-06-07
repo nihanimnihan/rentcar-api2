@@ -37,8 +37,9 @@ public class BookingPaymentController {
 
     @PostMapping("/{id}/payments/process")
     public BookingResponse processPayment(@PathVariable Long id,
-                                          @Valid @RequestBody ProcessPaymentRequest request) {
-        return bookingMapper.toResponse(bookingPaymentService.completePayment(id, request.paymentMethodId()));
+                                          @RequestBody(required = false) ProcessPaymentRequest request) {
+        String paymentMethodId = request != null ? request.paymentMethodId() : null;
+        return bookingMapper.toResponse(bookingPaymentService.completePayment(id, paymentMethodId));
     }
 
     /**

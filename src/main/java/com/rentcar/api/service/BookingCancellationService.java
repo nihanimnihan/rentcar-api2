@@ -39,6 +39,7 @@ public class BookingCancellationService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+        booking.setExpiresAt(null);
         booking.setCancelledByType(BookingActorType.ADMIN);
         booking.setCancelledChannel(BookingChannel.ADMIN_PANEL);
         booking.setCancelledAt(businessTimezone.nowBusiness().toInstant());
@@ -92,6 +93,7 @@ public class BookingCancellationService {
         }
 
         locked.setStatus(BookingStatus.CANCELLED);
+        locked.setExpiresAt(null);
         locked.setCancelledByType(BookingActorType.CUSTOMER_ANONYMOUS);
         locked.setCancelledChannel(BookingChannel.WEB);
         locked.setCancelledAt(businessTimezone.nowBusiness().toInstant());

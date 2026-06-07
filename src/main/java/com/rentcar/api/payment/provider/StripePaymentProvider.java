@@ -22,7 +22,7 @@ import java.math.RoundingMode;
  * instantiated in unit tests), methods throw {@link PaymentProviderNotConfiguredException}
  * to yield a 503 Service Unavailable instead of a raw NPE or 500.
  */
-@Profile("prod")
+@Profile({"stripe-local", "prod", "local-postgres"})
 @Component
 public class StripePaymentProvider implements PaymentProvider {
 
@@ -71,4 +71,22 @@ public class StripePaymentProvider implements PaymentProvider {
     public String providerName() {
         return "STRIPE";
     }
+
+    @Override
+    public String fetchPaymentIntentStatus(com.rentcar.api.domain.payment.Payment payment) {
+        if (stripeApiKey == null || stripeApiKey.isBlank()) {
+            throw new PaymentProviderNotConfiguredException("Stripe");
+        }
+        String intentId = payment.getStripePaymentIntentId();
+        if (intentId == null) throw new IllegalArgumentException("Payment has no stripePaymentIntentId");
+
+        try {
+            RequestOptions requestOptions = RequestOptions.builder().setApiKey(stripeApiKey).build();
+            PaymentIntent pi = PaymentIntent.retrieve(intentId, requestOptions);
+            return pi.getStatus();
+        } catch (StripeException e) {
+            throw new RuntimeException("Stripe error: " + e.getMessage(), e);
+        }
+    }
 }
+

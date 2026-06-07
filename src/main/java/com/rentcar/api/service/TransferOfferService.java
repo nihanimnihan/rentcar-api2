@@ -20,6 +20,7 @@ public class TransferOfferService {
 
     private final ChauffeurCategoryRepository chauffeurCategoryRepository;
     private final CarRepository carRepository;
+    private final com.rentcar.api.util.AppClock appClock;
 
     public List<ChauffeurCategoryOfferResponse> getOffers(
             LocalDateTime pickupDateTime, Integer durationHours, Integer passengers) {
@@ -41,7 +42,7 @@ public class TransferOfferService {
 
         // No passenger filter at the offers stage — passengers is unknown at browse time.
         List<Car> availableCars = carRepository.findAvailableChauffeurCars(
-                category, pickupDateTime, dropoffDateTime, null);
+                category, pickupDateTime, dropoffDateTime, null, appClock.nowUtc());
 
         if (availableCars.isEmpty()) {
             return new ChauffeurCategoryOfferResponse(

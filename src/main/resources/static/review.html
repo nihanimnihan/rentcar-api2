@@ -177,23 +177,18 @@
                     <div class="rentcar-review-card">
                         <h2 class="rentcar-review-section-title" data-i18n="review.howToPay">How would you like to pay?</h2>
 
-                        <div class="rentcar-payment-options">
-
-                            <label class="rentcar-payment-option is-selected" id="pm-card">
-                                <input type="radio" name="rfPayment" value="CARD" checked>
-                                <div class="rentcar-payment-option-icon">💳</div>
-                                <div data-i18n="review.creditCard">Credit or debit card</div>
-                            </label>
-
-                            <label class="rentcar-payment-option" id="pm-paypal">
-                                <input type="radio" name="rfPayment" value="PAYPAL">
-                                <div class="rentcar-payment-option-icon">🅿️</div>
-                                <div>PayPal</div>
-                            </label>
-                        </div>
                         <p class="text-13 text-light-1 mt-15" data-i18n="review.paymentNote">
                             Payment details will be collected securely at the next step. No charges are made until your booking is confirmed.
                         </p>
+
+                        <!-- Stripe Elements card container (hidden by default, shown when confirming with Stripe) -->
+                        <div id="stripe-card-container" style="display:none;margin-top:18px">
+                            <div id="stripe-card-element"
+                                 style="padding:18px 20px;border:1px solid #d1d5db;border-radius:10px;background:#fff;min-height:58px;font-size:16px">
+                            </div>
+                            <div id="stripe-card-errors" role="alert" style="color:#d32f2f;margin-top:8px"></div>
+                        </div>
+
                     </div>
 
                     <!-- E: Invoice address ──────────────────────────────── -->
@@ -342,6 +337,7 @@
 
 <div id="minimal-footer-placeholder"></div>
 
+<script src="https://js.stripe.com/v3"></script>
 <script src="js/i18n/en.js"></script>
 <script src="js/i18n/es.js"></script>
 <script src="js/i18n/tr.js"></script>

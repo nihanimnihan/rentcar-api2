@@ -23,6 +23,7 @@ import com.rentcar.api.repository.BookingRepository;
 import com.rentcar.api.util.BookingReferenceGenerator;
 import com.rentcar.api.util.BusinessTimezone;
 import com.rentcar.api.util.NameNormalizer;
+import com.rentcar.api.util.AppClock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.util.List;
 
 
@@ -47,6 +49,7 @@ public class BookingService {
     private final BookingAddonRepository bookingAddonRepository;
     private final BusinessTimezone businessTimezone;
     private final BookingReferenceGenerator referenceGenerator;
+    private final AppClock appClock;
 
     private static final String MANAGE_NOT_FOUND_MSG =
             "We couldn't find a booking with these details. Please check your reference and last name.";
@@ -63,11 +66,11 @@ public class BookingService {
         Car car = carService.getActiveCarByIdForUpdate(request.carId());
 
         boolean overlaps = bookingRepository
-                .existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
+                .existsByCarAndActiveStatusAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                         car,
-                        List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED),
                         request.dropoffDateTime(),
-                        request.pickupDateTime()
+                        request.pickupDateTime(),
+                        appClock.nowUtc()
                 );
 
         if (overlaps) {
@@ -129,6 +132,7 @@ public class BookingService {
                 // flexibility fee calculation and cancellation policy are implemented.
                 .bookingOptionType(BookingOptionType.BEST_PRICE)
                 .status(BookingStatus.PENDING)
+                .expiresAt(appClock.nowUtc().plus(Duration.ofMinutes(15)))
                 .source(BookingSource.WEB)
                 // Audit metadata: standard WEB checkout is always an anonymous customer.
                 .createdByType(BookingActorType.CUSTOMER_ANONYMOUS)

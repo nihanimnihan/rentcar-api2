@@ -35,6 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initPaymentOptions();
   initFlightToggle();
   initConfirmButtons();
+
+  loadStripePublishableKey().then(key => {
+    if (key) {
+      initStripeElements();
+      showStripeCardContainer(true);
+    }
+  });
 });
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -43,6 +50,55 @@ let reviewCar = null;
 let reviewAllAddons = [];
 let reviewAddonIds = [];
 let reviewMileageOption = "INCLUDED";
+
+// Stripe Elements state
+let stripe = null;
+let stripeElements = null;
+let stripeCard = null;
+let stripePublishableKey = null;
+let stripeInitialized = false;
+
+async function loadStripePublishableKey() {
+  try {
+    const res = await fetch('/api/config/stripe-publishable-key');
+    if (!res.ok) return null;
+    const data = await res.json();
+    stripePublishableKey = data?.publishableKey || null;
+    return stripePublishableKey;
+  } catch (e) {
+    console.warn('Could not load stripe publishable key:', e);
+    return null;
+  }
+}
+
+function initStripeElements() {
+  if (stripeInitialized) return;
+  if (!stripePublishableKey) return;
+  try {
+    stripe = Stripe(stripePublishableKey);
+    stripeElements = stripe.elements();
+    stripeCard = stripeElements.create('card', {
+      hidePostalCode: true,
+      disableLink: true
+    });
+    stripeInitialized = true;
+  } catch (e) {
+    console.error('Stripe initialization failed', e);
+    stripeInitialized = false;
+  }
+}
+
+function showStripeCardContainer(show) {
+  const container = document.getElementById('stripe-card-container');
+  if (!container) return;
+  container.style.display = show ? 'block' : 'none';
+  if (show && stripeInitialized && stripeCard) {
+    // mount when visible
+    try { stripeCard.mount('#stripe-card-element'); } catch (e) { /* already mounted */ }
+  } else if (!show && stripeCard) {
+    try { stripeCard.unmount(); } catch (e) { /* ignore */ }
+  }
+}
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 
@@ -322,22 +378,68 @@ async function submitBooking() {
         return; // paymentSucceeded stays false → finally re-enables button
       }
 
-      // TODO (Stripe): when real Stripe is enabled, replace the process call below
-      // with a stripe.confirmCardPayment() call using the clientSecret from the intent:
-      //
-      //   const { error } = await stripe.confirmCardPayment(intent.clientSecret, {
-      //     payment_method: {
-      //       card: cardElement,           // Stripe Elements card element
-      //       billing_details: { name: `${firstName} ${lastName}`, email },
-      //     },
-      //   });
-      //   if (error) { showBookingFormError(error.message); return; }
-      //   // On success, stripe.js will have confirmed the PaymentIntent server-side.
-      //   // Then call processBookingPayment() to advance the booking to CONFIRMED.
+     const provider = intent?.providerName || intent?.provider;
+     if (provider === "STRIPE" && intent?.clientSecret) {      // Stripe flow: confirm the PaymentIntent client-side with Stripe Elements.
+        if (!stripePublishableKey) {
+          await loadStripePublishableKey();
+        }
+        if (!stripePublishableKey) {
+          showBookingFormError('Payment provider not available. Please try again later.');
+          return;
+        }
 
-      if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
-      paymentSucceeded = await processBookingPayment(booking.id, firstName);
-    } else if (res.status === 409) {
+        if (!stripeInitialized) initStripeElements();
+
+        if (!stripe || !stripeCard) {
+          showBookingFormError('Payment initialization failed. Please try again.');
+          return;
+        }
+
+        if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
+
+        try {
+          const result = await stripe.confirmCardPayment(intent.clientSecret, {
+            payment_method: {
+              card: stripeCard,
+              billing_details: { name: `${firstName} ${lastName}`, email }
+            }
+          });
+          console.log("STRIPE CONFIRM RESULT:", result);
+          console.log("STRIPE PAYMENT INTENT:", result.paymentIntent);
+          console.log("STRIPE ERROR:", result.error);
+
+          if (result.error) {
+            // Show Stripe error to user and allow retry
+            console.error('Stripe confirm error', result.error);
+            showBookingFormError(result.error.message || 'Payment failed. Please try another card.');
+            return;
+          }
+
+          const paymentIntent = result.paymentIntent;
+          if (paymentIntent && paymentIntent.status === 'succeeded') {
+            // Backend verifies intent status before confirming booking
+            paymentSucceeded = await processBookingPayment(booking.id, firstName);
+          } else if (paymentIntent && (paymentIntent.status === 'processing' || paymentIntent.status === 'requires_action' || paymentIntent.status === 'requires_confirmation' || paymentIntent.status === 'requires_capture')) {
+            showBookingFormError('Payment is processing or requires additional action. Please follow the instructions or try again later.');
+            return;
+          } else {
+            showBookingFormError('Payment did not complete successfully.');
+            return;
+          }
+        } catch (err) {
+          console.error('Stripe confirmation failed', err);
+          showBookingFormError('Payment failed due to a network error. Please try again.');
+          return;
+        } finally {
+          // Hide Stripe card to avoid leaving sensitive UI mounted after flow
+          // but keep it mounted if you want subsequent retries without reload.
+          // showStripeCardContainer(false);
+        }
+      } else {
+        // Fake provider or no client secret — continue existing process
+        if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
+        paymentSucceeded = await processBookingPayment(booking.id, firstName);
+      }    } else if (res.status === 409) {
       const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
       showBookingFormError(msg);
     } else if (res.status === 400) {

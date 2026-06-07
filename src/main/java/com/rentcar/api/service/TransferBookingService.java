@@ -36,6 +36,7 @@ public class TransferBookingService {
     private final CarService carService;
     private final CustomerService customerService;
     private final BookingReferenceGenerator referenceGenerator;
+    private final com.rentcar.api.util.AppClock appClock;
 
     /**
      * Creates a transfer booking for the first available chauffeur car in the
@@ -65,7 +66,7 @@ public class TransferBookingService {
 
         // Candidate cars — ordered by hourlyPrice ASC, filtered by available seats.
         List<Car> candidates = carRepository.findAvailableChauffeurCars(
-                category, request.pickupDateTime(), dropoffDateTime, request.passengerCount());
+                category, request.pickupDateTime(), dropoffDateTime, request.passengerCount(), appClock.nowUtc());
 
         if (candidates.isEmpty()) {
             throw new NoChauffeurCarAvailableException(request.categoryId());
@@ -75,11 +76,11 @@ public class TransferBookingService {
         Car car = carService.getActiveCarByIdForUpdate(candidates.get(0).getId());
 
         boolean overlaps = bookingRepository
-                .existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
+                .existsByCarAndActiveStatusAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
                         car,
-                        List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED),
                         dropoffDateTime,
-                        request.pickupDateTime()
+                        request.pickupDateTime(),
+                        appClock.nowUtc()
                 );
 
         if (overlaps) {
@@ -118,6 +119,7 @@ public class TransferBookingService {
                 .passengers(passengerCount)
                 .notes(request.notes())
                 .status(BookingStatus.PENDING)
+                .expiresAt(appClock.nowUtc().plus(java.time.Duration.ofMinutes(15)))
                 .source(BookingSource.TRANSFER)
                 .build();
 

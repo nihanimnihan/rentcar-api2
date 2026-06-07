@@ -36,6 +36,8 @@ public class BookingPaymentService {
     @Value("${app.public-base-url:}")
     private String publicBaseUrl;
 
+    private final com.rentcar.api.util.AppClock appClock;
+
     /**
      * Creates a payment intent for a PENDING or FAILED booking without charging the customer.
      *
@@ -78,11 +80,12 @@ public class BookingPaymentService {
             case CANCELLED -> throw new InvalidBookingStateException(
                     "Booking " + bookingId + " is cancelled — payment is not possible");
             case FAILED -> {
-                // Previous charge attempt failed — reset with a fresh PENDING payment.
+            // Previous charge attempt failed — reset with a fresh PENDING payment and refresh the hold.
                 Payment fresh = paymentService.createPendingPayment(booking);
                 booking.setStatus(BookingStatus.PENDING);
-                bookingRepository.save(booking);
-                yield buildIntentResponse(booking, fresh);
+            booking.setExpiresAt(appClock.nowUtc().plus(java.time.Duration.ofMinutes(15)));
+            bookingRepository.save(booking);
+            yield buildIntentResponse(booking, fresh);
             }
             default -> {
                 // PENDING — idempotent: return intent for existing payment record.
@@ -110,7 +113,19 @@ public class BookingPaymentService {
                     "Payment can only be processed for bookings in PENDING or FAILED status");
         }
 
-        Payment payment = paymentService.processLatestPaymentForBooking(booking, paymentMethodId);
+        // For Stripe flows (PaymentIntent created), verify the provider-side intent status
+        // instead of calling the synchronous pay() method. Fake provider also supports
+        // fetchPaymentIntentStatus and will return 'succeeded' for local dev flows.
+        // Determine whether this booking has a provider intent that must be verified.
+        Payment latestPayment = paymentService.findLatestPayment(booking)
+                .orElseThrow(() -> new PaymentNotFoundException(bookingId));
+
+        Payment payment;
+        if (latestPayment.getStripePaymentIntentId() != null && paymentService.providerName().equals("STRIPE")) {
+            payment = paymentService.verifyLatestPaymentIntentForBooking(booking);
+        } else {
+            payment = paymentService.processLatestPaymentForBooking(booking, paymentMethodId);
+        }
 
         // TODO (async): with real Stripe, payment may stay PENDING here while the provider
         //   processes it (e.g. 3DS challenge, bank redirect). In that case, keep the booking
@@ -118,8 +133,13 @@ public class BookingPaymentService {
         //   'payment_intent.succeeded'. FakePaymentProvider resolves synchronously.
         if (payment.getStatus() == PaymentStatus.PAID) {
             booking.setStatus(BookingStatus.CONFIRMED);
-        } else {
+            booking.setExpiresAt(null);
+        } else if (payment.getStatus() == PaymentStatus.FAILED) {
             booking.setStatus(BookingStatus.FAILED);
+            booking.setExpiresAt(null);
+        } else {
+            // Keep booking PENDING for processing/pending payment intents
+            booking.setStatus(BookingStatus.PENDING);
         }
 
         Booking saved = bookingRepository.save(booking);

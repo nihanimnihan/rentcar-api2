@@ -26,6 +26,7 @@ public class CarService {
     private final CarRepository carRepository;
     private final PricingService pricingService;
     private final BusinessTimezone businessTimezone;
+    private final com.rentcar.api.util.AppClock appClock;
 
     public List<Car> getActiveCars() {
         return carRepository.findByActiveTrue();
@@ -96,7 +97,8 @@ public class CarService {
                     request.fuelType(),
                     request.minSeats(),
                     request.minBags(),
-                    request.minDriverAge()
+                    request.minDriverAge(),
+                    appClock.nowUtc()
             );
             log.debug("Car search returned {} available cars", results.size());
             return results;
