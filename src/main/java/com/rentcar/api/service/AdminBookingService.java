@@ -62,8 +62,7 @@ public class AdminBookingService {
                 booking.getPickupDateTime(),
                 booking.getDropoffDateTime(),
                 booking.getTotalPrice(),
-                paymentStatus,
-                booking.getCheckoutSessionToken()
+                paymentStatus
         );
     }
 }

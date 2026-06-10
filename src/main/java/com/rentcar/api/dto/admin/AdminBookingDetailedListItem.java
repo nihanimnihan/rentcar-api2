@@ -22,6 +22,5 @@ public record AdminBookingDetailedListItem(
         LocalDateTime dropoffDateTime,
         BigDecimal totalPrice,
         /** Null when no payment record exists yet (intent not created). */
-        PaymentStatus paymentStatus,
-        String checkoutSessionToken
+        PaymentStatus paymentStatus
 ) {}

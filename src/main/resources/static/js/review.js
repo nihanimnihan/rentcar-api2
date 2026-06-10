@@ -51,12 +51,26 @@ let reviewAllAddons = [];
 let reviewAddonIds = [];
 let reviewMileageOption = "INCLUDED";
 
+// Checkout session signature stored for reuse detection
+let reviewCheckoutSignature = null;
+
 // Stripe Elements state
 let stripe = null;
 let stripeElements = null;
 let stripeCard = null;
 let stripePublishableKey = null;
 let stripeInitialized = false;
+
+/**
+ * Deterministic, URL-safe signature representing the current checkout parameters.
+ * Not a secret — used only to detect whether stored pending booking belongs to
+ * the same search (car/dates/addons/mileage).
+ */
+function buildCheckoutSignature({carId, pickupDateTime, dropoffDateTime, pickupLocation, dropoffLocation, addonIds, mileageOption}) {
+  const addons = (Array.isArray(addonIds) ? [...addonIds] : []).filter(Boolean).map(Number).sort((a,b)=>a-b);
+  // Use a simple canonical string. Avoid JSON.stringify ordering gotchas by explicit order.
+  return `${carId}|${pickupDateTime || ''}|${dropoffDateTime || ''}|${pickupLocation || ''}|${dropoffLocation || ''}|${mileageOption || ''}|${addons.join(',')}`;
+}
 
 async function loadStripePublishableKey() {
   try {
@@ -311,6 +325,12 @@ function setFieldError(fieldId, hasError) {
 
 // ── Booking submission ────────────────────────────────────────────────────────
 
+function clearCheckoutSession() {
+  sessionStorage.removeItem('rentcarPendingBookingId');
+  sessionStorage.removeItem('rentcarCheckoutSessionToken');
+  sessionStorage.removeItem('rentcarCheckoutSignature');
+}
+
 async function submitBooking() {
   if (!validateForm()) {
     // Scroll to first error
@@ -328,6 +348,19 @@ async function submitBooking() {
   const dropoffLocation = params.get("dropoffLocation");
   const mileageOption   = params.get("mileageOption") || "INCLUDED";
   const addonIds        = params.getAll("addonIds").map(Number).filter(Boolean);
+
+  // Compute a deterministic signature of the current checkout parameters so we can
+  // safely reuse an existing pending booking created for the same selection.
+  const currentCheckoutSignature = buildCheckoutSignature({
+    carId,
+    pickupDateTime,
+    dropoffDateTime,
+    pickupLocation,
+    dropoffLocation,
+    addonIds,
+    mileageOption: reviewMileageOption
+  });
+
 
   const firstName = document.getElementById("rfFirstName").value.trim();
   const lastName  = document.getElementById("rfLastName").value.trim();
@@ -360,32 +393,14 @@ async function submitBooking() {
     // Check for existing pending booking owned by this session
     const storedId = sessionStorage.getItem('rentcarPendingBookingId');
     const storedToken = sessionStorage.getItem('rentcarCheckoutSessionToken');
+    const storedSignature = sessionStorage.getItem('rentcarCheckoutSignature');
     let booking;
-    if (storedId && storedToken) {
-      try {
-        // Verify ownership and that booking matches current search (car & dates)
-        const checkRes = await fetch(`/api/bookings/${storedId}`, { headers: { 'X-Checkout-Session-Token': storedToken } });
-        if (checkRes.ok) {
-          const existing = await checkRes.json();
-          // validate matching search params
-          if (Number(existing.car.id) === carId && existing.pickupDateTime === pickupDateTime && existing.dropoffDateTime === dropoffDateTime && existing.status === 'PENDING') {
-            booking = existing; // reuse
-          } else {
-            // not matching or not pending — clear and create fresh
-            sessionStorage.removeItem('rentcarPendingBookingId');
-            sessionStorage.removeItem('rentcarCheckoutSessionToken');
-          }
-        } else {
-          // token rejected or booking not found — clear stored and proceed to create
-          sessionStorage.removeItem('rentcarPendingBookingId');
-          sessionStorage.removeItem('rentcarCheckoutSessionToken');
-        }
-      } catch (e) {
-        // network error — fall back to creating a new booking
-        console.warn('Failed to verify stored pending booking, creating new booking', e);
-        sessionStorage.removeItem('rentcarPendingBookingId');
-        sessionStorage.removeItem('rentcarCheckoutSessionToken');
-      }
+
+    // Require id + token + signature match for safe reuse; otherwise clear partial state
+    if (storedId && storedToken && storedSignature && storedSignature === currentCheckoutSignature) {
+      booking = { id: Number(storedId), status: "PENDING" };
+    } else {
+      clearCheckoutSession();
     }
 
     // If no reusable booking found, create one
@@ -398,38 +413,37 @@ async function submitBooking() {
 
       if (res.ok) {
         booking = await res.json();
-        // read token header if present and store for retries
-        const tokenHeader = res.headers.get('X-Checkout-Session-Token');
+
+        const tokenHeader = res.headers.get("X-Checkout-Session-Token");
         if (tokenHeader) {
-          sessionStorage.setItem('rentcarPendingBookingId', String(booking.id));
-          sessionStorage.setItem('rentcarCheckoutSessionToken', tokenHeader);
+          sessionStorage.setItem("rentcarPendingBookingId", String(booking.id));
+          sessionStorage.setItem("rentcarCheckoutSessionToken", tokenHeader);
+          sessionStorage.setItem("rentcarCheckoutSignature", currentCheckoutSignature);
         }
-        if (confirmBtn) confirmBtn.textContent = t('review.processing');
+
+        if (confirmBtn) confirmBtn.textContent = t("review.processing");
+
       } else if (res.status === 409) {
-        const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
+        const data = await res.json().catch(() => null);
         showReviewFlowModal({
+          icon: "🚗",
           title: "Car no longer available",
-          message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
+          message: data?.message || "Sorry, this car has just been reserved. Please choose another car for the same dates.",
           buttonText: "Choose another car",
           onClose: goBackToCarsWithSameSearch
         });
         return;
+
       } else if (res.status === 400) {
         const data = await res.json().catch(() => null);
-        const msg = data?.message || t('error.checkDetails');
-        showReviewFlowModal({
-          title: "Car no longer available status400",
-          message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
-          buttonText: "Choose another car",
-          onClose: goBackToCarsWithSameSearch
-        });
+        showBookingFormError(data?.message || t("error.checkDetails"));
         return;
+
       } else {
-        showBookingFormError(t('error.somethingWrong'));
+        showBookingFormError(t("error.somethingWrong"));
         return;
       }
     }
-
     // Step 2: Create payment intent — amount/currency come from the booking,
     // never from the frontend.
     let intent;
@@ -441,6 +455,7 @@ async function submitBooking() {
       if (err.message && err.message.toLowerCase().includes('checkout')) {
         sessionStorage.removeItem('rentcarPendingBookingId');
         sessionStorage.removeItem('rentcarCheckoutSessionToken');
+        sessionStorage.removeItem('rentcarCheckoutSignature');
       }
       showReviewFlowModal({
         title: "Payment could not be started",
@@ -476,9 +491,6 @@ async function submitBooking() {
               billing_details: { name: `${firstName} ${lastName}`, email }
             }
           });
-          console.log("STRIPE CONFIRM RESULT:", result);
-          console.log("STRIPE PAYMENT INTENT:", result.paymentIntent);
-          console.log("STRIPE ERROR:", result.error);
 
           if (result.error) {
             // Show Stripe error to user and allow retry
@@ -527,26 +539,7 @@ async function submitBooking() {
         // Fake provider or no client secret — continue existing process
         if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
         paymentSucceeded = await processBookingPayment(booking.id, firstName);
-      }    } else if (res.status === 409) {
-      const msg = await res.text().catch(() => t('error.carNoLongerAvailable'));
-      showReviewFlowModal({
-        title: "Car no longer available",
-        message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
-        buttonText: "Choose another car",
-        onClose: goBackToCarsWithSameSearch
-      });
-    } else if (res.status === 400) {
-      const data = await res.json().catch(() => null);
-      const msg = data?.message || t('error.checkDetails');
-      showReviewFlowModal({
-        title: "Car no longer available status400",
-        message: msg || "Sorry, this car has just been reserved by another customer. Please choose another car for the same dates.",
-        buttonText: "Choose another car",
-        onClose: goBackToCarsWithSameSearch
-      });
-    } else {
-      showBookingFormError(t('error.somethingWrong'));
-    }
+      }
   } catch (err) {
     console.error("Booking submission failed:", err);
     showBookingFormError(t('error.networkError'));
@@ -651,6 +644,11 @@ async function processBookingPayment(bookingId, firstName) {
 // ── Success screen ────────────────────────────────────────────────────────────
 
 function showBookingSuccess(booking, firstName) {
+  // Clear any stored pending checkout session — booking is confirmed
+  sessionStorage.removeItem('rentcarPendingBookingId');
+  sessionStorage.removeItem('rentcarCheckoutSessionToken');
+  sessionStorage.removeItem('rentcarCheckoutSignature');
+
   const formColumn = document.getElementById("reviewFormColumn");
   if (!formColumn) return;
 
