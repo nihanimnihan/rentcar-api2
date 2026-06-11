@@ -42,7 +42,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, OAuth2LoginSuccessHandler successHandler) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, com.rentcar.api.security.OAuth2LoginSuccessHandler successHandler, com.rentcar.api.security.CustomOAuth2UserService oauth2UserService) throws Exception {
         http
                 /*
                  * CSRF disabled: keep disabled for now to avoid breaking existing JS fetch()
@@ -95,7 +95,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/transfer/bookings").permitAll()
 
                         // ── Admin (DEMO: open for presentation — TODO before production: restore hasRole("ADMIN")) ──
-                        .requestMatchers("/api/admin/**").permitAll() // TODO: .hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // TODO BEFORE PRODUCTION: ensure ADMIN auth and tighten access
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
 
                         // Public auth endpoints
@@ -141,6 +141,13 @@ public class SecurityConfig {
                 // Allow H2 console iframe in dev.
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
+                )
+
+                // OAuth2 login (Google)
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/signup.html")
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
+                        .successHandler(successHandler)
                 );
 
         return http.build();

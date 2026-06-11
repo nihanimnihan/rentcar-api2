@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -52,14 +53,14 @@ class AdminCarCrudTest {
 
     @Test
     void listCars_returnsArray() throws Exception {
-        mockMvc.perform(get(BASE))
+        mockMvc.perform(get(BASE).with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     void createRentalCar_returns201() throws Exception {
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(RENTAL_CAR_JSON))
                 .andExpect(status().isCreated())
@@ -91,7 +92,7 @@ class AdminCarCrudTest {
                   "displayClass": "Economy"
                 }
                 """;
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest());
@@ -120,7 +121,7 @@ class AdminCarCrudTest {
                   "chauffeurAvailable": true
                 }
                 """;
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest());
@@ -129,7 +130,7 @@ class AdminCarCrudTest {
     @Test
     void createChauffeurCar_withoutHourlyPrice_returns400() throws Exception {
         // Lookup a real category id from seed
-        String categoriesJson = mockMvc.perform(get("/api/admin/chauffeur-categories"))
+        String categoriesJson = mockMvc.perform(get("/api/admin/chauffeur-categories").with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         Integer categoryId = JsonPath.read(categoriesJson, "$[0].id");
@@ -157,7 +158,7 @@ class AdminCarCrudTest {
                 }
                 """.formatted(categoryId);
 
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest());
@@ -165,7 +166,7 @@ class AdminCarCrudTest {
 
     @Test
     void createChauffeurCar_withCategoryAndHourlyPrice_returns201() throws Exception {
-        String categoriesJson = mockMvc.perform(get("/api/admin/chauffeur-categories"))
+        String categoriesJson = mockMvc.perform(get("/api/admin/chauffeur-categories").with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         Integer categoryId = JsonPath.read(categoriesJson, "$[0].id");
@@ -194,7 +195,7 @@ class AdminCarCrudTest {
                 }
                 """.formatted(categoryId);
 
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isCreated())
@@ -206,7 +207,7 @@ class AdminCarCrudTest {
     @Test
     void updateCar_price_isReflected() throws Exception {
         // Create first
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(RENTAL_CAR_JSON))
                 .andExpect(status().isCreated())
@@ -215,7 +216,7 @@ class AdminCarCrudTest {
 
         // Update with higher price
         String update = RENTAL_CAR_JSON.replace("49.99", "79.99");
-        mockMvc.perform(put(BASE + "/" + id)
+        mockMvc.perform(put(BASE + "/" + id).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(update))
                 .andExpect(status().isOk())
@@ -224,14 +225,14 @@ class AdminCarCrudTest {
 
     @Test
     void patchActive_deactivatesCar() throws Exception {
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(RENTAL_CAR_JSON))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         Integer id = JsonPath.read(created, "$.id");
 
-        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false"))
+        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false").with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active").value(false));
     }
@@ -239,14 +240,14 @@ class AdminCarCrudTest {
     @Test
     void deactivatedCar_notReturnedByPublicSearch() throws Exception {
         // Create + deactivate
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(RENTAL_CAR_JSON))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         Integer id = JsonPath.read(created, "$.id");
 
-        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false"))
+        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false").with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk());
 
         // Public endpoint should not include this car
@@ -257,18 +258,18 @@ class AdminCarCrudTest {
 
     @Test
     void deleteCar_softDeletesViaActive() throws Exception {
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(RENTAL_CAR_JSON))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         Integer id = JsonPath.read(created, "$.id");
 
-        mockMvc.perform(delete(BASE + "/" + id))
+        mockMvc.perform(delete(BASE + "/" + id).with(httpBasic("admin", "change-me")))
                 .andExpect(status().isNoContent());
 
         // Still present in admin list (soft deleted = inactive)
-        mockMvc.perform(get(BASE + "/" + id))
+        mockMvc.perform(get(BASE + "/" + id).with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active").value(false));
     }

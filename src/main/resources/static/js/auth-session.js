@@ -1,22 +1,36 @@
 (function () {
-  function getUser() {
+  async function fetchUser() {
     try {
-      return JSON.parse(localStorage.getItem("rentcarUser"));
-    } catch (_) {
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data && data.authenticated === false) return null;
+      return data;
+    } catch (e) {
       return null;
     }
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      // ignore
+    }
     localStorage.removeItem("rentcarUser");
     window.location.href = "index.html";
   }
 
-  function renderAuthState() {
-    const user = getUser();
+  async function renderAuthState() {
     const links = document.querySelectorAll(
       'a[href="signup.html"][data-i18n="header.signIn"]'
     );
+
+    const backendUser = await fetchUser();
+    let user = backendUser;
+    if (!user) {
+      try { user = JSON.parse(localStorage.getItem("rentcarUser")); } catch (_) { user = null; }
+    }
 
     links.forEach(link => {
       if (!user || !user.firstName) return;

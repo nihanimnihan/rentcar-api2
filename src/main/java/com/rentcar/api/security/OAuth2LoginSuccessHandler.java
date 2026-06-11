@@ -28,10 +28,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private boolean isSafeReturnTo(String returnTo) {
         if (returnTo == null || returnTo.isBlank()) return false;
+        if (!returnTo.startsWith("/")) return false;
+        if (returnTo.startsWith("//")) return false;
         try {
             URI uri = new URI(returnTo);
             // Relative path only (no scheme, no host)
-            return (uri.getScheme() == null && uri.getHost() == null && returnTo.startsWith("/"));
+            return (uri.getScheme() == null && uri.getHost() == null);
         } catch (URISyntaxException e) {
             return false;
         }
@@ -49,8 +51,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // compute returnTo
         String returnTo = request.getParameter("returnTo");
         if (!isSafeReturnTo(returnTo)) {
-            returnTo = request.getContextPath() + "/index.html";
+            Object sessionReturn = request.getSession().getAttribute("OAUTH2_RETURN_TO");
+            if (sessionReturn instanceof String && isSafeReturnTo((String) sessionReturn)) {
+                returnTo = (String) sessionReturn;
+            } else {
+                returnTo = "/index.html";            }
         }
+        // clear stored returnTo
+        request.getSession().removeAttribute("OAUTH2_RETURN_TO");
 
         // If profile incomplete redirect to signup.html with step
         if (!user.isProfileComplete()) {

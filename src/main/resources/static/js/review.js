@@ -172,6 +172,22 @@ async function loadReviewPage() {
     const ageSpan = document.getElementById("rfMinAge");
     if (ageSpan) ageSpan.textContent = reviewCar.minDriverAge || 21;
 
+    // Prefill driver info from authenticated user (if available)
+    try {
+      const authRes = await fetch('/api/auth/me');
+      if (authRes.ok) {
+        const auth = await authRes.json();
+        if (auth && auth.email) {
+          const emailInput = document.getElementById('rfEmail');
+          const fn = document.getElementById('rfFirstName');
+          const ln = document.getElementById('rfLastName');
+          if (emailInput && !emailInput.value) emailInput.value = auth.email;
+          if (fn && !fn.value && auth.firstName) fn.value = auth.firstName;
+          if (ln && !ln.value && auth.lastName) ln.value = auth.lastName;
+        }
+      }
+    } catch (e) { /* ignore */ }
+
   } catch (err) {
     console.error("Failed to load review page data:", err);
     showReviewError(t('error.networkError'), "cars.html");

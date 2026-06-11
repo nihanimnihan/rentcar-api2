@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -32,7 +33,7 @@ class AdminAddonCrudTest {
 
     @Test
     void listAddons_returnsArrayWithSeededAddons() throws Exception {
-        mockMvc.perform(get(BASE))
+        mockMvc.perform(get(BASE).with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
@@ -40,7 +41,7 @@ class AdminAddonCrudTest {
 
     @Test
     void listAddons_responseContainsExpectedFields() throws Exception {
-        mockMvc.perform(get(BASE))
+        mockMvc.perform(get(BASE).with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].name").exists())
@@ -69,7 +70,7 @@ class AdminAddonCrudTest {
                 }
                 """;
 
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
@@ -86,7 +87,7 @@ class AdminAddonCrudTest {
                 {"code":"NONAME","price":5.00,"pricingType":"DAILY","active":true}
                 """;
 
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest());
@@ -100,13 +101,13 @@ class AdminAddonCrudTest {
                 """.formatted(code);
 
         // Create first — should succeed
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated());
 
         // Create duplicate — should conflict
-        mockMvc.perform(post(BASE)
+        mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isConflict());
@@ -121,7 +122,7 @@ class AdminAddonCrudTest {
                 {"name":"To Update","code":"UPD-%d","price":5.00,"pricingType":"DAILY","active":true}
                 """.formatted(System.currentTimeMillis());
 
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(create))
                 .andExpect(status().isCreated())
@@ -135,7 +136,7 @@ class AdminAddonCrudTest {
                 {"name":"Updated Name","nameEs":"Nombre actualizado","code":"%s","price":12.00,"pricingType":"ONE_TIME","recommended":true,"active":true}
                 """.formatted(existingCode);
 
-        mockMvc.perform(put(BASE + "/" + id)
+        mockMvc.perform(put(BASE + "/" + id).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(update))
                 .andExpect(status().isOk())
@@ -154,7 +155,7 @@ class AdminAddonCrudTest {
                 {"name":"To Deactivate","code":"DEACT-%d","price":3.00,"pricingType":"ONE_TIME","active":true}
                 """.formatted(System.currentTimeMillis());
 
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(create))
                 .andExpect(status().isCreated())
@@ -162,7 +163,7 @@ class AdminAddonCrudTest {
 
         long id = JsonPath.parse(created).read("$.id", Long.class);
 
-        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false"))
+        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false").with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active").value(false));
     }
@@ -173,7 +174,7 @@ class AdminAddonCrudTest {
                 {"name":"Hide Me","code":"HIDE-%d","price":2.00,"pricingType":"DAILY","active":true}
                 """.formatted(System.currentTimeMillis());
 
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(create))
                 .andExpect(status().isCreated())
@@ -181,7 +182,7 @@ class AdminAddonCrudTest {
 
         long id = JsonPath.parse(created).read("$.id", Long.class);
 
-        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false"))
+        mockMvc.perform(patch(BASE + "/" + id + "/active?value=false").with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk());
 
         // Must not appear in public active list
@@ -198,7 +199,7 @@ class AdminAddonCrudTest {
                 {"name":"To Soft Delete","code":"SDEL-%d","price":7.00,"pricingType":"DAILY","active":true}
                 """.formatted(System.currentTimeMillis());
 
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(create))
                 .andExpect(status().isCreated())
@@ -206,11 +207,11 @@ class AdminAddonCrudTest {
 
         long id = JsonPath.parse(created).read("$.id", Long.class);
 
-        mockMvc.perform(delete(BASE + "/" + id))
+        mockMvc.perform(delete(BASE + "/" + id).with(httpBasic("admin", "change-me")))
                 .andExpect(status().isNoContent());
 
         // Still exists, but inactive
-        mockMvc.perform(get(BASE + "/" + id))
+        mockMvc.perform(get(BASE + "/" + id).with(httpBasic("admin", "change-me")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active").value(false));
 
@@ -230,7 +231,7 @@ class AdminAddonCrudTest {
                 {"name":"Count Test Addon","code":"%s","price":5.00,"pricingType":"DAILY","active":true}
                 """.formatted(code);
 
-        String created = mockMvc.perform(post(BASE)
+        String created = mockMvc.perform(post(BASE).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(create))
                 .andExpect(status().isCreated())
@@ -249,7 +250,7 @@ class AdminAddonCrudTest {
                 {"name":"Count Test Addon Updated","code":"%s","price":99.99,"pricingType":"DAILY","recommended":false,"active":true}
                 """.formatted(code);
 
-        mockMvc.perform(put(BASE + "/" + id)
+        mockMvc.perform(put(BASE + "/" + id).with(httpBasic("admin", "change-me"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(update))
                 .andExpect(status().isOk())

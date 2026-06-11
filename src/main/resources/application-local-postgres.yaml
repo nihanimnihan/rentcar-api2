@@ -1,18 +1,16 @@
 server:
   port: 8091
 
+# Local PostgreSQL datasource configuration.
+# Values can be overridden with SPRING_DATASOURCE_* environment variables.
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/rentcar
-    username: rentcar
-    password: rentcar
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/rentcar}
+    username: ${SPRING_DATASOURCE_USERNAME:rentcar}
+    password: ${SPRING_DATASOURCE_PASSWORD:rentcar}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-
-stripe:
-  api-key: ${STRIPE_API_KEY:}
-  publishable-key: ${STRIPE_PUBLISHABLE_KEY:}

@@ -2,6 +2,17 @@ server:
   port: 8091
 
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-client-id
+            client-secret: test-google-client-secret
+            scope:
+              - openid
+              - profile
+              - email
   datasource:
     url: jdbc:postgresql://localhost:5432/rentcar
     username: rentcar
