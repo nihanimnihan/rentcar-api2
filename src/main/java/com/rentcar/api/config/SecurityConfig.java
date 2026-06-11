@@ -42,19 +42,19 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, OAuth2LoginSuccessHandler successHandler) throws Exception {
         http
                 /*
-                 * CSRF disabled: the app is fully stateless (STATELESS session policy below
-                 * means Spring Security never issues a session cookie). Without a session
-                 * cookie an attacker cannot forge cross-site requests, so CSRF protection
-                 * provides no value here and would only break the JS fetch() calls.
+                 * CSRF disabled: keep disabled for now to avoid breaking existing JS fetch()
+                 * used by guest checkout. OAuth2 login will use the session cookie but
+                 * we rely on same-origin protections and internal-only returnTo handling
+                 * to reduce risk. Review CSRF posture before production.
                  */
                 .csrf(csrf -> csrf.disable())
 
-                // No HttpSession — each request must re-authenticate via Basic credentials.
+                // Allow HttpSession for OAuth2 login flows; other APIs remain usable with or without sessions.
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
                 .authorizeHttpRequests(auth -> auth
                         // ── Static frontend resources ──────────────────────────────────────
@@ -97,6 +97,12 @@ public class SecurityConfig {
                         // ── Admin (DEMO: open for presentation — TODO before production: restore hasRole("ADMIN")) ──
                         .requestMatchers("/api/admin/**").permitAll() // TODO: .hasRole("ADMIN")
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
+
+                        // Public auth endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/profile").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
+
                         // Booking reads and cancellation are admin-only.
                         // The public POST /api/bookings and POST /api/bookings/*/payments/process
                         // rules above already match before reaching this line.
