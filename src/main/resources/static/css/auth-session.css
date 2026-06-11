@@ -1,0 +1,152 @@
+.rc-user-menu {
+  position: relative;
+}
+
+.rc-user-menu__button {
+  height: 50px;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  color: #ffffff !important;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.rc-user-menu__button:hover {
+    color: #F8D448;
+}
+
+.rc-user-menu__avatar {
+    color: rgba(255,255,255,.85);
+    font-size: 16px;
+}
+
+.rc-user-menu__button::after {
+    content: "▼";
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+.rc-user-menu__dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  min-width: 220px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255, 252, 244, .98);
+  border: 1px solid rgba(25,27,30,.08);
+  box-shadow: 0 24px 70px rgba(0,0,0,.26);
+  z-index: 1000;
+}
+
+.rc-user-menu.is-open .rc-user-menu__dropdown {
+  display: block;
+}
+
+.rc-user-menu__dropdown a,
+.rc-user-menu__dropdown button {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: #191B1E;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.rc-user-menu__dropdown a:hover,
+.rc-user-menu__dropdown button:hover {
+  background: rgba(248, 212, 72, .16);
+}
+
+a[href="signup.html"][data-i18n="header.signIn"] {
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+a[href="signup.html"][data-i18n="header.signIn"]:hover {
+  color: #F8D448 !important;
+}
+
+.rc-user-menu__button span:not(.rc-user-menu__avatar) {
+  background: transparent !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: inherit !important;
+}
+
+.rc-user-menu__button:hover {
+  color: #F8D448 !important;
+}
+
+.rc-user-menu__avatar {
+  font-size: 14px;
+  opacity: .9;
+}
+
+.rc-user-menu__button::after {
+  content: "⌄";
+  font-size: 12px;
+  margin-left: 2px;
+  color: inherit;
+}
+
+.rc-user-menu .rc-user-menu__button,
+.rc-user-menu .rc-user-menu__button span,
+.rc-user-menu .rc-user-menu__button::after {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.rc-user-menu .rc-user-menu__button:hover,
+.rc-user-menu .rc-user-menu__button:hover span,
+.rc-user-menu .rc-user-menu__button:hover::after {
+  color: #F8D448 !important;
+}
+
+.rc-user-menu__button {
+  opacity: 1 !important;
+}
+
+.rc-user-menu__button span:not(.rc-user-menu__avatar) {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+}
+
+.rc-header-auth-link,
+a[href="signup.html"][data-i18n="header.signIn"] {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+
+.rc-header-auth-link:hover,
+a[href="signup.html"][data-i18n="header.signIn"]:hover {
+  color: #F8D448 !important;
+}

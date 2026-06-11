@@ -322,5 +322,28 @@ window.i18nTranslations['tr'] = {
 
     'search.cars': 'Araçlar',
     'search.airportTransfer': 'Havalimanı Transferi',
-    'search.viewEditBooking': 'Rezervasyonumu görüntüle / düzenle'
+    'search.viewEditBooking': 'Rezervasyonumu görüntüle / düzenle',
+
+
+    'auth.welcome': 'Paradise’a hoş geldiniz',
+    'auth.subtitle': 'Rezervasyonlarınızı, kiralama geçmişinizi ve kayıtlı bilgilerinizi yönetmek için giriş yapın.',
+    'auth.email': 'E-posta adresi',
+    'auth.emailPlaceholder': 'isim@mail.com',
+    'auth.continueEmail': 'E-posta ile devam et',
+    'auth.continueGoogle': 'Google ile devam et',
+    'auth.newToRentCar': 'RentCar’da yeni misiniz?',
+    'auth.createAccount': 'Hesap oluştur',
+    'auth.createTitle': 'Hesabınızı oluşturun',
+    'auth.createSubtitle': 'Kiralama profilinizi hazırlamak için birkaç bilgi ekleyin.',
+    'auth.firstName': 'Ad',
+    'auth.firstNamePlaceholder': 'Adınız',
+    'auth.lastName': 'Soyad',
+    'auth.lastNamePlaceholder': 'Soyadınız',
+    'auth.country': 'İkamet edilen ülke',
+    'auth.selectCountry': 'Ülke seçin',
+    'auth.requiredEmail': 'Lütfen geçerli bir e-posta adresi girin.',
+    'auth.requiredFirstName': 'Lütfen adınızı girin.',
+    'auth.requiredLastName': 'Lütfen soyadınızı girin.',
+    'auth.requiredCountry': 'Lütfen ülkenizi seçin.',
+    'auth.emailPlaceholder': 'E-posta adresiniz',
   };

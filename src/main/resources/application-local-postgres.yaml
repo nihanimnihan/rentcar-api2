@@ -12,3 +12,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+stripe:
+  api-key: ${STRIPE_API_KEY:}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
