@@ -38,10 +38,59 @@ function getReturnTo() {
   return "/index.html";
 }
 
+function openCenteredPopup(url, width = 600, height = 700) {
+  const left = Math.floor((window.screen.width - width) / 2);
+  const top = Math.floor((window.screen.height - height) / 2);
+  const opts = `toolbar=0,location=0,status=0,menubar=0,scrollbars=1,resizable=1,width=${width},height=${height},top=${top},left=${left}`;
+  try {
+    return window.open(url, 'rc_google_oauth', opts);
+  } catch (e) { return null; }
+}
+
 function goProfileFromGoogle() {
   const returnTo = getReturnTo();
-  window.location.href = '/oauth2/authorize?returnTo=' + encodeURIComponent(returnTo) + '&provider=google';
+  const popupUrl = '/oauth2/authorize?returnTo=' + encodeURIComponent(returnTo) + '&provider=google&popup=1';
+
+  // Try opening a popup
+  const popup = openCenteredPopup(popupUrl, 600, 700);
+  if (!popup) {
+    // Popup blocked — fallback to full-page redirect
+    window.location.href = popupUrl;
+    return;
+  }
+
+  // Listen for postMessage from popup callback
+  const onMessage = async (e) => {
+    // Only accept messages from same origin
+    if (e.origin !== window.location.origin) return;
+    const data = e.data || {};
+    if (data.type !== 'oauth') return;
+
+    window.removeEventListener('message', onMessage);
+
+    // Refresh auth state and navigate accordingly
+    try {
+      const res = await fetch('/api/auth/me');
+      if (res.ok) {
+        const info = await res.json();
+        const returnToFromPopup = data.returnTo || returnTo || '/index.html';
+        if (data.profileComplete) {
+          window.location.href = returnToFromPopup;
+          return;
+        } else {
+          window.location.href = '/signup.html?step=profile&returnTo=' + encodeURIComponent(returnToFromPopup);
+          return;
+        }
+      }
+    } catch (err) {
+      // On error, fallback to navigating to returnTo
+      window.location.href = returnTo || '/index.html';
+    }
+  };
+
+  window.addEventListener('message', onMessage);
 }
+
 
     // Save profile to backend (if session-authenticated) or fallback to local storage
     async function saveProfile() {

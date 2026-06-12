@@ -56,6 +56,7 @@ public class AuthController {
     @GetMapping("/oauth2/authorize")
     public void oauthAuthorize(@RequestParam(name = "returnTo", required = false) String returnTo,
                                @RequestParam(name = "provider", defaultValue = "google") String provider,
+                               @RequestParam(name = "popup", required = false) String popup,
                                HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
         // Only allow google provider for customer OAuth flows
@@ -67,7 +68,16 @@ public class AuthController {
         if (!isSafeReturnTo(returnTo)) {
             returnTo = request.getContextPath() + "/index.html";
         }
-        request.getSession(true).setAttribute("OAUTH2_RETURN_TO", returnTo);
+        var session = request.getSession(true);
+        session.setAttribute("OAUTH2_RETURN_TO", returnTo);
+        // If popup parameter is present and truthy, remember to signal success handler to return a popup callback page
+        if (popup != null && ("1".equals(popup) || "true".equalsIgnoreCase(popup))) {
+            session.setAttribute("OAUTH2_POPUP", Boolean.TRUE);
+            org.slf4j.LoggerFactory.getLogger(AuthController.class).info("OAuth authorize requested in popup mode, sessionId={}", session.getId());
+        } else {
+            session.removeAttribute("OAUTH2_POPUP");
+            org.slf4j.LoggerFactory.getLogger(AuthController.class).info("OAuth authorize requested, returnTo={}, sessionId={}", returnTo, session.getId());
+        }
         // Use fixed provider path to avoid building from arbitrary input
         response.sendRedirect("/oauth2/authorization/google");
     }
@@ -75,17 +85,25 @@ public class AuthController {
     @PostMapping("/api/auth/profile")
     public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest req, HttpServletRequest request) {
         String email = (String) request.getSession().getAttribute("APP_USER_EMAIL");
-        if (email == null) return ResponseEntity.status(401).build();
+        if (email == null) {
+            org.slf4j.LoggerFactory.getLogger(AuthController.class).warn("Profile update denied: no session");
+            return ResponseEntity.status(401).build();
+        }
 
         AppUser user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) return ResponseEntity.status(404).build();
+        if (user == null) {
+            org.slf4j.LoggerFactory.getLogger(AuthController.class).warn("Profile update failed: user not found email={}", email);
+            return ResponseEntity.status(404).build();
+        }
 
         // Ensure only CUSTOMER users may update their profile here
         if (user.getRole() != com.rentcar.api.domain.user.AppRole.CUSTOMER) {
+            org.slf4j.LoggerFactory.getLogger(AuthController.class).warn("Profile update forbidden for non-customer email={}", email);
             return ResponseEntity.status(403).body(java.util.Map.of("error", "Forbidden"));
         }
 
         if (req.getFirstName() == null || req.getFirstName().isBlank() || req.getLastName() == null || req.getLastName().isBlank() || req.getCountry() == null || req.getCountry().isBlank()) {
+            org.slf4j.LoggerFactory.getLogger(AuthController.class).warn("Profile update bad request email={}", email);
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Missing required fields"));
         }
 
@@ -94,15 +112,8 @@ public class AuthController {
         user.setCountry(req.getCountry().trim());
         user.setProfileComplete(true);
         userRepository.save(user);
+        org.slf4j.LoggerFactory.getLogger(AuthController.class).info("Profile updated for email={}, sessionId={}", email, request.getSession(false) != null ? request.getSession(false).getId() : "-");
 
         return ResponseEntity.ok().body(new AuthUserResponse(user.getEmail(), user.getFirstName(), user.getLastName(), user.getCountry(), user.isProfileComplete(), user.getRole().name()));
-    }
-
-    @PostMapping("/api/auth/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
-        try {
-            request.getSession().invalidate();
-        } catch (Exception ignored) {}
-        return ResponseEntity.ok().build();
     }
 }

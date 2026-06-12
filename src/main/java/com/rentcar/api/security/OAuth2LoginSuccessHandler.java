@@ -48,19 +48,32 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // In a simple setup, we create a Spring Security principal by setting a session attribute
         request.getSession(true).setAttribute("APP_USER_EMAIL", user.getEmail());
 
-        // compute returnTo
-        String returnTo = request.getParameter("returnTo");
-        if (!isSafeReturnTo(returnTo)) {
-            Object sessionReturn = request.getSession().getAttribute("OAUTH2_RETURN_TO");
-            if (sessionReturn instanceof String && isSafeReturnTo((String) sessionReturn)) {
-                returnTo = (String) sessionReturn;
-            } else {
-                returnTo = "/index.html";            }
+        // Determine returnTo from session only (set by /oauth2/authorize)
+        Object sessionReturn = request.getSession().getAttribute("OAUTH2_RETURN_TO");
+        String returnTo = "/index.html";
+        if (sessionReturn instanceof String && isSafeReturnTo((String) sessionReturn)) {
+            returnTo = (String) sessionReturn;
         }
         // clear stored returnTo
         request.getSession().removeAttribute("OAUTH2_RETURN_TO");
 
+        // Log outcome
+        String sessionId = (request.getSession(false) != null) ? request.getSession(false).getId() : "-";
+        org.slf4j.LoggerFactory.getLogger(OAuth2LoginSuccessHandler.class).info("OAuth success email={}, profileComplete={}, returnTo={}, sessionId={}", user.getEmail(), user.isProfileComplete(), returnTo, sessionId);
+
         // If profile incomplete redirect to signup.html with step
+        // But if this login was initiated in a popup, redirect to a small popup callback page that will postMessage to opener.
+        Object popupFlag = request.getSession().getAttribute("OAUTH2_POPUP");
+        boolean fromPopup = popupFlag instanceof Boolean && (Boolean) popupFlag == Boolean.TRUE;
+        if (fromPopup) {
+            // clear popup flag
+            request.getSession().removeAttribute("OAUTH2_POPUP");
+            String callback = "/oauth2/popup-callback.html?profileComplete=" + user.isProfileComplete() + "&returnTo=" + java.net.URLEncoder.encode(returnTo, java.nio.charset.StandardCharsets.UTF_8);
+            org.slf4j.LoggerFactory.getLogger(OAuth2LoginSuccessHandler.class).info("OAuth success returning popup callback profileComplete={}, sessionId={}", user.isProfileComplete(), sessionId);
+            response.sendRedirect(callback);
+            return;
+        }
+
         if (!user.isProfileComplete()) {
             String redirect = "/signup.html?step=profile&returnTo=" + java.net.URLEncoder.encode(returnTo, java.nio.charset.StandardCharsets.UTF_8);
             response.sendRedirect(redirect);
