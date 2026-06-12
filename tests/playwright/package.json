@@ -1,0 +1,10 @@
+{
+  "name": "rentcar-frontend-tests",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.37.0"
+  },
+  "scripts": {
+    "test": "playwright test"
+  }
+}
