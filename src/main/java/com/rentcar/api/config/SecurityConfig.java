@@ -98,10 +98,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // TODO BEFORE PRODUCTION: ensure ADMIN auth and tighten access
                         .requestMatchers("/api/payments/**").hasRole("ADMIN")
 
-                        // Public auth endpoints
+                        // ── Public auth endpoints
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/profile").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
+                        // Allow logout to be called even if the session is expired so clients can always POST it.
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
+
+                        // Allow OAuth2 authorization endpoints to be accessed without prior authentication
+                        .requestMatchers("/oauth2/authorization/**", "/login/oauth2/**", "/oauth2/authorize").permitAll()
 
                         // Booking reads and cancellation are admin-only.
                         // The public POST /api/bookings and POST /api/bookings/*/payments/process
@@ -141,6 +145,24 @@ public class SecurityConfig {
                 // Allow H2 console iframe in dev.
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
+                )
+
+                // Logout endpoint: use Spring Security's logout filter so it's idempotent and returns 200 even if session expired
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            var sess = request.getSession(false);
+                            String sid = (sess != null) ? sess.getId() : "-";
+                            org.slf4j.LoggerFactory.getLogger(SecurityConfig.class).info("Logout request, sessionId={}", sid);
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            try {
+                                response.getWriter().write("{}");
+                            } catch (java.io.IOException ignored) {}
+                        })
                 )
 
                 // OAuth2 login (Google)
