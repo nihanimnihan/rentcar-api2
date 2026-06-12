@@ -27,18 +27,21 @@
     focusFirstCodeInput();
   }
 
-    function getReturnTo() {
-      const params = new URLSearchParams(window.location.search);
-      const rt = params.get('returnTo');
-      if (rt) return rt;
-      return window.location.pathname + window.location.search;
-    }
+function getReturnTo() {
+  const params = new URLSearchParams(window.location.search);
+  const rt = params.get("returnTo");
 
-    function goProfileFromGoogle() {
-      const returnTo = getReturnTo();
-      // Redirect to backend which stores returnTo in session then forwards to Google's OAuth
-      window.location.href = '/oauth2/authorize?returnTo=' + encodeURIComponent(returnTo) + '&provider=google';
-    } 
+  if (rt && rt.startsWith("/") && !rt.startsWith("//")) {
+    return rt;
+  }
+
+  return "/index.html";
+}
+
+function goProfileFromGoogle() {
+  const returnTo = getReturnTo();
+  window.location.href = '/oauth2/authorize?returnTo=' + encodeURIComponent(returnTo) + '&provider=google';
+}
 
     // Save profile to backend (if session-authenticated) or fallback to local storage
     async function saveProfile() {
@@ -71,28 +74,28 @@
         });
 
         if (res.ok) {
-          const params = new URLSearchParams(window.location.search);
-          const returnTo = params.get('returnTo') || '/index.html';
-          window.location.href = decodeURIComponent(returnTo);
+          // Use client-side validated returnTo
+          const returnTo = getReturnTo();
+          window.location.href = returnTo;
           return;
         }
+
+        // Non-ok: show error and stop
+        let errText = '';
+        try {
+          const errJson = await res.json();
+          errText = errJson.error || JSON.stringify(errJson);
+        } catch (ee) {
+          try { errText = await res.text(); } catch (_) { errText = '' }
+        }
+        console.error('Profile save failed', res.status, errText);
+        alert('Unable to save profile: ' + (errText || res.status));
+        return;
       } catch (e) {
-        console.warn('Profile save failed, falling back to local storage', e);
+        console.error('Profile save request failed', e);
+        alert('Unable to save profile due to a network error');
+        return;
       }
-
-      // Fallback for demo: save locally
-      const user = {
-        email,
-        firstName,
-        lastName,
-        country,
-        customerNumber: "RC-CUST-" + Math.floor(100000 + Math.random() * 900000)
-      };
-
-      localStorage.setItem("rentcarUser", JSON.stringify(user));
-      const params = new URLSearchParams(window.location.search);
-      const returnTo = params.get('returnTo') || '/index.html';
-      window.location.href = decodeURIComponent(returnTo);
     }
 
   function verifyCode() {
@@ -136,18 +139,23 @@
     });
   }
 
-  function bindEvents() {
-    document.getElementById("continueEmailBtn").addEventListener("click", goVerify);
-    document.getElementById("googleBtn").addEventListener("click", goProfileFromGoogle);
-    document.getElementById("verifyCodeBtn").addEventListener("click", verifyCode);
-    document.getElementById("saveProfileBtn").addEventListener("click", saveProfile);
+function bindEvents() {
+  try {
+    document.getElementById("continueEmailBtn")?.addEventListener("click", goVerify);
+    document.getElementById("googleBtn")?.addEventListener("click", goProfileFromGoogle);
+    document.getElementById("verifyCodeBtn")?.addEventListener("click", verifyCode);
+    document.getElementById("saveProfileBtn")?.addEventListener("click", saveProfile);
 
     document.querySelectorAll("[data-back]").forEach(btn => {
       btn.addEventListener("click", () => showStep(btn.dataset.back));
     });
 
     bindCodeInputs();
+  } catch (e) {
+    // Ensure binding doesn't fail completely; log for diagnostics
+    console.error('bindEvents error', e);
   }
+}
 
   function markError(id, hasError) {
     const input = document.getElementById(id);
@@ -161,35 +169,37 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    // If arriving at profile step, prefill fields from backend if available
-    const params = new URLSearchParams(window.location.search);
-    const step = params.get('step');
-    if (step === 'profile') {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.email) {
-            const emailEl = document.getElementById('profileEmail');
-            if (emailEl) {
-              emailEl.value = data.email;
-              emailEl.readOnly = true; // ensure readonly
-            }
-            if (data.firstName) {
-              const fn = document.getElementById('firstName'); if (fn && !fn.value) fn.value = data.firstName;
-            }
-            if (data.lastName) {
-              const ln = document.getElementById('lastName'); if (ln && !ln.value) ln.value = data.lastName;
-            }
-            if (data.country) {
-              const c = document.getElementById('country'); if (c && !c.value) c.value = data.country;
-            }
-          }
-        }
-      } catch (e) { /* ignore */ }
-    }
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const step = params.get("step");
 
-    bindEvents();
-  });
+  if (step === "profile") {
+    showStep("profile");
+  }
+
+  try {
+    const res = await fetch("/api/auth/me");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.email) {
+        const emailEl = document.getElementById("profileEmail");
+        if (emailEl) {
+          emailEl.value = data.email;
+          emailEl.readOnly = true;
+        }
+
+        const firstNameEl = document.getElementById("firstName");
+        if (firstNameEl && data.firstName) firstNameEl.value = data.firstName;
+
+        const lastNameEl = document.getElementById("lastName");
+        if (lastNameEl && data.lastName) lastNameEl.value = data.lastName;
+
+        const countryEl = document.getElementById("country");
+        if (countryEl && data.country) countryEl.value = data.country;
+      }
+    }
+  } catch (e) {}
+
+  bindEvents();
+});
 })();
