@@ -7,6 +7,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
@@ -42,7 +46,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, com.rentcar.api.security.OAuth2LoginSuccessHandler successHandler, com.rentcar.api.security.CustomOAuth2UserService oauth2UserService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, com.rentcar.api.security.OAuth2LoginSuccessHandler successHandler, com.rentcar.api.security.CustomOAuth2UserService oauth2UserService, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
         http
                 /*
                  * CSRF disabled: keep disabled for now to avoid breaking existing JS fetch()
@@ -168,10 +172,42 @@ public class SecurityConfig {
                 // OAuth2 login (Google)
                 .oauth2Login(oauth -> oauth
                         .loginPage("/signup.html")
+                        .authorizationEndpoint(authz -> authz.authorizationRequestResolver(
+                                new GooglePromptAuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization")
+                        ))
                         .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
                         .successHandler(successHandler)
                 );
 
         return http.build();
     }
+
+    /**
+     * Resolver that adds prompt=select_account for Google authorization requests,
+     * leaving other providers unchanged.
+     */
+    private static class GooglePromptAuthorizationRequestResolver extends DefaultOAuth2AuthorizationRequestResolver {
+        public GooglePromptAuthorizationRequestResolver(ClientRegistrationRepository repo, String authorizationRequestBaseUri) {
+            super(repo, authorizationRequestBaseUri);
+        }
+
+        @Override
+        public OAuth2AuthorizationRequest resolve(javax.servlet.http.HttpServletRequest request) {
+            // Delegate to standard resolver; framework often calls resolve(request, registrationId) directly.
+            return super.resolve(request);
+        }
+
+        @Override
+        public OAuth2AuthorizationRequest resolve(javax.servlet.http.HttpServletRequest request, String registrationId) {
+            OAuth2AuthorizationRequest req = super.resolve(request, registrationId);
+            if (req == null) return null;
+            if ("google".equalsIgnoreCase(registrationId)) {
+                var params = new java.util.LinkedHashMap<>(req.getAdditionalParameters());
+                params.put("prompt", "select_account");
+                return OAuth2AuthorizationRequest.from(req).additionalParameters(params).build();
+            }
+            return req;
+        }
+    }
+
 }
