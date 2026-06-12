@@ -38,22 +38,53 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String first = (String) attributes.getOrDefault("given_name", null);
         String last = (String) attributes.getOrDefault("family_name", null);
 
-        return userRepository.findByEmail(email).orElseGet(() -> {
-            AppUser u = AppUser.builder()
-                    .email(email)
-                    .firstName(first)
-                    .lastName(last)
-                    .country(null)
-                    .provider(AuthProvider.GOOGLE)
-                    .role(AppRole.CUSTOMER)
-                    .customerNumber(numberGenerator.nextCustomerNumber())
-                    .profileComplete((first != null && last != null))
-                    .createdAt(Instant.now())
-                    .updatedAt(Instant.now())
-                    .build();
-            userRepository.save(u);
-            log.info("Created new Google user: {}", email);
-            return u;
-        });
+        var maybe = userRepository.findByEmail(email);
+        if (maybe.isPresent()) {
+            AppUser existing = maybe.get();
+            boolean changed = false;
+            // Fill missing first/last if Google provides them, but do not overwrite existing non-empty values
+            if ((existing.getFirstName() == null || existing.getFirstName().isBlank()) && first != null && !first.isBlank()) {
+                existing.setFirstName(first);
+                changed = true;
+            }
+            if ((existing.getLastName() == null || existing.getLastName().isBlank()) && last != null && !last.isBlank()) {
+                existing.setLastName(last);
+                changed = true;
+            }
+            // Do not set country from Google (not reliable). Only keep existing country if set.
+            // Recompute profileComplete only if all required fields are present
+            boolean profileComplete = (existing.getFirstName() != null && !existing.getFirstName().isBlank())
+                    && (existing.getLastName() != null && !existing.getLastName().isBlank())
+                    && (existing.getCountry() != null && !existing.getCountry().isBlank());
+            if (existing.isProfileComplete() != profileComplete) {
+                existing.setProfileComplete(profileComplete);
+                changed = true;
+            }
+            if (changed) {
+                existing.setUpdatedAt(Instant.now());
+                userRepository.save(existing);
+                log.info("Updated existing Google user (partial) : {}", email);
+            } else {
+                log.info("Existing Google user signed in without profile changes: {}", email);
+            }
+            return existing;
+        }
+
+        // New user
+        AppUser u = AppUser.builder()
+                .email(email)
+                .firstName(first)
+                .lastName(last)
+                .country(null)
+                .provider(AuthProvider.GOOGLE)
+                .role(AppRole.CUSTOMER)
+                .customerNumber(numberGenerator.nextCustomerNumber())
+                .profileComplete(false)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+        userRepository.save(u);
+        log.info("Created new Google user: {}", email);
+        return u;
     }
 }

@@ -43,3 +43,5 @@ test-results/
 
 !**/src/main/resources/application-stripe-local.yaml
 !**/src/main/resources/application-local-postgres.yaml
+
+.env

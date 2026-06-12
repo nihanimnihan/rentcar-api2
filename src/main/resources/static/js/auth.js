@@ -61,6 +61,7 @@ function goProfileFromGoogle() {
 
   // Listen for postMessage from popup callback
   const onMessage = async (e) => {
+    console.info('oauth popup message event', e.origin, e.data);
     // Only accept messages from same origin
     if (e.origin !== window.location.origin) return;
     const data = e.data || {};
@@ -89,6 +90,7 @@ function goProfileFromGoogle() {
   };
 
   window.addEventListener('message', onMessage);
+  console.info('oauth popup listener attached');
 }
 
 

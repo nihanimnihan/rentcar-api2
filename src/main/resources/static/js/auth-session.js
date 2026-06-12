@@ -13,10 +13,14 @@
 
   async function logout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!res.ok) {
+        console.error('Logout request failed', res.status, await res.text());
+      }
     } catch (e) {
-      // ignore
+      console.error('Logout request error', e);
     }
+    // Always clear local state and redirect to avoid stale UI
     localStorage.removeItem("rentcarUser");
     window.location.href = "index.html";
   }

@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -54,7 +56,7 @@ public class SecurityConfig {
                  * we rely on same-origin protections and internal-only returnTo handling
                  * to reduce risk. Review CSRF posture before production.
                  */
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
 
                 // Allow HttpSession for OAuth2 login flows; other APIs remain usable with or without sessions.
                 .sessionManagement(session ->
@@ -148,7 +150,7 @@ public class SecurityConfig {
 
                 // Allow H2 console iframe in dev.
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin())
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
 
                 // Logout endpoint: use Spring Security's logout filter so it's idempotent and returns 200 even if session expired
@@ -186,25 +188,50 @@ public class SecurityConfig {
      * Resolver that adds prompt=select_account for Google authorization requests,
      * leaving other providers unchanged.
      */
-    private static class GooglePromptAuthorizationRequestResolver extends DefaultOAuth2AuthorizationRequestResolver {
+    private static class GooglePromptAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
+        private final DefaultOAuth2AuthorizationRequestResolver delegate;
+        private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GooglePromptAuthorizationRequestResolver.class);
+
         public GooglePromptAuthorizationRequestResolver(ClientRegistrationRepository repo, String authorizationRequestBaseUri) {
-            super(repo, authorizationRequestBaseUri);
+            this.delegate = new DefaultOAuth2AuthorizationRequestResolver(repo, authorizationRequestBaseUri);
         }
 
         @Override
-        public OAuth2AuthorizationRequest resolve(javax.servlet.http.HttpServletRequest request) {
-            // Delegate to standard resolver; framework often calls resolve(request, registrationId) directly.
-            return super.resolve(request);
+        public OAuth2AuthorizationRequest resolve(jakarta.servlet.http.HttpServletRequest request) {
+            OAuth2AuthorizationRequest req = delegate.resolve(request);
+            if (req == null) return null;
+            // Try to detect registrationId from request path param if possible (best-effort)
+            String regId = (String) request.getAttribute("registrationId");
+            if (regId == null) {
+                // Fallback: try parse from URI like /oauth2/authorization/{registrationId}
+                String uri = request.getRequestURI();
+                if (uri != null) {
+                    int idx = uri.lastIndexOf('/');
+                    if (idx >= 0 && idx + 1 < uri.length()) regId = uri.substring(idx + 1);
+                }
+            }
+            if ("google".equalsIgnoreCase(regId)) {
+                var params = new java.util.LinkedHashMap<>(req.getAdditionalParameters());
+                boolean already = params.containsKey("prompt");
+                params.put("prompt", "select_account");
+                OAuth2AuthorizationRequest out = OAuth2AuthorizationRequest.from(req).additionalParameters(params).build();
+                log.info("GooglePromptAuthorizationRequestResolver: added prompt=select_account (alreadyPresent={}) for registrationId={}", already, regId);
+                return out;
+            }
+            return req;
         }
 
         @Override
-        public OAuth2AuthorizationRequest resolve(javax.servlet.http.HttpServletRequest request, String registrationId) {
-            OAuth2AuthorizationRequest req = super.resolve(request, registrationId);
+        public OAuth2AuthorizationRequest resolve(jakarta.servlet.http.HttpServletRequest request, String registrationId) {
+            OAuth2AuthorizationRequest req = delegate.resolve(request, registrationId);
             if (req == null) return null;
             if ("google".equalsIgnoreCase(registrationId)) {
                 var params = new java.util.LinkedHashMap<>(req.getAdditionalParameters());
+                boolean already = params.containsKey("prompt");
                 params.put("prompt", "select_account");
-                return OAuth2AuthorizationRequest.from(req).additionalParameters(params).build();
+                OAuth2AuthorizationRequest out = OAuth2AuthorizationRequest.from(req).additionalParameters(params).build();
+                log.info("GooglePromptAuthorizationRequestResolver: added prompt=select_account (alreadyPresent={}) for registrationId={}", already, registrationId);
+                return out;
             }
             return req;
         }
