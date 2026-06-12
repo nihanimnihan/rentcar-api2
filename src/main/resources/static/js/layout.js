@@ -46,23 +46,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 });
 
-document.addEventListener("DOMContentLoaded", async function () {
-  await loadPartial("preloader-placeholder", "partials/preloader.html");
-
-  setTimeout(function () {
-    var preloader = document.querySelector(".js-preloader");
-
-    if (!preloader) return;
-
-    preloader.style.opacity = "0";
-    preloader.style.visibility = "hidden";
-    preloader.style.pointerEvents = "none";
-
-    setTimeout(function () {
-      preloader.remove();
-    }, 500);
-  }, 800);
-});
+// Preloader removed to prevent white flash on theme pages. Previously injected partial and removed after 800ms.
 
 document.addEventListener("DOMContentLoaded", function () {
     var minimalFooter = document.getElementById("minimal-footer-placeholder");

@@ -150,11 +150,13 @@
 
 [data-anim^='slide-'],
 [data-anim-child^='slide-'] {
-  opacity: 0;
+  /* Visible by default so content never remains blank before JS runs */
+  opacity: 1;
   transition-property: opacity, transform;
-  pointer-events: none;
+  pointer-events: auto;
   transition-duration: 1s;
   transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  transform: none;
 }
 
 [data-anim^='slide-'].is-in-view,
@@ -166,29 +168,27 @@
 
 [data-anim^='slide-up'],
 [data-anim-child^='slide-up'] {
-  transform: translate3d(0, 40px, 0);
+  /* leave transform only as animation hint; do not hide content by default */
 }
 
 [data-anim^='slide-down'],
 [data-anim-child^='slide-down'] {
-  transform: translate3d(0, -40px, 0);
 }
 
 [data-anim^='slide-right'],
 [data-anim-child^='slide-right'] {
-  transform: translate3d(-40px, 0, 0);
 }
 
 [data-anim^='slide-left'],
 [data-anim-child^='slide-left'] {
-  transform: translate3d(40px, 0, 0);
 }
 
 [data-anim^='fade'],
 [data-anim-child^='fade'] {
-  opacity: 0;
+  /* visible by default; fade effect may still run if JS toggles classes */
+  opacity: 1;
   transition-property: opacity;
-  pointer-events: none;
+  pointer-events: auto;
   transition-duration: 0.8s;
   transition-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
 }

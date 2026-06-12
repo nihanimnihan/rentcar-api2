@@ -20,8 +20,30 @@
     } catch (e) {
       console.error('Logout request error', e);
     }
-    // Always clear local state and redirect to avoid stale UI
+    // Clear local state
     localStorage.removeItem("rentcarUser");
+
+    // Prevent white flash during navigation: show a dark fullscreen overlay
+    try {
+      var overlay = document.getElementById('rc-dark-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'rc-dark-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.bottom = '0';
+        overlay.style.background = '#191B1E';
+        overlay.style.zIndex = '2147483647';
+        overlay.style.pointerEvents = 'none';
+        document.documentElement.appendChild(overlay);
+      }
+    } catch (e) {
+      // ignore overlay failures
+    }
+
+    // Navigate to homepage
     window.location.href = "index.html";
   }
 
