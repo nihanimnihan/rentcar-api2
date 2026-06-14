@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Your bookings — RentCar</title>
+  <link rel="stylesheet" href="css/vendors.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/brand-theme.css">
+  <link rel="stylesheet" href="css/user-area.css">
+</head>
+<body>
+  <header class="rc-user-header">
+    <div style="display:flex;align-items:center;gap:18px">
+      <a class="rc-logo" href="/index.html" style="color:inherit;text-decoration:none;font-weight:700;font-size:18px">RentCar</a>
+    </div>
+
+    <div class="rc-user-menu">
+      <button class="rc-user-menu__button">Hi, <span id="rc-user-name"></span> ▾</button>
+      <div class="rc-user-menu__dropdown">
+        <a href="/bookings.html">Bookings</a>
+        <a href="/profile.html">Profile</a>
+        <button data-ua-logout class="rc-logout">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="rc-tabs">
+    <a id="tab-bookings" href="/bookings.html" class="rc-tab">Bookings</a>
+    <a id="tab-profile" href="/profile.html" class="rc-tab">Profile</a>
+  </nav>
+
+  <main class="rc-container">
+    <div class="rc-empty-wrap">
+      <div class="rc-empty-card">
+        <h1>Your bookings</h1>
+        <p class="rc-empty-title">No bookings yet</p>
+        <p class="rc-empty-text">Your upcoming rentals will appear here.</p>
+        <p style="margin-top:22px"><a class="rc-cta" href="/index.html">Book a car</a></p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/user-area.js"></script>
+</body>
+</html>

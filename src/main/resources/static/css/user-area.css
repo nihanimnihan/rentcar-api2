@@ -1,0 +1,41 @@
+/* user-area.css — shared styles for bookings/profile pages */
+:root{--rc-amber:var(--rc-yellow, #F8D448)}
+/* Header */
+.rc-user-header{background:#0d0f10;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.rc-user-header .rc-logo{color:#fff;font-weight:700;margin-left:4px;font-size:18px}
+/* User menu */
+.rc-user-menu{position:relative}
+.rc-user-menu__button{background:transparent;color:#fff;border:none;font-size:15px;padding:8px 10px;border-radius:6px;cursor:pointer}
+.rc-user-menu__dropdown{position:absolute;right:0;top:calc(100% + 8px);background:#111;padding:8px;border-radius:8px;min-width:180px;box-shadow:0 6px 18px rgba(0,0,0,.4);display:none}
+.rc-user-menu__dropdown.is-open{display:block}
+.rc-user-menu__dropdown a, .rc-user-menu__dropdown button{display:block;color:#fff;padding:8px 10px;text-align:left;border:none;background:transparent;width:100%;text-decoration:none}
+.rc-user-menu__dropdown a:hover, .rc-user-menu__dropdown button:hover{background:rgba(255,255,255,0.03)}
+
+/* Tabs */
+.rc-tabs{display:flex;gap:24px;padding:10px 20px;background:#0d0f10}
+.rc-tab{color:#cfcfcf;text-decoration:none;padding:10px 8px;display:inline-block}
+.rc-tab.is-active-tab{position:relative;color:#fff}
+.rc-tab.is-active-tab::after{content:'';position:absolute;left:6px;right:6px;bottom:-12px;height:4px;background:var(--rc-amber);border-radius:2px}
+
+/* Layout */
+.rc-container{max-width:980px;margin:24px auto;padding:0 20px}
+.rc-card{background:#fff;padding:28px;border-radius:10px;box-shadow:0 4px 18px rgba(17,17,17,0.04)}
+.rc-cta{display:inline-block;background:var(--rc-amber);color:#111;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:700}
+
+/* Empty state */
+.rc-empty-wrap{display:flex;justify-content:center}
+.rc-empty-card{max-width:640px;text-align:center;padding:36px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,0.04)}
+.rc-empty-title{font-size:20px;font-weight:700;margin-top:8px;color:#222}
+.rc-empty-text{color:#666;margin-top:8px}
+
+/* Grid forms */
+.rc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.rc-field{margin-bottom:12px}
+label{display:block;font-weight:600;margin-bottom:6px;color:#333}
+input[readonly]{background:#f6f6f6;border:1px solid #e6e6e6;padding:10px;border-radius:6px;width:100%}
+input, select{padding:10px;border-radius:6px;width:100%;border:1px solid #e6e6e6}
+.rc-actions{margin-top:18px}
+.rc-save{background:var(--rc-amber);color:#111;padding:10px 14px;border-radius:8px;text-decoration:none;border:none;font-weight:700}
+.rc-danger{background:#eee;color:#888;padding:10px 14px;border-radius:8px;border:none}
+
+@media (max-width:900px){.rc-grid{grid-template-columns:1fr}.rc-tabs{overflow:auto}.rc-user-menu__dropdown{right:10px}}
