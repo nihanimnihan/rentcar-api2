@@ -174,7 +174,7 @@ async function loadReviewPage() {
 
     // Prefill driver info from authenticated user (if available)
     try {
-      const authRes = await fetch('/api/auth/me');
+      const authRes = await fetch('/api/auth/me', { credentials: 'same-origin' });
       if (authRes.ok) {
         const auth = await authRes.json();
         if (auth && auth.email) {

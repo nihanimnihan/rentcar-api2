@@ -94,7 +94,7 @@
     document.getElementById('saveProfile').addEventListener('click', async function(){
       const country = document.getElementById('country').value;
       try{
-        const res = await fetch('/api/auth/profile',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({country})});
+        const res = await fetch('/api/auth/profile',{method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify({country})});
         if (res.ok) {
           const data = await res.json();
           showProfileMessage('Profile updated successfully.', false);

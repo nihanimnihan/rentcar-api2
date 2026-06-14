@@ -1,7 +1,7 @@
 (function () {
   async function fetchUser() {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
       if (!res.ok) return null;
       const data = await res.json();
       if (data && data.authenticated === false) return null;
@@ -54,33 +54,34 @@
 
     const backendUser = await fetchUser();
     let user = backendUser;
+    // Do not use localStorage as source-of-truth for authentication. Only allow it as a visual fallback.
     if (!user) {
-      try { user = JSON.parse(localStorage.getItem("rentcarUser")); } catch (_) { user = null; }
+      try { const ls = JSON.parse(localStorage.getItem("rentcarUser")); if (ls && ls.firstName && ls.email) user = ls; } catch (_) { user = null; }
     }
 
     links.forEach(link => {
-      if (!user || !user.firstName) return;
+      // require a backend-authenticated user with email — otherwise don't render account menu
+      if (!backendUser || !backendUser.email) return;
 
       const wrapper = document.createElement("div");
       wrapper.className = "rc-user-menu";
       wrapper.innerHTML = `
-        <button type="button" class="rc-user-menu__button">
-          <i class="icon-user rc-user-menu__avatar"></i>
-          <span>${user.firstName}</span>
+        <button type=\"button\" class=\"rc-user-menu__button\"> 
+          <span>${backendUser.firstName || ''}</span>
         </button>
-        <div class="rc-user-menu__dropdown">
-          <a href="manage-booking.html">My bookings</a>
-          <a href="signup.html">Personal details</a>
-          <button type="button" data-logout>Logout</button>
+        <div class=\"rc-user-menu__dropdown\">
+          <a href=\"/profile.html\">Profile</a>
+          <a href=\"/bookings.html\">My bookings</a>
+          <button type=\"button\" data-logout>Logout</button>
         </div>
       `;
 
       link.replaceWith(wrapper);
 
-      wrapper.querySelector("[data-logout]").addEventListener("click", logout);
-      wrapper.querySelector(".rc-user-menu__button").addEventListener("click", () => {
-        wrapper.classList.toggle("is-open");
-      });
+      const logoutBtn = wrapper.querySelector("[data-logout]");
+      if (logoutBtn) logoutBtn.addEventListener("click", logout);
+      const btn = wrapper.querySelector('.rc-user-menu__button');
+      if (btn) btn.addEventListener('click', () => wrapper.classList.toggle('is-open'));
     });
   }
 

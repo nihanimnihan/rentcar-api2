@@ -71,7 +71,7 @@ function goProfileFromGoogle() {
 
     // Refresh auth state and navigate accordingly
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
       if (res.ok) {
         const info = await res.json();
         const returnToFromPopup = data.returnTo || returnTo || '/index.html';
@@ -120,6 +120,7 @@ function goProfileFromGoogle() {
       try {
         const res = await fetch('/api/auth/profile', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -229,7 +230,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const res = await fetch("/api/auth/me");
+    const res = await fetch("/api/auth/me", { credentials: 'same-origin' });
     if (res.ok) {
       const data = await res.json();
       if (data && data.email) {
