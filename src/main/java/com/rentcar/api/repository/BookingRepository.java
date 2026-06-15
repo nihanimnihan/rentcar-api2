@@ -59,4 +59,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      */
     @Query("SELECT b FROM Booking b JOIN FETCH b.customer JOIN FETCH b.car ORDER BY b.createdAt DESC")
     List<Booking> findAllOrderByCreatedAtDesc();
+
+    @Query("SELECT b FROM Booking b JOIN FETCH b.customer JOIN FETCH b.car WHERE b.customer.email = :email ORDER BY b.createdAt DESC")
+    List<Booking> findByCustomerEmailOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("email") String email);
 }

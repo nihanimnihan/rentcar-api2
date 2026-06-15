@@ -50,3 +50,21 @@ input, select{padding:10px;border-radius:6px;width:100%;border:1px solid #e6e6e6
 .rc-danger{background:#eee;color:#888;padding:10px 14px;border-radius:8px;border:none}
 
 @media (max-width:900px){.rc-grid{grid-template-columns:1fr}.rc-tabs{overflow:auto}.rc-user-menu__dropdown{right:10px}}
+
+/* Bookings list */
+.bookings-list{display:flex;flex-direction:column;gap:16px}
+.booking-card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 6px 20px rgba(17,17,17,0.04);display:flex;flex-direction:column}
+.booking-card__header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.booking-ref{font-weight:700;color:#111}
+.status-pill{padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px}
+.status-pill--confirmed{background:rgba(34,197,94,0.12);color:#22c55e}
+.status-pill--pending{background:rgba(248,212,72,0.12);color:var(--rc-amber)}
+.status-pill--cancelled{background:rgba(128,128,128,0.12);color:#777}
+.booking-card__body{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.booking-car{font-weight:700}
+.booking-locs{display:flex;gap:12px;flex-wrap:wrap}
+.booking-loc{color:#444}
+.booking-dates{color:#444;display:flex;gap:12px}
+.booking-card__footer{display:flex;justify-content:space-between;align-items:center}
+.booking-price{font-weight:700;color:#111}
+
