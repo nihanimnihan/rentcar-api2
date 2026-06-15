@@ -166,6 +166,9 @@ document.addEventListener("languageChanged", function () {
   }
 
 function rcssCloseAll() {
+  rcssActivePopup = null;
+  rcssActiveAnchor = null;
+  rcssActiveAlignRight = false;
   document.querySelectorAll('.rcss-popup').forEach(function (p) {
     p.classList.remove('is-open');
     p.style.display = 'none';
@@ -177,9 +180,59 @@ function rcssCloseAll() {
    * alignRight: align right edge of popup to right edge of anchor.
    */
 function rcssOpenBelow(popup, anchorEl, alignRight) {
-  // Position popup fixed under the anchor element using viewport coordinates
+  rcssActivePopup = popup;
+  rcssActiveAnchor = anchorEl;
+  rcssActiveAlignRight = alignRight;
   var rect = anchorEl.getBoundingClientRect();
 
+  // If this is a location picker, keep it inside the search panel and
+  // position absolutely relative to that panel so it moves with the panel when scrolling.
+  var isLocationPicker = popup.classList.contains('rc-location-picker') || popup.id === 'rcssPickupLocPopup' || popup.id === 'rcssDropoffLocPopup';
+
+  if (isLocationPicker) {
+    var container = anchorEl.closest ? anchorEl.closest('.mainSearch') : null;
+    if (!container) container = anchorEl.offsetParent || document.querySelector('.mainSearch') || document.body;
+
+    // Ensure container is positioned so absolute children are relative to it
+    var compStyle = window.getComputedStyle(container);
+    if (compStyle.position === 'static') container.style.position = 'relative';
+
+    var containerRect = container.getBoundingClientRect();
+
+    popup.style.position = 'absolute';
+    popup.style.display = 'block';
+    popup.classList.add('is-open');
+
+    // width: prefer 980 but not wider than container minus margins
+    var preferredWidth = 980;
+    var available = Math.max(200, containerRect.width - 16);
+    var width = Math.min(preferredWidth, available);
+    popup.style.width = width + 'px';
+    popup.style.maxWidth = '100%';
+
+    // left relative to container
+    var left = alignRight ? (rect.right - containerRect.left - width) : (rect.left - containerRect.left);
+    left = Math.max(8, Math.min(left, containerRect.width - width - 8));
+    var top = rect.bottom - containerRect.top + 12;
+
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+
+    // Trap wheel scroll inside popup so the page doesn't scroll and don't close on scroll
+    popup.addEventListener('wheel', function (e) {
+      var atTop = popup.scrollTop === 0 && e.deltaY < 0;
+      var atBottom = popup.scrollTop + popup.clientHeight >= popup.scrollHeight && e.deltaY > 0;
+      if (!atTop && !atBottom) {
+        e.stopPropagation();
+      } else {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    return;
+  }
+
+  // Default behaviour for non-location popups (calendar/time)
   popup.style.position = 'fixed';
   popup.style.display = 'block';
   popup.classList.add('is-open');
@@ -575,10 +628,24 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
   // Click anywhere outside → close all popups
   document.addEventListener('click', function () { rcssCloseAll(); });
   // Close on resize so fixed-position popups don't misalign
-  window.addEventListener('resize', function () { rcssCloseAll(); });
-  // Close floating popups when the page scrolls (they're fixed-position and would detach)
-  window.addEventListener('scroll', function () { rcssCloseAll(); }, { passive: true });
+    // Keep window scroll listener but only reposition popups that need viewport anchoring
+    window.addEventListener('scroll', function () {
+      // Only reposition active popup if it is NOT a location picker (calendars/timeouts need viewport reposition)
+      if (!rcssActivePopup) return;
+      var isLocationPicker = rcssActivePopup.classList && rcssActivePopup.classList.contains('rc-location-picker');
+      if (isLocationPicker) return; // location pickers are absolute inside the panel and move with it
+      rcssRepositionActivePopup();
+    }, { passive: true });
 
+    let rcssActivePopup = null;
+    let rcssActiveAnchor = null;
+    let rcssActiveAlignRight = false;
+
+    function rcssRepositionActivePopup() {
+      if (!rcssActivePopup || !rcssActiveAnchor) return;
+      if (rcssActivePopup.style.display === 'none') return;
+      rcssOpenBelow(rcssActivePopup, rcssActiveAnchor, rcssActiveAlignRight);
+    }
   document.addEventListener('DOMContentLoaded', function () {
     // ── Store wrapperEl on each calendar host BEFORE moving popups to <body> ──
     // After appendChild, host.closest('.js-calendar-el') returns null because
@@ -590,12 +657,6 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
       if (wrapper) host._rcCalWrapperEl = wrapper;
     });
 
-    // ── Move all rcss-popup elements to <body> ───────────────────────────────
-    // This escapes the parent's animation stacking context (transform + opacity)
-    // so popups render fully opaque against the viewport, not the hero section.
-    document.querySelectorAll('.rcss-popup').forEach(function (p) {
-      document.body.appendChild(p);
-    });
 
     rcssInitLocDropdown('rcssPickupLocBtn',  'rcssPickupLocPopup',  'rcssPickupLocText',  'pickupLocation',  true);
     rcssInitLocDropdown('rcssDropoffLocBtn', 'rcssDropoffLocPopup', 'rcssDropoffLocText', 'dropoffLocation', false);
