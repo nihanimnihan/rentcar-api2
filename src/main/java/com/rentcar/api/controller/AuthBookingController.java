@@ -36,8 +36,11 @@ public class AuthBookingController {
         }
         log.info("Loading bookings for email={}", email);
         List<Booking> bookings = bookingRepository.findByCustomerEmailOrderByCreatedAtDesc(email);
-        log.info("Found {} bookings for email={}", bookings.size(), email);
-        return bookings.stream()
+        // Only include PENDING and CONFIRMED bookings for the customer-facing list
+        java.util.List<com.rentcar.api.domain.booking.BookingStatus> allowed = java.util.List.of(com.rentcar.api.domain.booking.BookingStatus.PENDING, com.rentcar.api.domain.booking.BookingStatus.CONFIRMED);
+        List<Booking> filtered = bookings.stream().filter(b -> allowed.contains(b.getStatus())).toList();
+        log.info("Found {} bookings for email={}", filtered.size(), email);
+        return filtered.stream()
                 .map(b -> {
                     BookingResponse base = bookingMapper.toResponse(b);
                     return paymentService.findLatestPayment(b)
