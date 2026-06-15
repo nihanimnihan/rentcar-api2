@@ -13945,3 +13945,19 @@ body:not(.airport-transfer-body) {
     justify-content: flex-start;
   }
 }
+
+.rc-meta-value-h3 {
+  margin-top: 4px;
+  color: #191B1E;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.rc-meta-value-h2 {
+  margin-top: 4px;
+  color: #191B1E;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.35;
+}

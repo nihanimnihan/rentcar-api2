@@ -442,9 +442,10 @@ async function submitBooking() {
       } else if (res.status === 409) {
         const data = await res.json().catch(() => null);
         showReviewFlowModal({
-          icon: "🚗",
+          variant: "error",
+          icon: "!",
           title: "Car no longer available",
-          message: data?.message || "Sorry, this car has just been reserved. Please choose another car for the same dates.",
+          message: data?.message || "This car has just been reserved for the selected dates. Please choose another vehicle to continue.",
           buttonText: "Choose another car",
           onClose: goBackToCarsWithSameSearch
         });
@@ -658,32 +659,109 @@ async function processBookingPayment(bookingId, firstName) {
 }
 
 // ── Success screen ────────────────────────────────────────────────────────────
-
 function showBookingSuccess(booking, firstName) {
-  // Clear any stored pending checkout session — booking is confirmed
-  sessionStorage.removeItem('rentcarPendingBookingId');
-  sessionStorage.removeItem('rentcarCheckoutSessionToken');
-  sessionStorage.removeItem('rentcarCheckoutSignature');
+  clearCheckoutSession();
 
   const formColumn = document.getElementById("reviewFormColumn");
   if (!formColumn) return;
 
+  const bookingRef = esc(String(booking.bookingReference || booking.id || "—"));
+  const customerName = esc(firstName || "");
+  const carName = esc(
+    reviewCar
+      ? `${reviewCar.brand || ""} ${reviewCar.model || ""}`.trim()
+      : "car"
+  );
+
+  const email = esc(document.getElementById("rfEmail")?.value?.trim() || "");
+  const now = new Date();
+  const bookingDate = now.toLocaleDateString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+  const bookingTime = now.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
   formColumn.innerHTML = `
-    <div id="rfSuccessPanel" class="rentcar-review-card" style="text-align:center;padding:60px 40px">
-      <div style="font-size:56px;margin-bottom:20px">🎉</div>
-      <h2 class="text-28 fw-700 mb-15">${t('review.bookingConfirmed')}</h2>
-      <p class="text-18 text-light-1 mb-10">
-        ${t('review.thankYou', { name: esc(firstName) })}
+    <div id="rfSuccessPanel" class="rc-confirmation-card">
+      <div class="rc-confetti" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="rc-success-icon" aria-hidden="true">
+        <i class="icon-check"></i>
+      </div>
+
+      <h2 class="rc-meta-value-h2">${t("review.bookingConfirmed")}</h2>
+
+      <p class="rc-confirmation-subtitle">
+        Thank you, <strong>${customerName}</strong>. Your ${carName} is reserved.
       </p>
-      <p class="text-15 text-light-1 mb-10">
-        ${t('review.bookingRef')} <strong>${esc(String(booking.bookingReference || booking.id || "—"))}</strong>
-      </p>
-      <p class="mb-30">
-        <span class="rc-badge rc-badge--success">${t('review.statusConfirmed')}</span>
-      </p>
-      <a href="index.html" class="button h-60 px-50 bg-yellow-1 text-dark-1 rounded-8 fw-700">
-        ${t('review.backToHome')}
-      </a>
+
+      <div class="rc-booking-reference-box">
+        <div class="rc-reference-icon" aria-hidden="true">
+          <i class="icon-ticket"></i>
+        </div>
+
+        <div class="rc-reference-main">
+          <div class="rc-reference-label">${t("review.bookingRef").replace(":", "")}</div>
+          <div class="rc-meta-value-h2">${bookingRef}</div>
+        </div>
+
+        <div class="rc-status-pill">
+          <i class="icon-check"></i>
+          <span>CONFIRMED</span>
+        </div>
+      </div>
+
+      <div class="rc-confirmation-meta">
+        <div class="rc-meta-item">
+          <div class="rc-meta-icon"><i class="icon-calendar"></i></div>
+          <div>
+            <div class="rc-meta-label">Booking date</div>
+            <div class="rc-meta-value">${bookingDate}</div>
+            <div class="rc-meta-sub">${bookingTime}</div>
+          </div>
+        </div>
+
+        <div class="rc-meta-item">
+          <div class="rc-meta-icon"><i class="icon-shield"></i></div>
+          <div>
+            <div class="rc-meta-label">Payment status</div>
+            <div class="rc-meta-value">
+              Paid <span class="rc-paid-dot">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rc-meta-item">
+          <div class="rc-meta-icon"><i class="icon-email"></i></div>
+          <div>
+            <div class="rc-meta-label">Confirmation sent to</div>
+            <div class="rc-meta-value rc-meta-email">${email || "—"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rc-next-card">
+        <div class="rc-next-icon">
+          <i class="icon-send"></i>
+        </div>
+
+        <div class="rc-next-copy">
+          <h3>What’s next?</h3>
+          <p>We’ve sent your booking details to your email. You can manage your booking in My bookings.</p>
+        </div>
+
+        <a href="bookings.html" class="rc-confirmation-cta">
+          View my bookings
+          <i class="icon-arrow-right"></i>
+        </a>
+      </div>
     </div>
   `;
 
@@ -691,9 +769,17 @@ function showBookingSuccess(booking, firstName) {
 }
 
 // ── Error helpers ─────────────────────────────────────────────────────────────
-
-function showReviewFlowModal({ icon, title, message, buttonText, onClose }) {
+function showReviewFlowModal({
+  icon,
+  title,
+  message,
+  buttonText,
+  onClose,
+  variant = "warning"
+}) {
   const modal = document.getElementById("reviewFlowModal");
+  modal.classList.remove("is-warning", "is-error", "is-info");
+  modal.classList.add(`is-${variant}`);
   if (!modal) {
     showBookingFormError(message);
     return;

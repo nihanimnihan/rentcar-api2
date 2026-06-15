@@ -241,7 +241,7 @@ window.i18nTranslations['en'] = {
     'bookings.bookCar': 'Book a car',
 
     'profile.updated.success': 'Profile updated successfully.',
-    'profile.updated.failure': 'Unable to save profile. Please check the fields and try again.'
+    'profile.updated.failure': 'Unable to save profile. Please check the fields and try again.',
 
 
   // error messages
