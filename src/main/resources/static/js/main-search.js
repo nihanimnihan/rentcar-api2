@@ -165,76 +165,298 @@ document.addEventListener("languageChanged", function () {
     }
   }
 
-  function rcssCloseAll() {
-    document.querySelectorAll('.rcss-popup').forEach(function (p) {
-      p.style.display = 'none';
-    });
-  }
+function rcssCloseAll() {
+  document.querySelectorAll('.rcss-popup').forEach(function (p) {
+    p.classList.remove('is-open');
+    p.style.display = 'none';
+  });
+}
 
   /**
    * Open popup at viewport-fixed position below anchorEl.
    * alignRight: align right edge of popup to right edge of anchor.
    */
-  function rcssOpenBelow(popup, anchorEl, alignRight) {
-    var rect = anchorEl.getBoundingClientRect();
-    popup.style.top = (rect.bottom + 10) + 'px';
-    if (alignRight) {
-      popup.style.left  = 'auto';
-      popup.style.right = Math.max(0, window.innerWidth - rect.right) + 'px';
+function rcssOpenBelow(popup, anchorEl, alignRight) {
+  // Position popup fixed under the anchor element using viewport coordinates
+  var rect = anchorEl.getBoundingClientRect();
+
+  popup.style.position = 'fixed';
+  popup.style.display = 'block';
+  popup.classList.add('is-open');
+
+  // Preferred width but constrained by viewport
+  var preferredWidth = 980;
+  var available = Math.max(200, window.innerWidth - 40);
+  var width = Math.min(preferredWidth, available);
+  popup.style.width = width + 'px';
+  popup.style.maxWidth = (window.innerWidth - 16) + 'px';
+
+  var left;
+  if (alignRight) {
+    left = rect.right - width;
+  } else {
+    left = rect.left;
+  }
+  left = Math.max(8, Math.min(left, window.innerWidth - width - 8));
+
+  var top = rect.bottom + 12;
+  // Place temporarily to measure height
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+
+  // If overflowing bottom, try place above
+  var popupH = popup.offsetHeight || 0;
+  if (top + popupH > window.innerHeight - 8) {
+    var altTop = rect.top - popupH - 12;
+    if (altTop >= 8) {
+      top = altTop;
     } else {
-      popup.style.left  = rect.left + 'px';
-      popup.style.right = 'auto';
+      top = Math.max(8, window.innerHeight - popupH - 8);
     }
-    popup.style.display = 'block';
+    popup.style.top = top + 'px';
   }
 
+  // Ensure popup captures internal scrolls and clicks (do not close)
+  popup.addEventListener('wheel', function(e){ e.stopPropagation(); }, { passive: true });
+}
+
+
   // Location dropdown
-  function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
-    var btn   = document.getElementById(btnId);
-    var popup = document.getElementById(popupId);
-    if (!btn || !popup) return;
+function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
+  var btn = document.getElementById(btnId);
+  var popup = document.getElementById(popupId);
+  if (!btn || !popup) return;
 
-    // Mark initially-selected item
-    var initLoc = (document.getElementById(hiddenId) || {}).value || 'BCN Airport T1';
-    popup.querySelectorAll('.rcss-loc-item').forEach(function (el) {
-      if (el.getAttribute('data-loc') === initLoc) el.classList.add('is-selected');
+  var locations = [
+    {
+      type: "airport",
+      icon: "✈",
+      name: "BCN Airport T1",
+      subtitle: "El Prat Airport, Barcelona",
+      address: "Terminal 1, 08820 El Prat de Llobregat",
+      hours: "Open 24 hours"
+    },
+    {
+      type: "airport",
+      icon: "✈",
+      name: "BCN Airport T2",
+      subtitle: "El Prat Airport, Barcelona",
+      address: "Terminal 2, 08820 El Prat de Llobregat",
+      hours: "Open 24 hours"
+    },
+    {
+      type: "office",
+      icon: "🏢",
+      name: "RentCar Paradise Office",
+      subtitle: "Company office",
+      address: "Carrer de la Marina, 136, Barcelona",
+      hours: "Mon – Sun 09:00 – 20:00"
+    },
+    {
+      type: "hotel",
+      icon: "🏨",
+      name: "Hotel Arts Barcelona",
+      subtitle: "Hotel pickup",
+      address: "Marina 19–21, Barcelona",
+      hours: "By appointment"
+    },
+    {
+      type: "hotel",
+      icon: "🏨",
+      name: "W Barcelona",
+      subtitle: "Hotel pickup",
+      address: "Plaça de la Rosa dels Vents, 1",
+      hours: "By appointment"
+    }
+  ];
+
+  function getCurrentValue() {
+    return (document.getElementById(hiddenId) || {}).value || "BCN Airport T1";
+  }
+
+  function matches(loc, term) {
+    var q = (term || "").toLowerCase().trim();
+    if (!q) return true;
+    return (
+      loc.name.toLowerCase().includes(q) ||
+      loc.subtitle.toLowerCase().includes(q) ||
+      loc.address.toLowerCase().includes(q)
+    );
+  }
+
+  function selectLocation(loc) {
+    var textEl = document.getElementById(textId);
+    var hiddenEl = document.getElementById(hiddenId);
+
+    if (textEl) textEl.textContent = loc.name;
+    if (hiddenEl) hiddenEl.value = loc.name;
+
+    if (isPrimary) {
+      var cb = document.getElementById("rcssDiffReturn");
+      if (cb && !cb.checked) {
+        var dt = document.getElementById("rcssDropoffLocText");
+        var dh = document.getElementById("dropoffLocation");
+        if (dt) dt.textContent = loc.name;
+        if (dh) dh.value = loc.name;
+      }
+    }
+
+    popup.classList.remove("is-open");
+    popup.style.display = "none";
+  }
+
+  function renderDetail(loc) {
+    var detail = popup.querySelector("[data-location-detail]");
+    if (!detail) return;
+
+    detail.innerHTML = `
+      <div class="rc-location-detail__icon">${loc.icon}</div>
+      <h3>${loc.name}</h3>
+      <p>${loc.subtitle}</p>
+      <div class="rc-location-detail__address">${loc.address}</div>
+
+      <div class="rc-location-tags">
+        <span>Barcelona service area</span>
+        <span>${loc.hours}</span>
+      </div>
+
+      <div class="rc-location-hours">
+        <div>
+          <strong>Opening hours</strong>
+          <span>${loc.hours}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderList(term) {
+    var list = popup.querySelector("[data-location-list]");
+    if (!list) return;
+
+    var filtered = locations.filter(function (loc) {
+      return matches(loc, term);
     });
 
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      var wasOpen = popup.style.display !== 'none';
-      rcssCloseAll();
-      if (!wasOpen) rcssOpenBelow(popup, btn, false);
-    });
-    popup.addEventListener('click', function (e) { e.stopPropagation(); });
+    if (term && term.trim().length > 2) {
+      filtered.unshift({
+        type: "address",
+        icon: "📍",
+        name: term.trim(),
+        subtitle: "Custom address in Barcelona",
+        address: "Barcelona service area",
+        hours: "Pickup by appointment"
+      });
+    }
 
-    popup.querySelectorAll('.rcss-loc-item').forEach(function (item) {
-      item.addEventListener('click', function () {
-        var loc      = item.getAttribute('data-loc');
-        var textEl   = document.getElementById(textId);
-        var hiddenEl = document.getElementById(hiddenId);
-        if (textEl)   textEl.textContent = loc;
-        if (hiddenEl) hiddenEl.value     = loc;
+    list.innerHTML = filtered.map(function (loc, index) {
+      var isSelected = loc.name === getCurrentValue();
+      return `
+        <button type="button"
+                class="rc-location-option ${isSelected || index === 0 ? "is-selected" : ""}"
+                data-location-index="${index}">
+          <span class="rc-location-option__icon">${loc.icon}</span>
+          <span>
+            <strong>${loc.name}</strong>
+            <small>${loc.subtitle}</small>
+          </span>
+        </button>
+      `;
+    }).join("");
 
-        // Keep dropoff in sync with pickup when "different return" is unchecked
-        if (isPrimary) {
-          var cb = document.getElementById('rcssDiffReturn');
-          if (cb && !cb.checked) {
-            var dt = document.getElementById('rcssDropoffLocText');
-            var dh = document.getElementById('dropoffLocation');
-            if (dt) dt.textContent = loc;
-            if (dh) dh.value = loc;
-          }
-        }
+    var finalLocations = filtered;
+    var first = finalLocations[0];
+    if (first) renderDetail(first);
 
-        popup.querySelectorAll('.rcss-loc-item').forEach(function (el) {
-          el.classList.remove('is-selected');
-        });
-        item.classList.add('is-selected');
-        popup.style.display = 'none';
+    list.querySelectorAll(".rc-location-option").forEach(function (item) {
+      item.addEventListener("mouseenter", function () {
+        var loc = finalLocations[Number(item.getAttribute("data-location-index"))];
+        if (loc) renderDetail(loc);
+      });
+
+      item.addEventListener("click", function () {
+        var loc = finalLocations[Number(item.getAttribute("data-location-index"))];
+        if (loc) selectLocation(loc);
       });
     });
   }
+
+  function buildPopup() {
+    popup.classList.add("rc-location-picker");
+    popup.innerHTML = `
+      <div class="rc-location-picker__left">
+        <div class="rc-location-search">
+          <span>⌕</span>
+          <input type="text" placeholder="Airport, city or address" autocomplete="off">
+          <button type="button" data-location-clear>×</button>
+        </div>
+
+        <div class="rc-location-section-title">Popular locations</div>
+        <div data-location-list></div>
+
+        <div class="rc-location-section-title rc-location-section-title--recent">Recent searches</div>
+        <button type="button" class="rc-location-recent" data-recent="Carrer de la Marina, 136">
+          <span>↺</span>
+          Carrer de la Marina, 136
+        </button>
+        <button type="button" class="rc-location-recent" data-recent="Sagrada Familia">
+          <span>↺</span>
+          Sagrada Familia
+        </button>
+      </div>
+
+      <div class="rc-location-picker__right" data-location-detail></div>
+    `;
+
+    var input = popup.querySelector(".rc-location-search input");
+    var clear = popup.querySelector("[data-location-clear]");
+
+    input.addEventListener("input", function () {
+      renderList(input.value);
+    });
+
+    clear.addEventListener("click", function () {
+      input.value = "";
+      input.focus();
+      renderList("");
+    });
+
+    popup.querySelectorAll(".rc-location-recent").forEach(function (item) {
+      item.addEventListener("click", function () {
+        input.value = item.getAttribute("data-recent") || "";
+        renderList(input.value);
+      });
+    });
+
+    renderList("");
+  }
+
+  buildPopup();
+
+  function closeLocationPicker() {
+    document.querySelectorAll('.rc-location-picker').forEach(function (p) {
+      p.style.display = 'none';
+    });
+  }
+
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var wasOpen = popup.style.display !== "none";
+    rcssCloseAll();
+
+    if (!wasOpen) {
+      rcssOpenBelow(popup, btn, false);
+
+      setTimeout(function () {
+        var input = popup.querySelector(".rc-location-search input");
+        if (input) input.focus();
+      }, 0);
+    }
+  });
+
+  popup.addEventListener("click", function (e) {
+    e.stopPropagation();
+  });
+}
 
   // "Return to different location" checkbox
   function rcssInitDiffReturn() {
