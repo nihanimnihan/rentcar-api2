@@ -1,0 +1,6 @@
+/* Minimal styles for Google Places overlay input */
+.rentcar-places-overlay{box-shadow:0 10px 30px rgba(0,0,0,0.35);border-radius:10px;background:#fff;padding:8px}
+.rentcar-places-inner{display:flex;gap:8px;align-items:center}
+.rentcar-places-input{padding:10px;border-radius:8px;border:1px solid #e6e6e6;min-width:320px}
+.rentcar-places-close{background:transparent;border:none;font-size:16px;cursor:pointer}
+@media (max-width:600px){.rentcar-places-input{min-width:200px}}

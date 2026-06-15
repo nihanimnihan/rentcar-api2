@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/brand-theme.css">
   <link rel="stylesheet" href="css/auth-session.css">
+  <link rel="stylesheet" href="css/places.css">
   <title>RentCar</title>
 </head>
 
@@ -114,10 +115,13 @@
                 <div class="rcss-cell rcss-cell-loc" id="rcssPickupLocCell">
                   <div class="rcss-cell-inner">
                     <div class="rcss-label" data-i18n="search.pickUpLocation">Pick up location</div>
-                    <button type="button" class="rcss-trigger" id="rcssPickupLocBtn">
+                    <div style="display:inline-flex;align-items:center;gap:8px">
+                      <button type="button" class="rcss-trigger" id="rcssPickupLocBtn">
                       <i class="icon-location-2 rcss-icon"></i>
                       <span id="rcssPickupLocText">BCN Airport T1</span>
-                    </button>
+                      </button>
+                      <button type="button" title="Search address" class="js-places-trigger" data-target="pickupLocation" data-display-target="rcssPickupLocText" style="background:transparent;border:none;color:var(--rc-amber);font-weight:700;cursor:pointer">🔍</button>
+                    </div>
                     <div class="rcss-popup rcss-loc-popup" id="rcssPickupLocPopup" style="display:none;">
                       <button type="button" class="rcss-loc-item" data-loc="BCN Airport T1"><i class="icon-location-2"></i> BCN Airport T1</button>
                       <button type="button" class="rcss-loc-item" data-loc="BCN Airport T2"><i class="icon-location-2"></i> BCN Airport T2</button>
@@ -131,10 +135,13 @@
                 <div class="rcss-cell rcss-cell-loc rcss-cell-loc--synced" id="rcssDropoffLocCell">
                   <div class="rcss-cell-inner">
                     <div class="rcss-label" data-i18n="search.dropOffLocation">Drop off location</div>
-                    <button type="button" class="rcss-trigger" id="rcssDropoffLocBtn">
+                    <div style="display:inline-flex;align-items:center;gap:8px">
+                      <button type="button" class="rcss-trigger" id="rcssDropoffLocBtn">
                       <i class="icon-location-2 rcss-icon"></i>
                       <span id="rcssDropoffLocText">BCN Airport T1</span>
-                    </button>
+                      </button>
+                      <button type="button" title="Search address" class="js-places-trigger" data-target="dropoffLocation" data-display-target="rcssDropoffLocText" style="background:transparent;border:none;color:var(--rc-amber);font-weight:700;cursor:pointer">🔍</button>
+                    </div>
                     <div class="rcss-popup rcss-loc-popup" id="rcssDropoffLocPopup" style="display:none;">
                       <button type="button" class="rcss-loc-item" data-loc="BCN Airport T1"><i class="icon-location-2"></i> BCN Airport T1</button>
                       <button type="button" class="rcss-loc-item" data-loc="BCN Airport T2"><i class="icon-location-2"></i> BCN Airport T2</button>
@@ -322,6 +329,8 @@
 
   <!-- JavaScript -->
   <script src="js/i18n/en.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/maps-init.js"></script>
   <script src="js/i18n/es.js"></script>
   <script src="js/i18n/tr.js"></script>
   <script src="js/i18n/i18n.js"></script>
