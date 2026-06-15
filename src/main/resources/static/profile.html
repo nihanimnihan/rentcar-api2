@@ -77,43 +77,73 @@
       <div id="profileMessage" style="margin-top:12px;min-height:24px"></div>
     </div>
   </main>
+ 
+ <!-- i18n: load before page scripts that call translations -->
+ <script src="js/i18n/en.js"></script>
+ <script src="js/i18n/es.js"></script>
+ <script src="js/i18n/tr.js"></script>
+ <script src="js/i18n/i18n.js"></script>
 
-  <script src="js/user-area.js"></script>
-  <script>
-    async function showProfileMessage(text, isError) {
-      const el = document.getElementById('profileMessage');
-      el.textContent = text;
-      el.style.color = isError ? '#a33' : '#2a7a2a';
-      el.style.background = isError ? '#fff0f0' : '#f0fff0';
-      el.style.padding = '8px 12px';
-      el.style.borderRadius = '6px';
-      setTimeout(() => { el.style.opacity = '1'; }, 10);
-      if (!isError) setTimeout(() => { el.style.opacity = '0'; }, 3000);
-    }
+ <script src="js/user-area.js"></script>
+ <script>
+   async function showProfileMessage(text, isError) {
+     const el = document.getElementById('profileMessage');
+     el.textContent = text;
+     el.style.color = isError ? '#a33' : '#2a7a2a';
+     el.style.background = isError ? '#fff0f0' : '#f0fff0';
+     el.style.padding = '8px 12px';
+     el.style.borderRadius = '6px';
+     setTimeout(() => { el.style.opacity = '1'; }, 10);
+     if (!isError) setTimeout(() => { el.style.opacity = '0'; }, 3000);
+   }
 
-    document.getElementById('saveProfile').addEventListener('click', async function(){
-      const country = document.getElementById('country').value;
-      const firstName = document.getElementById('firstName').value;
-      const lastName = document.getElementById('lastName').value;
-      try{
-        const res = await fetch('/api/auth/profile',{method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify({firstName, lastName, country})});
-        if (res.ok) {
-          const data = await res.json();
-          showProfileMessage('Profile updated successfully.', false);
-          // update member number if returned
-          if (data && data.customerNumber) {
-            document.querySelector('[data-ua-customerNumber]').textContent = data.customerNumber;
-          }
-        } else {
-          let body = {};
-          try { body = await res.json(); } catch(e) {}
-          const msg = body && body.message ? body.message : 'Unable to save profile. Please check the fields and try again.';
-          showProfileMessage(msg, true);
-        }
-      }catch(e){
-        showProfileMessage('Unable to save profile. Please check the fields and try again.', true);
-      }
-    });
-  </script>
+   document.getElementById('saveProfile').addEventListener('click', async function(){
+     const country = document.getElementById('country').value;
+     const firstName = document.getElementById('firstName').value;
+     const lastName = document.getElementById('lastName').value;
+     try{
+       const res = await fetch('/api/auth/profile',{method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify({firstName, lastName, country})});
+       if (res.ok) {
+         const data = await res.json();
+         showProfileMessage('Profile updated successfully.', false);
+         // update member number if returned
+         if (data && data.customerNumber) {
+           document.querySelector('[data-ua-customerNumber]').textContent = data.customerNumber;
+         }
+       } else {
+         let body = {};
+         try { body = await res.json(); } catch(e) {}
+         const msg = body && body.message ? body.message : 'Unable to save profile. Please check the fields and try again.';
+         showProfileMessage(msg, true);
+       }
+     }catch(e){
+       showProfileMessage('Unable to save profile. Please check the fields and try again.', true);
+     }
+   });
+
+   // Add Delete Account button behavior (non-destructive; show "Coming soon")
+   (function(){
+     // Insert Delete Account button into the card after membership section
+     var card = document.querySelector('.rc-card');
+     if (card) {
+       var container = document.createElement('div');
+       container.style.marginTop = '18px';
+       container.innerHTML = `
+         <h3 data-i18n="profile.deleteAccount">Delete account</h3>
+         <div style="margin-top:8px">
+           <button id="deleteAccountBtn" class="rc-outline-danger" data-i18n="profile.deleteAccount">Delete Account</button>
+         </div>
+       `;
+       card.appendChild(container);
+       // Ensure newly injected nodes get translated immediately
+       if (window.applyTranslations) window.applyTranslations(container);
+       var btn = document.getElementById('deleteAccountBtn');
+       if (btn) btn.addEventListener('click', function(){
+         var msg = (typeof window.t === 'function') ? window.t('coming.soon') : 'Coming soon';
+         showProfileMessage(msg, false);
+       });
+     }
+   }());
+ </script>
 </body>
 </html>
