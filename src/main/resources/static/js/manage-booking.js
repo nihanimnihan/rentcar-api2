@@ -374,14 +374,14 @@ function statusBadgeHtml(status) {
   // bg-green-2 (#008009) gives a strong, readable green — avoids the pale mint
   // of bg-green-1 (#EBFCEA) which has poor contrast against white text.
   const map = {
-    CONFIRMED: { label: 'Confirmed', cls: 'bg-green-2 text-white' },
-    PENDING:   { label: 'Pending',   cls: 'bg-yellow-1 text-dark-1' },
-    FAILED:    { label: 'Failed',    cls: 'bg-red-1 text-white' },
-    CANCELLED: { label: 'Cancelled', cls: 'bg-light-2 text-dark-1' },
-    COMPLETED: { label: 'Completed', cls: 'bg-blue-1 text-white' },
+    CONFIRMED: { label: 'Confirmed', cls: 'rc-badge rc-badge--success' },
+    PENDING:   { label: 'Pending',   cls: 'rc-badge rc-badge--warning' },
+    FAILED:    { label: 'Failed',    cls: 'rc-badge rc-badge--error' },
+    CANCELLED: { label: 'Cancelled', cls: 'rc-badge rc-badge--warning' },
+    COMPLETED: { label: 'Completed', cls: 'rc-badge rc-badge--success' },
   };
-  const s = map[status] ?? { label: status ?? '—', cls: 'bg-light-2 text-dark-1' };
-  return `<span class="rounded-8 px-12 py-6 text-13 fw-600 ${s.cls}">${s.label}</span>`;
+  const s = map[status] ?? { label: status ?? '—', cls: 'rc-badge rc-badge--warning' };
+  return `<span class="${s.cls}">${s.label}</span>`;
 }
 
 function formatDatetime(dt) {

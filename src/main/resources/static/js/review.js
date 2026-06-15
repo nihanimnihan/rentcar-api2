@@ -696,7 +696,7 @@ function showBookingSuccess(booking, firstName) {
         <i class="icon-check"></i>
       </div>
 
-      <h2 class="rc-meta-value-h2">${t("review.bookingConfirmed")}</h2>
+      <h2 class="rc-meta-value-h3">${t("review.bookingConfirmed")}</h2>
 
       <p class="rc-confirmation-subtitle">
         Thank you, <strong>${customerName}</strong>. Your ${carName} is reserved.
@@ -709,7 +709,7 @@ function showBookingSuccess(booking, firstName) {
 
         <div class="rc-reference-main">
           <div class="rc-reference-label">${t("review.bookingRef").replace(":", "")}</div>
-          <div class="rc-meta-value-h2">${bookingRef}</div>
+          <div class="rc-meta-value">${bookingRef}</div>
         </div>
 
         <div class="rc-status-pill">
