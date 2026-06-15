@@ -12,4 +12,5 @@ public class AuthUserResponse {
     private String country;
     private boolean profileComplete;
     private String role;
+    private String customerNumber;
 }

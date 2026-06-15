@@ -74,5 +74,17 @@
     if(!me){ return redirectToSignup(); }
     populateUserFields(me);
     setupDropdown(me);
+
+    // set active tab
+    try{
+      const p = window.location.pathname || '/';
+      const tabProfile = document.getElementById('tab-profile');
+      const tabBookings = document.getElementById('tab-bookings');
+      if (p.startsWith('/profile')){
+        if(tabProfile) tabProfile.classList.add('is-active-tab');
+      } else if (p.startsWith('/bookings')){
+        if(tabBookings) tabBookings.classList.add('is-active-tab');
+      }
+    }catch(e){}
   });
 })();

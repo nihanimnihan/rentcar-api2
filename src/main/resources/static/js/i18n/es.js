@@ -428,4 +428,30 @@ window.i18nTranslations['es'] = {
   'auth.requiredLastName': 'Introduce tu apellido.',
   'auth.requiredCountry': 'Selecciona tu país.',
   'auth.emailPlaceholder': 'Tu correo electrónico',
+
+  // authenticated user area
+  'auth.profile': 'Perfil',
+  'auth.myBookings': 'Mis reservas',
+  'auth.logout': 'Cerrar sesión',
+
+  'profile.title': 'Perfil de reservas',
+  'profile.firstName': 'Nombre',
+  'profile.lastName': 'Apellidos',
+  'profile.email': 'Correo electrónico',
+  'profile.country': 'País',
+  'profile.save': 'Guardar',
+
+  'membership.title': 'Membresía RentCar',
+  'membership.memberNumber': 'Número de socio',
+  'membership.generating': 'Generando...',
+
+  'profile.deleteAccount': 'Eliminar cuenta',
+  'coming.soon': 'Próximamente',
+
+  'bookings.noBookings': 'Aún no hay reservas',
+  'bookings.upcomingText': 'Tus próximos alquileres aparecerán aquí.',
+  'bookings.bookCar': 'Reservar un coche',
+
+  'profile.updated.success': 'Perfil actualizado correctamente.',
+  'profile.updated.failure': 'No se pudo guardar el perfil. Verifica los campos e inténtalo de nuevo.',
 };

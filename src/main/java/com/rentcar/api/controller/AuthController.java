@@ -4,9 +4,12 @@ import com.rentcar.api.domain.user.AppUser;
 import com.rentcar.api.dto.AuthUserResponse;
 import com.rentcar.api.dto.UpdateProfileRequest;
 import com.rentcar.api.repository.AppUserRepository;
+import com.rentcar.api.service.CustomerNumberGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +25,10 @@ import java.net.URISyntaxException;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final AppUserRepository userRepository;
+    private final CustomerNumberGenerator customerNumberGenerator;
 
     private boolean isSafeReturnTo(String returnTo) {
         if (returnTo == null || returnTo.isBlank()) return false;
@@ -49,7 +55,14 @@ public class AuthController {
             return ResponseEntity.ok().body(java.util.Map.of("authenticated", false));
         }
         AppUser u = maybe.get();
-        AuthUserResponse resp = new AuthUserResponse(u.getEmail(), u.getFirstName(), u.getLastName(), u.getCountry(), u.isProfileComplete(), u.getRole().name());
+        // Ensure customerNumber exists and persist if missing
+        if (u.getCustomerNumber() == null || u.getCustomerNumber().isBlank()) {
+            String generated = customerNumberGenerator.nextCustomerNumber();
+            u.setCustomerNumber(generated);
+            userRepository.save(u);
+            log.info("Generated customerNumber for user {}: {}", u.getEmail(), generated);
+        }
+        AuthUserResponse resp = new AuthUserResponse(u.getEmail(), u.getFirstName(), u.getLastName(), u.getCountry(), u.isProfileComplete(), u.getRole().name(), u.getCustomerNumber());
         return ResponseEntity.ok().body(resp);
     }
 
@@ -102,9 +115,17 @@ public class AuthController {
             return ResponseEntity.status(403).body(java.util.Map.of("error", "Forbidden"));
         }
 
-        if (req.getFirstName() == null || req.getFirstName().isBlank() || req.getLastName() == null || req.getLastName().isBlank() || req.getCountry() == null || req.getCountry().isBlank()) {
-            org.slf4j.LoggerFactory.getLogger(AuthController.class).warn("Profile update bad request email={}", email);
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Missing required fields"));
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        if (req.getFirstName() == null || req.getFirstName().isBlank()) missing.add("firstName");
+        if (req.getLastName() == null || req.getLastName().isBlank()) missing.add("lastName");
+        if (req.getCountry() == null || req.getCountry().isBlank()) missing.add("country");
+        if (!missing.isEmpty()) {
+            log.warn("Profile update bad request email={} missingFields={}", email, missing);
+            return ResponseEntity.badRequest().body(java.util.Map.of(
+                    "error", "VALIDATION_ERROR",
+                    "message", "Missing required fields",
+                    "fields", missing
+            ));
         }
 
         user.setFirstName(req.getFirstName().trim());
@@ -112,8 +133,8 @@ public class AuthController {
         user.setCountry(req.getCountry().trim());
         user.setProfileComplete(true);
         userRepository.save(user);
-        org.slf4j.LoggerFactory.getLogger(AuthController.class).info("Profile updated for email={}, sessionId={}", email, request.getSession(false) != null ? request.getSession(false).getId() : "-");
+        log.info("Profile updated for email={}, sessionId={}", email, request.getSession(false) != null ? request.getSession(false).getId() : "-");
 
-        return ResponseEntity.ok().body(new AuthUserResponse(user.getEmail(), user.getFirstName(), user.getLastName(), user.getCountry(), user.isProfileComplete(), user.getRole().name()));
+        return ResponseEntity.ok().body(new AuthUserResponse(user.getEmail(), user.getFirstName(), user.getLastName(), user.getCountry(), user.isProfileComplete(), user.getRole().name(), user.getCustomerNumber()));
     }
 }

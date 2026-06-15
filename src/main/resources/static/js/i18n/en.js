@@ -15,6 +15,7 @@ window.i18nTranslations['en'] = {
 
   // search form
   'search.pickupLocation': 'Pick up location',
+  // Alias (HTML uses mixed camelCase in some templates)
   'search.pickUpLocation': 'Pick up location',
   'search.dropoffLocation': 'Drop off location',
   'search.dropOffLocation': 'Drop off location',
@@ -215,6 +216,33 @@ window.i18nTranslations['en'] = {
   'review.noAddons': 'No add-ons selected yet.',
   'review.totalSummary': 'Total',
   'review.priceDetails': 'Price details',
+
+    // authenticated user area
+    'auth.profile': 'Profile',
+    'auth.myBookings': 'My bookings',
+    'auth.logout': 'Logout',
+
+    'profile.title': 'Booking profile',
+    'profile.firstName': 'First name',
+    'profile.lastName': 'Last name',
+    'profile.email': 'Email',
+    'profile.country': 'Country',
+    'profile.save': 'Save',
+
+    'membership.title': 'RentCar membership',
+    'membership.memberNumber': 'Member number',
+    'membership.generating': 'Generating...',
+
+    'profile.deleteAccount': 'Delete account',
+    'coming.soon': 'Coming soon',
+
+    'bookings.noBookings': 'No bookings yet',
+    'bookings.upcomingText': 'Your upcoming rentals will appear here.',
+    'bookings.bookCar': 'Book a car',
+
+    'profile.updated.success': 'Profile updated successfully.',
+    'profile.updated.failure': 'Unable to save profile. Please check the fields and try again.'
+
 
   // error messages
   'error.sorry': 'Sorry',

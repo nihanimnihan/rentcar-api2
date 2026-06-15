@@ -12,8 +12,37 @@
 
   function t(key, params) {
     var lang = getLanguage();
-    var dict = window.i18nTranslations[lang] || window.i18nTranslations[DEFAULT_LANG] || {};
-    var text = Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : key;
+    var primary = window.i18nTranslations[lang] || {};
+    var fallback = window.i18nTranslations[DEFAULT_LANG] || {};
+    var text;
+
+    if (Object.prototype.hasOwnProperty.call(primary, key)) {
+      text = primary[key];
+    } else if (Object.prototype.hasOwnProperty.call(fallback, key)) {
+      // Fall back to default language to avoid raw keys in the UI
+      text = fallback[key];
+      try {
+        var host = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : '';
+        if (host.indexOf('localhost') !== -1 || host.indexOf('127.0.0.1') !== -1 || window.DEBUG_I18N) {
+          console.warn('[i18n] Missing translation for "' + key + '" in "' + lang + '", falling back to "' + DEFAULT_LANG + '"');
+        }
+      } catch (e) {
+        // ignore
+      }
+    } else {
+      // Last resort: return the key. In dev (localhost or when window.DEBUG_I18N)
+      // emit a warning so missing keys are tracked during development.
+      text = key;
+      try {
+        var host2 = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : '';
+        if (host2.indexOf('localhost') !== -1 || host2.indexOf('127.0.0.1') !== -1 || window.DEBUG_I18N) {
+          console.warn('[i18n] Missing translation for "' + key + '" in "' + lang + '" and default language. Showing key as last resort.');
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
     if (params) {
       Object.keys(params).forEach(function (k) {
         text = text.replace(new RegExp('{' + k + '}', 'g'), params[k]);
@@ -99,6 +128,33 @@
   window.applyTranslations = applyTranslations;
   window.updateLanguageButtons = updateLanguageButtons;
   window.updateCurrentLanguageLabels = updateCurrentLanguageLabels;
+
+  // Auto-translate newly injected DOM nodes that contain data-i18n attributes.
+  // This helps when partials are loaded asynchronously after initial translation pass.
+  var _i18nObserver = null;
+  function initAutoTranslate() {
+    if (typeof MutationObserver === 'undefined' || _i18nObserver) return;
+    _i18nObserver = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        if (!m.addedNodes || m.addedNodes.length === 0) return;
+        m.addedNodes.forEach(function (node) {
+          try {
+            if (node.nodeType !== 1) return; // only element nodes
+            if (node.querySelector && node.querySelector('[data-i18n], [data-i18n-placeholder], [data-i18n-html]')) {
+              applyTranslations(node);
+            }
+            if (node.hasAttribute && (node.hasAttribute('data-i18n') || node.hasAttribute('data-i18n-placeholder') || node.hasAttribute('data-i18n-html'))) {
+              applyTranslations(node);
+            }
+          } catch (e) {
+            // ignore observer errors
+          }
+        });
+      });
+    });
+    _i18nObserver.observe(document.body, { childList: true, subtree: true });
+  }
+  document.addEventListener('DOMContentLoaded', function () { initAutoTranslate(); });
 
   // Translate enum/API values: tEnum('transmission', 'AUTOMATIC') → 'Automático'
   window.tEnum = function (type, value) {

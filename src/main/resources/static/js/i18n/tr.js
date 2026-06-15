@@ -346,4 +346,30 @@ window.i18nTranslations['tr'] = {
     'auth.requiredLastName': 'Lütfen soyadınızı girin.',
     'auth.requiredCountry': 'Lütfen ülkenizi seçin.',
     'auth.emailPlaceholder': 'E-posta adresiniz',
+
+    // authenticated user area
+    'auth.profile': 'Profil',
+    'auth.myBookings': 'Rezervasyonlarım',
+    'auth.logout': 'Çıkış yap',
+
+    'profile.title': 'Rezervasyon profili',
+    'profile.firstName': 'Ad',
+    'profile.lastName': 'Soyad',
+    'profile.email': 'E-posta',
+    'profile.country': 'Ülke',
+    'profile.save': 'Kaydet',
+
+    'membership.title': 'RentCar üyeliği',
+    'membership.memberNumber': 'Üye numarası',
+    'membership.generating': 'Oluşturuluyor...',
+
+    'profile.deleteAccount': 'Hesabı sil',
+    'coming.soon': 'Çok yakında',
+
+    'bookings.noBookings': 'Henüz rezervasyon yok',
+    'bookings.upcomingText': 'Yaklaşan kiralamalarınız burada görünecek.',
+    'bookings.bookCar': 'Araç kirala',
+
+    'profile.updated.success': 'Profil başarıyla güncellendi.',
+    'profile.updated.failure': 'Profil kaydedilemedi. Lütfen alanları kontrol edin ve tekrar deneyin.',
   };

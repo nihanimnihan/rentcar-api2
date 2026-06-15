@@ -14,6 +14,7 @@
 /* Tabs */
 .rc-tabs{display:flex;gap:24px;padding:10px 20px;background:#0d0f10}
 .rc-tab{color:#cfcfcf;text-decoration:none;padding:10px 8px;display:inline-block}
+.rc-tab:hover{color:var(--rc-amber);text-decoration:none}
 .rc-tab.is-active-tab{position:relative;color:#fff}
 .rc-tab.is-active-tab::after{content:'';position:absolute;left:6px;right:6px;bottom:-12px;height:4px;background:var(--rc-amber);border-radius:2px}
 
