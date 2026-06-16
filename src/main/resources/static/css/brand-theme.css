@@ -1623,3 +1623,17 @@ section.bg-dark-2 {
   overflow-y: auto !important;
 }
 
+.rc-location-icon{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    background:#F8D448;
+    color:#191B1E;
+    font-size:12px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+

@@ -119,8 +119,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const params = new URLSearchParams({
       pickupLocation,
       dropoffLocation,
-      pickupDateTime:  selectedPickupDate  + 'T' + pickupHour,
-      dropoffDateTime: selectedDropoffDate + 'T' + dropoffHour
+      pickupDateTime: selectedPickupDate + 'T' + pickupHour,
+      dropoffDateTime: selectedDropoffDate + 'T' + dropoffHour,
+
+      pickupAddress: pickupInput?.dataset.address || "",
+      pickupPlaceId: pickupInput?.dataset.placeId || "",
+      dropoffAddress: dropoffInput?.dataset.address || "",
+      dropoffPlaceId: dropoffInput?.dataset.placeId || ""
     });
 
     const newUrl = "/cars.html?" + params.toString();
@@ -153,8 +158,17 @@ document.addEventListener("languageChanged", function () {
     if (!iso) return;
     const date = new Date(iso + "T00:00:00");
     if (isNaN(date.getTime())) return;
-    const locale = (typeof getLanguage === "function" && getLanguage() === "es") ? "es-ES" : "en-GB";
-    el.innerText = date.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
+
+    const lang = (typeof getLanguage === "function") ? getLanguage() : "en";
+    const locale =
+      lang === "tr" ? "tr-TR" :
+      lang === "es" ? "es-ES" :
+      "en-GB";
+
+    el.innerText = date.toLocaleDateString(locale, {
+      month: "short",
+      day: "2-digit"
+    });
   }
 
   redisplayDate(pickupDateText);
@@ -235,15 +249,9 @@ function rcssOpenBelow(popup, anchorEl, alignRight) {
     }
 
     // Trap wheel scroll inside popup so the page doesn't scroll; keep popup open on window scroll
-    popup.addEventListener('wheel', function (e) {
-      var atTop = popup.scrollTop === 0 && e.deltaY < 0;
-      var atBottom = popup.scrollTop + popup.clientHeight >= popup.scrollHeight && e.deltaY > 0;
-      if (!atTop && !atBottom) {
-        e.stopPropagation();
-      } else {
-        e.preventDefault();
-      }
-    }, { passive: false });
+    popup.addEventListener('wheel', function () {
+      // Allow page scroll while mouse is over location picker.
+    }, { passive: true });
 
     return;
   }
@@ -391,7 +399,12 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
     var hiddenEl = document.getElementById(hiddenId);
 
     if (textEl) textEl.textContent = loc.name;
-    if (hiddenEl) hiddenEl.value = loc.name;
+
+    if (hiddenEl) {
+      hiddenEl.value = loc.name;
+      hiddenEl.dataset.address = loc.address || "";
+      hiddenEl.dataset.placeId = loc.placeId || "";
+    }
 
     if (isPrimary) {
       var cb = document.getElementById("rcssDiffReturn");
@@ -431,6 +444,8 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
     `;
   }
 
+  var googlePredictions = [];
+
   function renderList(term) {
     var list = popup.querySelector("[data-location-list]");
     if (!list) return;
@@ -439,16 +454,21 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
       return matches(loc, term);
     });
 
-    if (term && term.trim().length > 2) {
-      filtered.unshift({
-        type: "address",
-        icon: "📍",
-        name: term.trim(),
-        subtitle: "Custom address in Barcelona",
-        address: "Barcelona service area",
-        hours: "Pickup by appointment"
+    googlePredictions
+      .filter(function (p) {
+        return (p.description || "").toLowerCase().includes("barcelona");
+      })
+      .forEach(function (p) {
+        filtered.push({
+          type: "google",
+          icon: "⌖",
+          name: p.structured_formatting?.main_text || p.description,
+          subtitle: p.structured_formatting?.secondary_text || "Barcelona",
+          address: p.description,
+          hours: "Pickup by appointment",
+          placeId: p.place_id
+        });
       });
-    }
 
     list.innerHTML = filtered.map(function (loc, index) {
       var isSelected = loc.name === getCurrentValue();
@@ -505,8 +525,95 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
     var input = popup.querySelector(".rc-location-search input");
     var clear = popup.querySelector("[data-location-clear]");
 
+    function attachGooglePlaces() {
+      if (!window.google || !google.maps || !google.maps.places || !input) return;
+      if (input._rentcarGooglePlacesAttached) return;
+
+      input._rentcarGooglePlacesAttached = true;
+
+      var barcelonaBounds = {
+        north: 41.50,
+        south: 41.30,
+        east: 2.30,
+        west: 2.05
+      };
+
+      var autocomplete = new google.maps.places.Autocomplete(input, {
+        fields: ["formatted_address", "geometry", "name", "place_id"],
+        componentRestrictions: { country: "es" },
+        bounds: barcelonaBounds,
+        strictBounds: true,
+        types: ["address"]
+      });
+
+      autocomplete.addListener("place_changed", function () {
+        var place = autocomplete.getPlace();
+        var address = place.formatted_address || place.name || input.value;
+
+        var textEl = document.getElementById(textId);
+        var hiddenEl = document.getElementById(hiddenId);
+
+        if (textEl) textEl.textContent = address;
+
+        if (hiddenEl) {
+          hiddenEl.value = address;
+          hiddenEl.dataset.placeId = place.place_id || "";
+          hiddenEl.dataset.lat = place.geometry?.location?.lat() || "";
+          hiddenEl.dataset.lng = place.geometry?.location?.lng() || "";
+        }
+
+        if (isPrimary) {
+          var cb = document.getElementById("rcssDiffReturn");
+          if (cb && !cb.checked) {
+            var dt = document.getElementById("rcssDropoffLocText");
+            var dh = document.getElementById("dropoffLocation");
+            if (dt) dt.textContent = address;
+            if (dh) dh.value = address;
+          }
+        }
+
+        popup.classList.remove("is-open");
+        popup.style.display = "none";
+      });
+    }
+
+    function fetchGooglePredictions(term) {
+      if (!term || term.trim().length < 3) {
+        googlePredictions = [];
+        renderList(term);
+        return;
+      }
+
+      if (!window.google || !google.maps || !google.maps.places) {
+        renderList(term);
+        return;
+      }
+
+      var service = new google.maps.places.AutocompleteService();
+
+      var sw = new google.maps.LatLng(41.30, 2.05);
+      var ne = new google.maps.LatLng(41.50, 2.30);
+      var bounds = new google.maps.LatLngBounds(sw, ne);
+
+      service.getPlacePredictions({
+        input: term,
+        componentRestrictions: { country: "es" },
+        bounds: bounds,
+        strictBounds: true,
+        types: ["address"]
+      }, function (predictions, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+          googlePredictions = predictions.slice(0, 5);
+        } else {
+          googlePredictions = [];
+        }
+
+        renderList(term);
+      });
+    }
+
     input.addEventListener("input", function () {
-      renderList(input.value);
+      fetchGooglePredictions(input.value);
     });
 
     clear.addEventListener("click", function () {

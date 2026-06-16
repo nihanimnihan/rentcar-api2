@@ -340,6 +340,12 @@
   <script src="js/main-search.js"></script>
   <script src="js/home-popular-cars.js"></script>
   <script src="js/auth-session.js"></script>
+  <script>
+      window.initGooglePlaces = function () {
+        window.dispatchEvent(new Event('google-places-ready'));
+      };
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR_2YHxCNRdMpMuJTA1J8WMznjAVA_IkQ&libraries=places&callback=initGooglePlaces" async defer></script>
 </body>
 
 </html>

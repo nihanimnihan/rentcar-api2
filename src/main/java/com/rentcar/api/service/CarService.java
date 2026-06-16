@@ -76,41 +76,41 @@ public class CarService {
 
     public List<Car> searchCars(CarSearchRequest request) {
         log.debug("Car search: pickup={} dropoff={} vehicleType={} segment={} transmission={} fuelType={}",
-                request.pickupDateTime(), request.dropoffDateTime(),
-                request.vehicleType(), request.segment(), request.transmission(), request.fuelType());
-        if (request.pickupDateTime() != null) {
-            if (request.pickupDateTime().isBefore(businessTimezone.nowBusinessLocal())) {
+                request.getPickupLocation(), request.getDropoffDateTime(),
+                request.getVehicleType(), request.getSegment(), request.getTransmission(), request.getFuelType());
+        if (request.getPickupDateTime() != null) {
+            if (request.getPickupDateTime().isBefore(businessTimezone.nowBusinessLocal())) {
                 throw new InvalidSearchDateException("Pickup date must not be in the past");
             }
-            if (request.dropoffDateTime() != null
-                    && !request.dropoffDateTime().isAfter(request.pickupDateTime())) {
+            if (request.getDropoffDateTime() != null
+                    && !request.getDropoffDateTime().isAfter(request.getPickupDateTime())) {
                 throw new InvalidSearchDateException("Return date must be after pickup date");
             }
         }
-        if (request.pickupDateTime() != null && request.dropoffDateTime() != null) {
+        if (request.getPickupDateTime() != null && request.getDropoffDateTime() != null) {
             List<Car> results = carRepository.searchAvailableCars(
-                    request.pickupDateTime(),
-                    request.dropoffDateTime(),
-                    request.vehicleType(),
-                    request.segment(),
-                    request.transmission(),
-                    request.fuelType(),
-                    request.minSeats(),
-                    request.minBags(),
-                    request.minDriverAge(),
+                    request.getPickupDateTime(),
+                    request.getDropoffDateTime(),
+                    request.getVehicleType(),
+                    request.getSegment(),
+                    request.getTransmission(),
+                    request.getFuelType(),
+                    request.getMinSeats(),
+                    request.getMinBags(),
+                    request.getMinDriverAge(),
                     appClock.nowUtc()
             );
             log.debug("Car search returned {} available cars", results.size());
             return results;
         }
         List<Car> results = carRepository.searchCarsWithoutDateFilter(
-                request.vehicleType(),
-                request.segment(),
-                request.transmission(),
-                request.fuelType(),
-                request.minSeats(),
-                request.minBags(),
-                request.minDriverAge()
+                request.getVehicleType(),
+                request.getSegment(),
+                request.getTransmission(),
+                request.getFuelType(),
+                request.getMinSeats(),
+                request.getMinBags(),
+                request.getMinDriverAge()
         );
         log.debug("Car search (no dates) returned {} cars", results.size());
         return results;

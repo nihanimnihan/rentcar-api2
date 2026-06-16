@@ -38,7 +38,7 @@ public class PricingService {
     }
 
     public PriceBreakdown calculate(Car car, CarSearchRequest request) {
-        int rentalDays = calculateRentalDays(request.pickupDateTime(), request.dropoffDateTime());
+        int rentalDays = calculateRentalDays(request.getPickupDateTime(), request.getDropoffDateTime());
 
         BigDecimal baseDailyPrice = money(car.getDailyPrice());
         BigDecimal discountPercentage = resolveDiscountPercentage(rentalDays);
@@ -50,8 +50,8 @@ public class PricingService {
         BigDecimal effectiveDailyPrice = money(baseDailyPrice.multiply(multiplier));
         BigDecimal rentalCharge = money(effectiveDailyPrice.multiply(BigDecimal.valueOf(rentalDays)));
 
-        BigDecimal oneWayFee = calculateOneWayFee(request.pickupLocation(), request.dropoffLocation());
-        BigDecimal premiumLocationFee = calculatePremiumLocationFee(car, request.pickupLocation(), rentalCharge);
+        BigDecimal oneWayFee = calculateOneWayFee(request.getPickupLocation(), request.getDropoffLocation());
+        BigDecimal premiumLocationFee = calculatePremiumLocationFee(car, request.getPickupLocation(), rentalCharge);
 
         BigDecimal subtotal = rentalCharge.add(oneWayFee).add(premiumLocationFee);
         BigDecimal tax = money(subtotal.multiply(TAX_RATE));
@@ -80,8 +80,7 @@ public class PricingService {
     public PriceBreakdown calculate(Car car, String pickupLocation, String dropoffLocation,
                                     LocalDateTime pickupDateTime, LocalDateTime dropoffDateTime) {
         CarSearchRequest request = new CarSearchRequest(
-                pickupLocation, dropoffLocation, pickupDateTime, dropoffDateTime,
-                null, null, null, null, null, null, null);
+                pickupLocation, dropoffLocation, pickupDateTime, dropoffDateTime);
         return calculate(car, request);
     }
 
