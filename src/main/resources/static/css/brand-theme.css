@@ -256,7 +256,7 @@ textarea:focus {
   max-width: 1180px !important;
   margin: 0 auto !important;
   border-radius: 18px !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   background: rgba(251,247,236,.94) !important;
 }
 
@@ -1321,3 +1321,305 @@ section.bg-dark-2 {
   border-color: rgba(248, 212, 72, 0.55);
   color: #191B1E;
 }
+
+/* =========================================================
+   HOME LOCATION PICKER — Sixt-like warm luxury panel
+   ========================================================= */
+
+.rc-location-picker {
+  width: min(860px, calc(100vw - 32px)) !important;
+  display: none !important;
+  grid-template-columns: 430px 1fr !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+  background: #fffaf0 !important;
+  border: 1px solid rgba(25, 27, 30, 0.10) !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28) !important;
+  z-index: 9999 !important;
+}
+
+.rc-location-picker.is-open {
+  display: grid !important;
+}
+
+.rc-location-picker__left {
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  border-right: 1px solid rgba(25, 27, 30, 0.08);
+}
+
+.rc-location-picker__right {
+  padding: 34px 32px;
+  background:
+    radial-gradient(circle at 25% 10%, rgba(248, 212, 72, 0.18), transparent 34%),
+    linear-gradient(180deg, #fffdf8 0%, #fffaf0 100%);
+}
+
+.rc-location-search {
+  height: 52px;
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1.5px solid rgba(25, 27, 30, 0.14);
+}
+
+.rc-location-search:focus-within {
+  border-color: #F8D448;
+  box-shadow: 0 0 0 4px rgba(248, 212, 72, 0.18);
+}
+
+.rc-location-search span {
+  color: #191B1E;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.rc-location-search input {
+  height: 100%;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #191B1E;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rc-location-search input::placeholder {
+  color: rgba(25, 27, 30, 0.42);
+}
+
+.rc-location-search button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #191B1E;
+  font-size: 22px;
+  line-height: 1;
+  background: rgba(25, 27, 30, 0.06);
+}
+
+.rc-location-section-title {
+  margin: 22px 0 10px;
+  color: #191B1E;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rc-location-section-title--recent {
+  padding-top: 14px;
+  border-top: 1px solid rgba(25, 27, 30, 0.10);
+}
+
+.rc-location-option,
+.rc-location-recent {
+  width: 100%;
+  min-height: 66px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  text-align: left;
+  background: transparent;
+  color: #191B1E;
+  transition: all 0.18s ease;
+}
+
+.rc-location-option:hover,
+.rc-location-option.is-selected,
+.rc-location-recent:hover {
+  background: rgba(248, 212, 72, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(248, 212, 72, 0.42);
+}
+
+.rc-location-option__icon,
+.rc-location-recent span {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #191B1E;
+  font-size: 20px;
+}
+
+.rc-location-option strong {
+  display: block;
+  color: #191B1E;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.rc-location-option small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(25, 27, 30, 0.58);
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 500;
+}
+
+.rc-location-recent {
+  min-height: 44px;
+  color: rgba(25, 27, 30, 0.78);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rc-location-detail__icon {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(248, 212, 72, 0.18);
+  color: #191B1E;
+  font-size: 30px;
+}
+
+.rc-location-picker__right h3 {
+  margin: 0;
+  color: #191B1E;
+  font-size: 30px;
+  line-height: 1.12;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.rc-location-picker__right p {
+  margin: 8px 0 0;
+  color: rgba(25, 27, 30, 0.72);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.rc-location-detail__address {
+  margin-top: 8px;
+  max-width: 310px;
+  color: rgba(25, 27, 30, 0.62);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.rc-location-tags {
+  margin-top: 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rc-location-tags span {
+  height: 34px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  color: #9A5F00;
+  background: rgba(248, 212, 72, 0.14);
+  border: 1px solid rgba(248, 212, 72, 0.48);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rc-location-hours {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(25, 27, 30, 0.10);
+}
+
+.rc-location-hours strong {
+  display: block;
+  color: #191B1E;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rc-location-hours span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(25, 27, 30, 0.72);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+@media (max-width: 820px) {
+  .rc-location-picker {
+    grid-template-columns: 1fr !important;
+    max-height: calc(100vh - 40px);
+    overflow: auto !important;
+  }
+
+  .rc-location-picker__right {
+    display: none;
+  }
+}
+
+.rc-location-picker {
+  max-height: calc(100vh - 120px) !important;
+}
+
+.rc-location-picker {
+  z-index: 99999 !important;
+}
+
+
+.rentcar-home-hero .masthead-bottom,
+.rentcar-home-hero .mainSearch,
+.rentcar-home-hero .button-grid,
+.rentcar-home-hero .rcss-cell,
+.rentcar-home-hero .rcss-cell-loc {
+  overflow: visible !important;
+}
+
+.rentcar-home-hero .mainSearch,
+.rentcar-home-hero .rentcar-sixt-search {
+  position: relative !important;
+  z-index: 9991 !important;
+}
+
+/* Fix search grid overflow after long location names */
+.rentcar-home-hero .mainSearch .button-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, .9fr) minmax(0, .9fr) 170px !important;
+}
+
+.rentcar-home-hero .rcss-cell,
+.rentcar-home-hero .rcss-trigger,
+.rentcar-home-hero .rcss-trigger span {
+  min-width: 0 !important;
+}
+
+.rentcar-home-hero .rcss-trigger span {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.rentcar-home-hero .mainSearch__submit {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.rcss-time-popup {
+  max-height: 260px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.rcss-time-popup .rcss-time-list {
+  max-height: 260px !important;
+  overflow-y: auto !important;
+}
+

@@ -20,8 +20,18 @@ document.addEventListener("DOMContentLoaded", function () {
   function displayFromIso(isoDate) {
     const date = new Date(isoDate + 'T00:00:00');
     if (isNaN(date.getTime())) return isoDate;
-    const locale = (typeof getLanguage === 'function' && getLanguage() === 'es') ? 'es-ES' : 'en-GB';
-    return date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+
+    const lang = (typeof getLanguage === 'function') ? getLanguage() : 'en';
+
+    const locale =
+      lang === 'tr' ? 'tr-TR' :
+      lang === 'es' ? 'es-ES' :
+      'en-GB';
+
+    return date.toLocaleDateString(locale, {
+      month: 'short',
+      day: '2-digit'
+    });
   }
 
   // Defaults: tomorrow (pickup) and day-after-tomorrow (dropoff).
@@ -185,40 +195,46 @@ function rcssOpenBelow(popup, anchorEl, alignRight) {
   rcssActiveAlignRight = alignRight;
   var rect = anchorEl.getBoundingClientRect();
 
-  // If this is a location picker, keep it inside the search panel and
-  // position absolutely relative to that panel so it moves with the panel when scrolling.
+  var isCalendarPopup =
+    popup.id === 'rcssPickupCalPopup' ||
+    popup.id === 'rcssDropoffCalPopup';
+
+
+  // Treat location pickers as viewport-fixed popups appended to <body> so
+  // they are not clipped by parent overflow and can render full two-column layout.
   var isLocationPicker = popup.classList.contains('rc-location-picker') || popup.id === 'rcssPickupLocPopup' || popup.id === 'rcssDropoffLocPopup';
 
   if (isLocationPicker) {
-    var container = anchorEl.closest ? anchorEl.closest('.mainSearch') : null;
-    if (!container) container = anchorEl.offsetParent || document.querySelector('.mainSearch') || document.body;
-
-    // Ensure container is positioned so absolute children are relative to it
-    var compStyle = window.getComputedStyle(container);
-    if (compStyle.position === 'static') container.style.position = 'relative';
-
-    var containerRect = container.getBoundingClientRect();
-
-    popup.style.position = 'absolute';
+    popup.style.position = 'fixed';
     popup.style.display = 'block';
     popup.classList.add('is-open');
 
-    // width: prefer 980 but not wider than container minus margins
-    var preferredWidth = 980;
-    var available = Math.max(200, containerRect.width - 16);
+    // Preferred width around 900px but constrained by viewport
+    var preferredWidth = 900;
+    var available = Math.max(300, window.innerWidth - 40);
     var width = Math.min(preferredWidth, available);
     popup.style.width = width + 'px';
-    popup.style.maxWidth = '100%';
+    popup.style.maxWidth = (window.innerWidth - 16) + 'px';
 
-    // left relative to container
-    var left = alignRight ? (rect.right - containerRect.left - width) : (rect.left - containerRect.left);
-    left = Math.max(8, Math.min(left, containerRect.width - width - 8));
-    var top = rect.bottom - containerRect.top + 12;
+    var searchPanel = document.querySelector('.rentcar-sixt-search')
+      || document.querySelector('.rentcar-home-hero .mainSearch');
+
+    var panelRect = searchPanel ? searchPanel.getBoundingClientRect() : rect;
+
+    var left = panelRect.left;
+    var top = panelRect.bottom + 5;
 
     popup.style.left = left + 'px';
     popup.style.top = top + 'px';
+    popup.style.width = Math.min(800, panelRect.width) + 'px';
 
-    // Trap wheel scroll inside popup so the page doesn't scroll and don't close on scroll
+
+    // Ensure popup is attached to <body> so it's not clipped by parents
+    if (popup.parentNode !== document.body) {
+      try { document.body.appendChild(popup); } catch (e) { /* ignore */ }
+    }
+
+    // Trap wheel scroll inside popup so the page doesn't scroll; keep popup open on window scroll
     popup.addEventListener('wheel', function (e) {
       var atTop = popup.scrollTop === 0 && e.deltaY < 0;
       var atBottom = popup.scrollTop + popup.clientHeight >= popup.scrollHeight && e.deltaY > 0;
@@ -228,6 +244,55 @@ function rcssOpenBelow(popup, anchorEl, alignRight) {
         e.preventDefault();
       }
     }, { passive: false });
+
+    return;
+  }
+
+  if (isCalendarPopup) {
+    popup.style.position = 'fixed';
+    popup.style.display = 'block';
+    popup.classList.add('is-open');
+
+    var searchPanel = document.querySelector('.rentcar-sixt-search')
+      || document.querySelector('.rentcar-home-hero .mainSearch');
+
+    var panelRect = searchPanel ? searchPanel.getBoundingClientRect() : rect;
+
+    var width = Math.min(680, window.innerWidth - 32);
+    var left = panelRect.left + (panelRect.width - width) / 2;
+    var top = panelRect.bottom + 8;
+
+    popup.style.width = width + 'px';
+    popup.style.maxWidth = 'calc(100vw - 32px)';
+    popup.style.left = Math.max(16, left) + 'px';
+    popup.style.top = top + 'px';
+
+    if (popup.parentNode !== document.body) {
+      document.body.appendChild(popup);
+    }
+
+    return;
+  }
+
+  var isTimePopup =
+    popup.id === 'rcssPickupTimePopup' ||
+    popup.id === 'rcssDropoffTimePopup';
+
+  if (isTimePopup) {
+    popup.style.position = 'fixed';
+    popup.style.display = 'block';
+    popup.classList.add('is-open');
+
+    var timeRect = anchorEl.getBoundingClientRect();
+
+    popup.style.width = '150px';
+    popup.style.maxWidth = '150px';
+    popup.style.left = timeRect.left + 'px';
+    popup.style.top = (timeRect.bottom + 8) + 'px';
+
+    if (popup.parentNode !== document.body) {
+      document.body.appendChild(popup);
+    }
 
     return;
   }
@@ -304,22 +369,6 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
       subtitle: "Company office",
       address: "Carrer de la Marina, 136, Barcelona",
       hours: "Mon – Sun 09:00 – 20:00"
-    },
-    {
-      type: "hotel",
-      icon: "🏨",
-      name: "Hotel Arts Barcelona",
-      subtitle: "Hotel pickup",
-      address: "Marina 19–21, Barcelona",
-      hours: "By appointment"
-    },
-    {
-      type: "hotel",
-      icon: "🏨",
-      name: "W Barcelona",
-      subtitle: "Hotel pickup",
-      address: "Plaça de la Rosa dels Vents, 1",
-      hours: "By appointment"
     }
   ];
 
@@ -364,7 +413,7 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
 
     detail.innerHTML = `
       <div class="rc-location-detail__icon">${loc.icon}</div>
-      <h3>${loc.name}</h3>
+      <h5>${loc.name}</h5>
       <p>${loc.subtitle}</p>
       <div class="rc-location-detail__address">${loc.address}</div>
 
@@ -447,14 +496,7 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
         <div data-location-list></div>
 
         <div class="rc-location-section-title rc-location-section-title--recent">Recent searches</div>
-        <button type="button" class="rc-location-recent" data-recent="Carrer de la Marina, 136">
-          <span>↺</span>
-          Carrer de la Marina, 136
-        </button>
-        <button type="button" class="rc-location-recent" data-recent="Sagrada Familia">
-          <span>↺</span>
-          Sagrada Familia
-        </button>
+
       </div>
 
       <div class="rc-location-picker__right" data-location-detail></div>
@@ -614,28 +656,15 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
     popup.addEventListener('click', function (e) { e.stopPropagation(); });
 
     // Trap wheel scroll inside popup so the page doesn't scroll
-    popup.addEventListener('wheel', function (e) {
-      var atTop    = popup.scrollTop === 0 && e.deltaY < 0;
-      var atBottom = popup.scrollTop + popup.clientHeight >= popup.scrollHeight && e.deltaY > 0;
-      if (!atTop && !atBottom) {
-        e.stopPropagation();
-      } else {
-        e.preventDefault();
-      }
-    }, { passive: false });
+    popup.addEventListener('wheel', function () {
+      // Allow page scroll while mouse is over location picker.
+    }, { passive: true });
   }
 
   // Click anywhere outside → close all popups
   document.addEventListener('click', function () { rcssCloseAll(); });
   // Close on resize so fixed-position popups don't misalign
-    // Keep window scroll listener but only reposition popups that need viewport anchoring
-    window.addEventListener('scroll', function () {
-      // Only reposition active popup if it is NOT a location picker (calendars/timeouts need viewport reposition)
-      if (!rcssActivePopup) return;
-      var isLocationPicker = rcssActivePopup.classList && rcssActivePopup.classList.contains('rc-location-picker');
-      if (isLocationPicker) return; // location pickers are absolute inside the panel and move with it
-      rcssRepositionActivePopup();
-    }, { passive: true });
+    // Reposition active popup on window scroll/resize to keep it anchored to its trigger.
 
     let rcssActivePopup = null;
     let rcssActiveAnchor = null;
@@ -646,6 +675,15 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
       if (rcssActivePopup.style.display === 'none') return;
       rcssOpenBelow(rcssActivePopup, rcssActiveAnchor, rcssActiveAlignRight);
     }
+
+    window.addEventListener('scroll', function () {
+      rcssRepositionActivePopup();
+    }, { passive: true });
+
+    window.addEventListener('resize', function () {
+      rcssRepositionActivePopup();
+    });
+
   document.addEventListener('DOMContentLoaded', function () {
     // ── Store wrapperEl on each calendar host BEFORE moving popups to <body> ──
     // After appendChild, host.closest('.js-calendar-el') returns null because
@@ -667,3 +705,4 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
     rcssInitTimePopup('rcssDropoffTimeBtn', 'rcssDropoffTimePopup', 'rcssDropoffTimeList', 'dropoffHour', 'rcssDropoffTimeDisplay', '10:00');
   });
 })();
+

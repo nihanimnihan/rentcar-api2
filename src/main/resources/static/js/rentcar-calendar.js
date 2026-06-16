@@ -31,10 +31,14 @@
          'July','August','September','October','November','December'],
     es: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
          'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    tr: ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran',
+         'Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],
   };
+
   var DAYS = {
     en: ['Su','Mo','Tu','We','Th','Fr','Sa'],
     es: ['Do','Lu','Ma','Mi','Ju','Vi','Sá'],
+    tr: ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'],
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -53,8 +57,15 @@
     if (isNaN(d.getTime())) return iso;
     var lang = getLang();
     try {
-      return d.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-GB',
-        { weekday: 'short', day: 'numeric', month: 'short' });
+      var locale =
+        lang === 'tr' ? 'tr-TR' :
+        lang === 'es' ? 'es-ES' :
+        'en-GB';
+
+      return d.toLocaleDateString(locale, {
+        month: 'short',
+        day: '2-digit'
+      });
     } catch (e) {
       return iso;
     }
