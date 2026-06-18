@@ -96,9 +96,14 @@
                             <a href="signup.html" class="rc-header-auth-link" data-i18n="header.signIn">Sign In / Register</a>
                         </div>
 
+                        <button class="d-flex items-center text-14 text-white js-lang-toggle" type="button">
+                            <img src="img/general/lang.png" alt="language" class="rounded-full mr-10">
+                            <span class="js-language-mainTitle" data-current-language-label>English</span>
+                            <i class="icon-chevron-sm-down text-7 ml-15"></i>
+                        </button>
+
                         <div class="d-none xl:d-flex x-gap-20 items-center pl-30 text-white" data-x="header-mobile-icons" data-x-toggle="text-white">
-                            <div><a href="login.html" class="d-flex items-center icon-user text-inherit text-22"></a></div>
-                            <div><button class="d-flex items-center icon-menu text-inherit text-20" data-x-click="html, header, header-logo, header-mobile-icons, mobile-menu"></button></div>
+                            <div><a href="signup.html" class="d-flex items-center icon-user text-inherit text-22"></a></div>
                         </div>
                     </div>
                 </div>
@@ -121,7 +126,6 @@
 
                                     <div class="text-15 text-light-1 ls-2 lh-16">
                                     <input id="pickupLocation" autocomplete="off" type="search" placeholder="City or Airport" data-i18n-placeholder="search.cityOrAirport" class="js-search js-dd-focus" readonly />
-                                        <button type="button" title="Search address" class="js-places-trigger" data-target="pickupLocation" style="background:transparent;border:none;color:var(--rc-amber);font-weight:700;cursor:pointer;margin-left:8px">🔍</button>
                                     </div>
                                 </div>
 
@@ -176,7 +180,6 @@
 
                                     <div class="text-15 text-light-1 ls-2 lh-16">
                                     <input id="dropoffLocation" autocomplete="off" type="search" placeholder="City or Airport" data-i18n-placeholder="search.cityOrAirport" class="js-search js-dd-focus" readonly />
-                                        <button type="button" title="Search address" class="js-places-trigger" data-target="dropoffLocation" style="background:transparent;border:none;color:var(--rc-amber);font-weight:700;cursor:pointer;margin-left:8px">🔍</button>
                                     </div>
                                 </div>
 
@@ -230,7 +233,7 @@
                                     <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
                                         <span id="pickupDateText" class="js-first-date" data-i18n="search.selectDate">Select date</span>
 
-                                        <select id="pickupHour" class="text-15 text-light-1" style="border:none; outline:none; background:white;">
+                                        <select id="pickupHour" class="text-15 text-light-1">
                                             <option value="09:00">09:00</option>
                                             <option value="10:00" selected>10:00</option>
                                             <option value="11:00">11:00</option>
@@ -261,7 +264,7 @@
                                     <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
                                         <span id="dropoffDateText" class="js-first-date" data-i18n="search.selectDate">Select date</span>
 
-                                        <select id="dropoffHour" class="text-15 text-light-1" style="border:none; outline:none; background:white;">
+                                        <select id="dropoffHour" class="text-15 text-light-1">
                                             <option value="09:00">09:00</option>
                                             <option value="10:00" selected>10:00</option>
                                             <option value="11:00">11:00</option>

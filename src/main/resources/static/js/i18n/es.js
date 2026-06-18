@@ -143,7 +143,6 @@ window.i18nTranslations['es'] = {
   'price.rentalDays': 'días de alquiler',
 
   // review page
-  'review.title': 'Revisa tu reserva',
   'review.whoWillDrive': '¿Quién conducirá?',
   'review.email': 'Correo electrónico *',
   'review.firstName': 'Nombre *',

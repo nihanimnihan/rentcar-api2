@@ -1,4 +1,18 @@
 (function () {
+  function closeHeaderDropdowns(except) {
+    if (except !== "user") {
+      document.querySelectorAll(".rc-user-menu.is-open").forEach(function (menu) {
+        menu.classList.remove("is-open");
+      });
+    }
+
+    if (except !== "lang") {
+      document.querySelectorAll(".js-lang-menu.is-active, .js-lang-menu.is-open").forEach(function (menu) {
+        menu.classList.remove("is-active");
+        menu.classList.remove("is-open");
+      });
+    }
+  }
   async function fetchUser() {
     try {
       const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
@@ -49,7 +63,7 @@
 
   async function renderAuthState() {
     const links = document.querySelectorAll(
-      'a[href="signup.html"][data-i18n="header.signIn"]'
+      'a[href="signup.html"], a[href="/signup.html"]'
     );
 
     const backendUser = await fetchUser();
@@ -81,9 +95,26 @@
       const logoutBtn = wrapper.querySelector("[data-logout]");
       if (logoutBtn) logoutBtn.addEventListener("click", logout);
       const btn = wrapper.querySelector('.rc-user-menu__button');
-      if (btn) btn.addEventListener('click', () => wrapper.classList.toggle('is-open'));
+      if (btn) {
+        btn.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const willOpen = !wrapper.classList.contains("is-open");
+          closeHeaderDropdowns("user");
+          wrapper.classList.toggle("is-open", willOpen);
+        });
+      }
     });
   }
+
+  document.addEventListener("click", function () {
+    closeHeaderDropdowns();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeHeaderDropdowns();
+  });
 
   document.addEventListener("DOMContentLoaded", renderAuthState);
 })();

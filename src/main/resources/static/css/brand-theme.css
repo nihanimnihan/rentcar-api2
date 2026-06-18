@@ -23,7 +23,6 @@
 
 :root {
   /* Graphite scale — darker than before, matches Sixt-like quality */
-  --rc-graphite:   #191B1E;
   --rc-graphite-2: #1F2125;
   --rc-graphite-3: #24272B;
 
@@ -1635,5 +1634,43 @@ section.bg-dark-2 {
     align-items:center;
     justify-content:center;
     flex-shrink:0;
+}
+
+@media (max-width: 575px) {
+  .rentcar-search-tabs {
+    gap: 8px !important;
+  }
+
+  .rentcar-search-tab {
+    height: 38px !important;
+    min-width: auto !important;
+    padding: 0 16px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .rentcar-home-yellow-header [data-x="header-mobile-icons"] a.icon-user,
+  .rentcar-home-yellow-header [data-x="header-mobile-icons"] .icon-user {
+    color: #fff !important;
+  }
+
+  .rentcar-home-yellow-header.is-menu-opened [data-x="header-mobile-icons"] a.icon-user,
+  .rentcar-home-yellow-header.is-menu-opened [data-x="header-mobile-icons"] .icon-user {
+    color: #191B1E !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .rentcar-home-yellow-header [data-x="header-mobile-icons"] a.icon-user,
+  .rentcar-home-yellow-header [data-x="header-mobile-icons"] .icon-user {
+    color: #fff !important;
+  }
+
+  .rentcar-home-yellow-header.is-menu-opened [data-x="header-mobile-icons"] a.icon-user,
+  .rentcar-home-yellow-header.is-menu-opened [data-x="header-mobile-icons"] .icon-user {
+    color: #191B1E !important;
+  }
 }
 

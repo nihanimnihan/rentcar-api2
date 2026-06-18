@@ -49,49 +49,34 @@ function openCenteredPopup(url, width = 600, height = 700) {
 
 function goProfileFromGoogle() {
   const returnTo = getReturnTo();
-  const popupUrl = '/oauth2/authorize?returnTo=' + encodeURIComponent(returnTo) + '&provider=google&popup=1';
+  const popupUrl =
+    '/oauth2/authorize?returnTo=' +
+    encodeURIComponent(returnTo) +
+    '&provider=google&popup=1';
 
-  // Fire a same-origin GET to /oauth2/authorize on the main page so automated tests (or blocked popups)
-  // observe the request. This is non-blocking and doesn't replace the popup flow.
-  try {
-    fetch(popupUrl, { method: 'GET', credentials: 'same-origin', cache: 'no-store' }).catch(() => {});
-  } catch (e) {}
-
-  // Try opening a popup
   const popup = openCenteredPopup(popupUrl, 600, 700);
+
   if (!popup) {
-    // Popup blocked — fallback to full-page redirect
     window.location.href = popupUrl;
     return;
   }
 
-  // Listen for postMessage from popup callback
   const onMessage = async (e) => {
-    // console.info('oauth popup message event', e.origin, e.data);
-    // Only accept messages from same origin
     if (e.origin !== window.location.origin) return;
+
     const data = e.data || {};
     if (data.type !== 'oauth') return;
 
     window.removeEventListener('message', onMessage);
 
-    // Refresh auth state and navigate accordingly
-    try {
-      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
-      if (res.ok) {
-        const info = await res.json();
-        const returnToFromPopup = data.returnTo || returnTo || '/index.html';
-        if (data.profileComplete) {
-          window.location.href = returnToFromPopup;
-          return;
-        } else {
-          window.location.href = '/signup.html?step=profile&returnTo=' + encodeURIComponent(returnToFromPopup);
-          return;
-        }
-      }
-    } catch (err) {
-      // On error, fallback to navigating to returnTo
-      window.location.href = returnTo || '/index.html';
+    const returnToFromPopup = data.returnTo || returnTo || '/index.html';
+
+    if (data.profileComplete) {
+      window.location.href = returnToFromPopup;
+    } else {
+      window.location.href =
+        '/signup.html?step=profile&returnTo=' +
+        encodeURIComponent(returnToFromPopup);
     }
   };
 

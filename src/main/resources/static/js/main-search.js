@@ -813,3 +813,20 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
   });
 })();
 
+document.addEventListener("click", function (event) {
+  const editButton = event.target.closest("#editSearchButton");
+  if (!editButton) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const drawer = document.getElementById("carsSearchDrawer");
+  if (!drawer) return;
+
+  drawer.classList.toggle("is-active");
+
+  // Mobile hamburger menüsü açıksa kapat
+  document.querySelector(".js-header")?.classList.remove("is-menu-opened");
+  document.documentElement.classList.remove("html-overflow-hidden");
+});
+

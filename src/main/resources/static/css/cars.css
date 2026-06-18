@@ -37,3 +37,88 @@
 .cars-page-content {
   flex: 1;
 }
+
+@media (max-width: 575px) {
+  #headerBookingSummary {
+    max-width: 280px;
+    overflow: hidden;
+  }
+
+  #headerRouteText,
+  #headerDateText {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #headerDateText {
+    font-size: 12px;
+  }
+}
+
+/* Cars search bar polish */
+.cars-page-main .mainSearch input[type="search"] {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  font-weight: 500;
+  color: #191B1E;
+}
+
+.cars-page-main .searchMenu-loc {
+  min-width: 190px;
+}
+
+.cars-page-main .searchMenu-date {
+  min-width: 190px;
+}
+
+.cars-page-main .searchMenu-date .d-flex {
+  gap: 10px;
+}
+
+.cars-page-main .js-first-date {
+  min-width: 72px;
+  line-height: 1.25;
+  display: inline-block;
+  white-space: normal;
+}
+
+.cars-page-main select[id$="Hour"] {
+  width: 72px;
+  min-width: 72px;
+  padding: 0;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+@media (max-width: 575px) {
+  #carsSearchDrawer {
+    display: none !important;
+  }
+
+  #carsSearchDrawer.is-active {
+    display: block !important;
+    position: static !important;
+    background: #fff !important;
+    padding: 16px 0 !important;
+  }
+
+  #carsSearchDrawer.is-active .mainSearch {
+    display: block !important;
+  }
+}
+
+@media (max-width: 575px) {
+  #carsSearchDrawer:not(.is-active) {
+    display: none !important;
+  }
+
+  #carsSearchDrawer.is-active {
+    display: block !important;
+    padding: 16px 0 !important;
+    background: #fff !important;
+  }
+}
+

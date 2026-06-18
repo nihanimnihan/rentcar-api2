@@ -14,14 +14,10 @@ window.i18nTranslations['tr'] = {
   'lang.turkish': 'Türkçe',
 
   // search form
-  'search.pickupLocation': 'Alış lokasyonu',
   'search.pickUpLocation': 'Alış lokasyonu',
-  'search.dropoffLocation': 'Teslim lokasyonu',
   'search.dropOffLocation': 'Teslim lokasyonu',
-  'search.pickup': 'Alış',
-  'search.pickUp': 'Alış',
-  'search.dropoff': 'Teslim',
-  'search.dropOff': 'Teslim',
+  'search.pickUp': 'Alış tarihi',
+  'search.dropOff': 'Teslim tarihi',
   'search.selectDate': 'Tarih seçin',
   'search.cityOrAirport': 'Şehir veya havalimanı',
   'search.showCars': 'Araçları Göster',
@@ -143,7 +139,6 @@ window.i18nTranslations['tr'] = {
   'price.rentalDays': 'kiralama günü',
 
   // review page
-  'review.title': 'Rezervasyonunuzu gözden geçirin',
   'review.whoWillDrive': 'Aracı kim kullanacak?',
   'review.email': 'E-posta *',
   'review.firstName': 'Ad *',

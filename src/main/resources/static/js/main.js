@@ -57,9 +57,9 @@ function initComponents() {
   priceRangeSliderInit()
   countChange()
   liveSearch()
-  initMap()
-  initMapPlaces()
-  initMapSingle()
+  if (typeof initMap === "function") initMap()
+  if (typeof initMapPlaces === "function") initMapPlaces()
+  if (typeof initMapSingle === "function") initMapSingle()
   languageSwitch()
   priceSwitch()
 

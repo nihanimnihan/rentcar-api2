@@ -144,7 +144,6 @@ window.i18nTranslations['en'] = {
   'price.rentalDays': 'rental days',
 
   // review page
-  'review.title': 'Review your booking',
   'review.whoWillDrive': 'Who will drive?',
   'review.email': 'Email *',
   'review.firstName': 'First name *',

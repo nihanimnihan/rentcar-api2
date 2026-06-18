@@ -566,7 +566,14 @@ function formatDateForDisplay(value) {
     return value;
   }
 
-  return date.toLocaleDateString(getLanguage() === 'es' ? 'es-ES' : 'en-GB', {
+  const lang = typeof getLanguage === "function" ? getLanguage() : "en";
+
+  const locale =
+    lang === "tr" ? "tr-TR" :
+    lang === "es" ? "es-ES" :
+    "en-GB";
+
+  return date.toLocaleDateString(locale, {
     weekday: "short",
     day: "numeric",
     month: "short"
@@ -620,4 +627,18 @@ document.addEventListener('languageChanged', function () {
       openDetail.outerHTML = buildDetailHtml(car, carId);
     }
   }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const editButton = document.getElementById("editSearchButton");
+  const drawer = document.getElementById("carsSearchDrawer");
+
+  if (!editButton || !drawer) return;
+
+  editButton.addEventListener("click", function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    drawer.classList.toggle("is-active");
+  });
 });

@@ -44,9 +44,9 @@
   min-width: 220px;
   padding: 10px;
   border-radius: 16px;
-  background: rgba(255, 252, 244, .98);
-  border: 1px solid rgba(25,27,30,.08);
-  box-shadow: 0 24px 70px rgba(0,0,0,.26);
+  background: #050505;
+  border: 1px solid rgba(248, 212, 72, .28);
+  box-shadow: 0 24px 70px rgba(0,0,0,.45);
   z-index: 1000;
 }
 
@@ -60,7 +60,7 @@
   height: 42px;
   padding: 0 12px;
   border-radius: 10px;
-  color: #191B1E;
+  color: #fff;
   font-size: 14px;
   font-weight: 700;
   text-align: left;
@@ -71,6 +71,7 @@
 .rc-user-menu__dropdown a:hover,
 .rc-user-menu__dropdown button:hover {
   background: rgba(248, 212, 72, .16);
+  color: #F8D448 !important;
 }
 
 a[href="signup.html"][data-i18n="header.signIn"] {
@@ -149,4 +150,66 @@ a[href="signup.html"][data-i18n="header.signIn"] {
 .rc-header-auth-link:hover,
 a[href="signup.html"][data-i18n="header.signIn"]:hover {
   color: #F8D448 !important;
+}
+
+/* Header dropdowns: language + user same dark style */
+.js-lang-menu,
+.rc-user-menu__dropdown {
+  background: #050505 !important;
+  border: 1px solid rgba(248, 212, 72, 0.28) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45) !important;
+  border-radius: 16px !important;
+  min-width: 220px !important;
+  padding: 10px !important;
+  z-index: 2000 !important;
+}
+
+.rc-user-menu__dropdown a,
+.rc-user-menu__dropdown button {
+  color: #fff !important;
+  opacity: 1 !important;
+  font-weight: 600 !important;
+}
+
+.rc-user-menu__dropdown a:hover,
+.rc-user-menu__dropdown button:hover {
+  background: rgba(248, 212, 72, 0.16) !important;
+  color: #F8D448 !important;
+}
+
+.rc-user-menu__dropdown button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+
+/* Prevent duplicate logged-in user between mobile and desktop breakpoints */
+@media (min-width: 768px) and (max-width: 1199px) {
+  [data-x="header-mobile-icons"] .rc-user-menu {
+    display: none !important;
+  }
+}
+
+/* Header user dropdown final override */
+header .rc-user-menu__dropdown a,
+header .rc-user-menu__dropdown button,
+.rentcar-home-yellow-header .rc-user-menu__dropdown a,
+.rentcar-home-yellow-header .rc-user-menu__dropdown button {
+  color: #fff !important;
+  opacity: 1 !important;
+  background: transparent !important;
+}
+
+header .rc-user-menu__dropdown a:hover,
+header .rc-user-menu__dropdown button:hover {
+  color: #F8D448 !important;
+  background: rgba(248, 212, 72, 0.16) !important;
+}
+
+/* Duplicate Nihan fix */
+@media (min-width: 576px) {
+  [data-x="header-mobile-icons"] .rc-user-menu {
+    display: none !important;
+  }
 }
