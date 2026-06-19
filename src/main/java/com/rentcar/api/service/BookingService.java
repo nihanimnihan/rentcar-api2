@@ -9,7 +9,9 @@ import com.rentcar.api.domain.booking.BookingChannel;
 import com.rentcar.api.domain.booking.BookingOptionType;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
+import com.rentcar.api.domain.booking.CancellationPolicyType;
 import com.rentcar.api.domain.booking.MileageOption;
+import com.rentcar.api.domain.booking.RentalBookingDetails;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.customer.Customer;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
@@ -131,6 +133,8 @@ public class BookingService {
                 // Default to BEST_PRICE; STAY_FLEXIBLE will be selectable once the
                 // flexibility fee calculation and cancellation policy are implemented.
                 .bookingOptionType(BookingOptionType.BEST_PRICE)
+                .bookingOptionDailyFee(BigDecimal.ZERO)
+                .cancellationPolicyType(CancellationPolicyType.STRICT)
                 .status(BookingStatus.PENDING)
                 .expiresAt(appClock.nowUtc().plus(Duration.ofMinutes(15)))
                 .checkoutSessionToken(generateUniqueCheckoutSessionToken())
@@ -139,6 +143,24 @@ public class BookingService {
                 .createdByType(BookingActorType.CUSTOMER_ANONYMOUS)
                 .createdChannel(BookingChannel.WEB)
                 .build();
+
+        booking.attachRentalDetails(RentalBookingDetails.builder()
+                .rentalDays(price.rentalDays())
+                .baseDailyPrice(price.baseDailyPrice())
+                .discountedDailyPrice(price.effectiveDailyPrice())
+                .discountPercentage(price.discountPercentage())
+                .rentalCharge(price.rentalCharge())
+                .oneWayFee(price.oneWayFee())
+                .premiumLocationFee(price.premiumLocationFee())
+                .tax(price.tax())
+                .addonCharge(addonCharge)
+                .includedKmSnapshot(price.includedKm())
+                .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
+                .mileageOption(mileageOption)
+                .bookingOptionType(BookingOptionType.BEST_PRICE)
+                .bookingOptionDailyFee(BigDecimal.ZERO)
+                .cancellationPolicyType(CancellationPolicyType.STRICT)
+                .build());
 
         Booking savedBooking = bookingRepository.save(booking);
 
@@ -178,7 +200,7 @@ public class BookingService {
     }
 
     public Booking getBookingById(Long id) {
-        return bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
+        return bookingRepository.findByIdWithDetails(id).orElseThrow(() -> new BookingNotFoundException(id));
     }
 
     public Booking findBookingByReferenceAndLastName(String bookingReference, String lastName) {

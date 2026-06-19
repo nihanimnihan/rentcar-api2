@@ -19,6 +19,7 @@ import com.rentcar.api.util.BookingReferenceGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -32,6 +33,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -90,6 +92,17 @@ class TransferBookingServiceTest {
         assertThat(response.categoryCode()).isEqualTo("RIDE");
         assertThat(response.durationHours()).isEqualTo(3);
         assertThat(response.passengers()).isEqualTo(2);
+
+        ArgumentCaptor<com.rentcar.api.domain.booking.Booking> bookingCaptor =
+                ArgumentCaptor.forClass(com.rentcar.api.domain.booking.Booking.class);
+        verify(bookingRepository).save(bookingCaptor.capture());
+        var savedBooking = bookingCaptor.getValue();
+        assertThat(savedBooking.getRentalDetails()).isNull();
+        assertThat(savedBooking.getTransferDetails()).isNotNull();
+        assertThat(savedBooking.getTransferDetails().getDurationHours()).isEqualTo(3);
+        assertThat(savedBooking.getTransferDetails().getPassengers()).isEqualTo(2);
+        assertThat(savedBooking.getTransferDetails().getHourlyPriceSnapshot()).isEqualByComparingTo("95.00");
+        assertThat(savedBooking.getTransferDetails().getChauffeurCategoryCode()).isEqualTo("RIDE");
     }
 
     // ── 2. Category not found ─────────────────────────────────────────────────

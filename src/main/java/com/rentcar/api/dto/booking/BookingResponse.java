@@ -5,6 +5,7 @@ import com.rentcar.api.domain.booking.BookingChannel;
 import com.rentcar.api.domain.booking.BookingOptionType;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
+import com.rentcar.api.domain.booking.CancellationPolicyType;
 import com.rentcar.api.domain.booking.MileageOption;
 import com.rentcar.api.domain.payment.PaymentMethod;
 import com.rentcar.api.domain.payment.PaymentStatus;
@@ -31,6 +32,9 @@ public record BookingResponse(
         BigDecimal effectiveDailyPrice,
         BigDecimal discountPercentage,
         BigDecimal carRentalTotal,
+        BigDecimal oneWayFee,
+        BigDecimal premiumLocationFee,
+        BigDecimal tax,
         BigDecimal addonTotal,
         BigDecimal totalPrice,
         int includedKmSnapshot,
@@ -38,6 +42,12 @@ public record BookingResponse(
         MileageOption mileageOption,
         /** Booking option tier — BEST_PRICE by default; STAY_FLEXIBLE when that feature is activated. */
         BookingOptionType bookingOptionType,
+        /** Per-day flexibility fee. Zero for BEST_PRICE rental bookings; null only for legacy/non-rental rows. */
+        BigDecimal bookingOptionDailyFee,
+        /** Cancellation policy snapshot attached to the selected booking option. */
+        CancellationPolicyType cancellationPolicyType,
+        /** Transfer passenger count. Null for regular rental bookings. */
+        Integer passengers,
         BookingStatus status,
         BookingSource source,
         List<BookingAddonResponse> addons,
@@ -65,9 +75,10 @@ public record BookingResponse(
                 id, bookingReference, car, customer,
                 pickupDateTime, pickupLocation, dropoffDateTime, dropoffLocation,
                 rentalDays, baseDailyPrice, effectiveDailyPrice, discountPercentage,
-                carRentalTotal, addonTotal, totalPrice,
+                carRentalTotal, oneWayFee, premiumLocationFee, tax, addonTotal, totalPrice,
                 includedKmSnapshot, unlimitedKmPriceSnapshot, mileageOption,
-                bookingOptionType, status, source, addons,
+                bookingOptionType, bookingOptionDailyFee, cancellationPolicyType, passengers,
+                status, source, addons,
                 paymentStatus, paymentMethod,
                 createdByType, createdChannel,
                 cancelledByType, cancelledChannel, cancelledAt, cancellationReason

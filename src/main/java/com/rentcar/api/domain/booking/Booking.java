@@ -16,6 +16,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -137,6 +138,12 @@ public class Booking {
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<BookingAddon> bookingAddons = new ArrayList<>();
 
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private RentalBookingDetails rentalDetails;
+
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private TransferBookingDetails transferDetails;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus status;
@@ -157,8 +164,9 @@ public class Booking {
     //   STAY_FLEXIBLE will later add a per-day flexibility fee and grant free
     //   cancellation/rebooking up to the pickup time.
     //
-    // bookingOptionDailyFee: extra daily fee for STAY_FLEXIBLE; always null for now.
-    //   TODO: compute and persist this when STAY_FLEXIBLE is activated.
+    // bookingOptionDailyFee: extra daily fee for STAY_FLEXIBLE; persisted as 0.00
+    //   for BEST_PRICE rental bookings so "no fee" is not confused with "unknown".
+    //   TODO: compute and persist the real fee when STAY_FLEXIBLE is activated.
     //
     // cancellationPolicyType: STRICT for BEST_PRICE, FREE_CANCELLATION for STAY_FLEXIBLE.
     //   Nullable for transfer bookings and legacy rows that pre-date this field.
@@ -169,7 +177,7 @@ public class Booking {
     @Column(name = "booking_option_type")
     private BookingOptionType bookingOptionType = BookingOptionType.BEST_PRICE;
 
-    /** Per-day flexibility fee. Null for BEST_PRICE bookings; populated when STAY_FLEXIBLE is activated. */
+    /** Per-day flexibility fee. Zero for BEST_PRICE rental bookings; populated when STAY_FLEXIBLE is activated. */
     @Column(name = "booking_option_daily_fee", precision = 10, scale = 2)
     private BigDecimal bookingOptionDailyFee;
 
@@ -224,6 +232,106 @@ public class Booking {
     @Column(nullable = false)
     private Long version;
 
+    public void attachRentalDetails(RentalBookingDetails details) {
+        this.rentalDetails = details;
+        if (details != null) {
+            details.setBooking(this);
+        }
+    }
+
+    public void attachTransferDetails(TransferBookingDetails details) {
+        this.transferDetails = details;
+        if (details != null) {
+            details.setBooking(this);
+        }
+    }
+
+    public int getRentalDays() {
+        if (rentalDetails != null) {
+            return rentalDetails.getRentalDays();
+        }
+        if (transferDetails != null) {
+            return transferDetails.getDurationHours();
+        }
+        return rentalDays;
+    }
+
+    public BigDecimal getBaseDailyPrice() {
+        return rentalDetails != null ? rentalDetails.getBaseDailyPrice() : baseDailyPrice;
+    }
+
+    public BigDecimal getDiscountedDailyPrice() {
+        return rentalDetails != null ? rentalDetails.getDiscountedDailyPrice() : discountedDailyPrice;
+    }
+
+    public BigDecimal getDiscountPercentage() {
+        return rentalDetails != null ? rentalDetails.getDiscountPercentage() : discountPercentage;
+    }
+
+    public BigDecimal getRentalCharge() {
+        return rentalDetails != null ? rentalDetails.getRentalCharge() : rentalCharge;
+    }
+
+    public BigDecimal getOneWayFee() {
+        return rentalDetails != null ? rentalDetails.getOneWayFee() : oneWayFee;
+    }
+
+    public BigDecimal getPremiumLocationFee() {
+        return rentalDetails != null ? rentalDetails.getPremiumLocationFee() : premiumLocationFee;
+    }
+
+    public BigDecimal getTax() {
+        return rentalDetails != null ? rentalDetails.getTax() : tax;
+    }
+
+    public BigDecimal getAddonCharge() {
+        return rentalDetails != null ? rentalDetails.getAddonCharge() : addonCharge;
+    }
+
+    public int getIncludedKmSnapshot() {
+        return rentalDetails != null ? rentalDetails.getIncludedKmSnapshot() : includedKmSnapshot;
+    }
+
+    public BigDecimal getUnlimitedKmPriceSnapshot() {
+        return rentalDetails != null ? rentalDetails.getUnlimitedKmPriceSnapshot() : unlimitedKmPriceSnapshot;
+    }
+
+    public MileageOption getMileageOption() {
+        return rentalDetails != null ? rentalDetails.getMileageOption() : mileageOption;
+    }
+
+    public BookingOptionType getBookingOptionType() {
+        if (rentalDetails != null) {
+            return rentalDetails.getBookingOptionType();
+        }
+        return source == BookingSource.TRANSFER ? null : bookingOptionType;
+    }
+
+    public BigDecimal getBookingOptionDailyFee() {
+        if (rentalDetails != null) {
+            return rentalDetails.getBookingOptionDailyFee();
+        }
+        return source == BookingSource.TRANSFER ? null : bookingOptionDailyFee;
+    }
+
+    public CancellationPolicyType getCancellationPolicyType() {
+        if (rentalDetails != null) {
+            return rentalDetails.getCancellationPolicyType();
+        }
+        return source == BookingSource.TRANSFER ? null : cancellationPolicyType;
+    }
+
+    public Integer getPassengers() {
+        if (transferDetails != null) {
+            return transferDetails.getPassengers();
+        }
+        return passengers;
+    }
+
+    public String getNotes() {
+        return transferDetails != null ? transferDetails.getNotes() : notes;
+    }
+
     @PrePersist
     public void prePersist() {
         // Instant.now() is intentional: JPA lifecycle callbacks cannot receive Spring beans,
@@ -232,6 +340,14 @@ public class Booking {
         this.createdAt = Instant.now();
         if (this.addonCharge == null) {
             this.addonCharge = BigDecimal.ZERO;
+        }
+        if (this.source == BookingSource.WEB && this.bookingOptionType == BookingOptionType.BEST_PRICE) {
+            if (this.bookingOptionDailyFee == null) {
+                this.bookingOptionDailyFee = BigDecimal.ZERO;
+            }
+            if (this.cancellationPolicyType == null) {
+                this.cancellationPolicyType = CancellationPolicyType.STRICT;
+            }
         }
     }
 }

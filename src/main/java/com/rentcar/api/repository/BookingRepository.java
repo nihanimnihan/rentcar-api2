@@ -24,8 +24,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b " +
            "JOIN FETCH b.customer " +
            "JOIN FETCH b.car " +
+           "LEFT JOIN FETCH b.rentalDetails " +
+           "LEFT JOIN FETCH b.transferDetails " +
            "WHERE b.bookingReference = :ref")
     Optional<Booking> findByBookingReferenceEager(@Param("ref") String ref);
+
+    @Query("SELECT b FROM Booking b " +
+           "JOIN FETCH b.customer " +
+           "JOIN FETCH b.car " +
+           "LEFT JOIN FETCH b.rentalDetails " +
+           "LEFT JOIN FETCH b.transferDetails " +
+           "WHERE b.id = :id")
+    Optional<Booking> findByIdWithDetails(@Param("id") Long id);
 
     boolean existsByCarAndStatusInAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
             Car car,
@@ -57,9 +67,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * Returns all bookings, newest first, with customer and car eagerly fetched
      * to avoid N+1 queries when mapping to {@code AdminBookingListItem}.
      */
-    @Query("SELECT b FROM Booking b JOIN FETCH b.customer JOIN FETCH b.car ORDER BY b.createdAt DESC")
+    @Query("SELECT b FROM Booking b " +
+           "JOIN FETCH b.customer " +
+           "JOIN FETCH b.car " +
+           "LEFT JOIN FETCH b.rentalDetails " +
+           "LEFT JOIN FETCH b.transferDetails " +
+           "ORDER BY b.createdAt DESC")
     List<Booking> findAllOrderByCreatedAtDesc();
 
-    @Query("SELECT b FROM Booking b JOIN FETCH b.customer JOIN FETCH b.car WHERE b.customer.email = :email ORDER BY b.createdAt DESC")
+    @Query("SELECT b FROM Booking b " +
+           "JOIN FETCH b.customer " +
+           "JOIN FETCH b.car " +
+           "LEFT JOIN FETCH b.rentalDetails " +
+           "LEFT JOIN FETCH b.transferDetails " +
+           "WHERE b.customer.email = :email ORDER BY b.createdAt DESC")
     List<Booking> findByCustomerEmailOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("email") String email);
 }

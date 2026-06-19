@@ -3,6 +3,7 @@ package com.rentcar.api.service;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
+import com.rentcar.api.domain.booking.TransferBookingDetails;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.customer.Customer;
 import com.rentcar.api.domain.transfer.ChauffeurCategory;
@@ -116,12 +117,22 @@ public class TransferBookingService {
                 .totalPrice(totalPrice)
                 .includedKmSnapshot(0)
                 .unlimitedKmPriceSnapshot(BigDecimal.ZERO)
+                .bookingOptionType(null)
                 .passengers(passengerCount)
                 .notes(request.notes())
                 .status(BookingStatus.PENDING)
                 .expiresAt(appClock.nowUtc().plus(java.time.Duration.ofMinutes(15)))
                 .source(BookingSource.TRANSFER)
                 .build();
+
+        booking.attachTransferDetails(TransferBookingDetails.builder()
+                .durationHours(request.durationHours())
+                .passengers(passengerCount)
+                .hourlyPriceSnapshot(hourlyPrice)
+                .chauffeurCategoryCode(category.getCode())
+                .chauffeurCategoryName(category.getName())
+                .notes(request.notes())
+                .build());
 
         Booking saved = bookingRepository.save(booking);
 
@@ -144,13 +155,13 @@ public class TransferBookingService {
                 booking.getCustomer().getEmail(),
                 booking.getPickupDateTime(),
                 booking.getDropoffDateTime(),
-                booking.getRentalDays(),
+                booking.getTransferDetails() != null ? booking.getTransferDetails().getDurationHours() : booking.getRentalDays(),
                 category.getCode(),
                 category.getName(),
                 car.getBrand(),
                 car.getModel(),
                 booking.getPassengers() != null ? booking.getPassengers() : 1,
-                hourlyPrice,
+                booking.getTransferDetails() != null ? booking.getTransferDetails().getHourlyPriceSnapshot() : hourlyPrice,
                 booking.getTotalPrice(),
                 booking.getNotes()
         );

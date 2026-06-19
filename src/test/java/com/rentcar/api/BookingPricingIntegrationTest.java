@@ -1,5 +1,6 @@
 package com.rentcar.api;
 
+import com.rentcar.api.repository.BookingRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -9,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -38,6 +40,9 @@ class BookingPricingIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private BookingRepository bookingRepository;
+
     // ── Field presence ──────────────────────────────────────────────────────────
 
     @Test
@@ -52,11 +57,16 @@ class BookingPricingIntegrationTest {
                 .andExpect(jsonPath("$.effectiveDailyPrice").exists())
                 .andExpect(jsonPath("$.discountPercentage").exists())
                 .andExpect(jsonPath("$.carRentalTotal").exists())
+                .andExpect(jsonPath("$.oneWayFee").exists())
+                .andExpect(jsonPath("$.premiumLocationFee").exists())
+                .andExpect(jsonPath("$.tax").exists())
                 .andExpect(jsonPath("$.addonTotal").exists())
                 .andExpect(jsonPath("$.totalPrice").exists())
                 .andExpect(jsonPath("$.rentalDays").exists())
                 .andExpect(jsonPath("$.includedKmSnapshot").isNumber())
-                .andExpect(jsonPath("$.unlimitedKmPriceSnapshot").isNumber());
+                .andExpect(jsonPath("$.unlimitedKmPriceSnapshot").isNumber())
+                .andExpect(jsonPath("$.bookingOptionDailyFee").exists())
+                .andExpect(jsonPath("$.cancellationPolicyType").exists());
     }
 
     @Test
@@ -284,7 +294,42 @@ class BookingPricingIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.bookingOptionType").value("BEST_PRICE"));
+                .andExpect(jsonPath("$.bookingOptionType").value("BEST_PRICE"))
+                .andExpect(jsonPath("$.bookingOptionDailyFee").value(0.0))
+                .andExpect(jsonPath("$.cancellationPolicyType").value("STRICT"));
+    }
+
+    @Test
+    void premiumPickupLocationFee_isPersistedInBookingResponse() throws Exception {
+        String body = bookingBodyWithLocations(
+                1,
+                daysFromNow(240),
+                daysFromNow(241),
+                "BCN Airport T1",
+                "BCN Airport T1");
+
+        MvcResult result = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.premiumLocationFee").isNumber())
+                .andExpect(jsonPath("$.tax").value(0.0))
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        long bookingId = ((Number) com.jayway.jsonpath.JsonPath.read(json, "$.id")).longValue();
+        double carRentalTotal = ((Number) com.jayway.jsonpath.JsonPath.read(json, "$.carRentalTotal")).doubleValue();
+        double premiumLocationFee = ((Number) com.jayway.jsonpath.JsonPath.read(json, "$.premiumLocationFee")).doubleValue();
+        double totalPrice = ((Number) com.jayway.jsonpath.JsonPath.read(json, "$.totalPrice")).doubleValue();
+        var booking = bookingRepository.findByIdWithDetails(bookingId).orElseThrow();
+
+        assertThat(premiumLocationFee).isGreaterThan(0.0);
+        assertThat(totalPrice).isEqualTo(
+                carRentalTotal + premiumLocationFee,
+                org.assertj.core.api.Assertions.within(0.02));
+        assertThat(booking.getRentalDetails()).isNotNull();
+        assertThat(booking.getRentalDetails().getPremiumLocationFee()).isGreaterThan(BigDecimal.ZERO);
+        assertThat(booking.getTransferDetails()).isNull();
     }
 
     // ── Car search date validation ───────────────────────────────────────────────
@@ -346,6 +391,10 @@ class BookingPricingIntegrationTest {
     }
 
     private String bookingBody(long carId, String pickup, String dropoff) {
+        return bookingBodyWithLocations(carId, pickup, dropoff, "City Centre", "City Centre");
+    }
+
+    private String bookingBodyWithLocations(long carId, String pickup, String dropoff, String pickupLocation, String dropoffLocation) {
         return """
                 {
                   "carId": %d,
@@ -354,10 +403,10 @@ class BookingPricingIntegrationTest {
                   "customerPhone": "+34600000010",
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
-                  "pickupLocation": "City Centre",
-                  "dropoffLocation": "City Centre"
+                  "pickupLocation": "%s",
+                  "dropoffLocation": "%s"
                 }
-                """.formatted(carId, pickup, dropoff);
+                """.formatted(carId, pickup, dropoff, pickupLocation, dropoffLocation);
     }
 
     private String bookingBodyWithAddon(long carId, String pickup, String dropoff, long addonId) {

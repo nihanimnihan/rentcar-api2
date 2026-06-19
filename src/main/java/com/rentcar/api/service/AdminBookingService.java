@@ -32,36 +32,70 @@ public class AdminBookingService {
                             booking.getId(),
                             booking.getBookingReference(),
                             booking.getStatus(),
+                            booking.getSource(),
                             booking.getCustomer().getFullName(),
                             booking.getCustomer().getEmail(),
                             booking.getCar().getBrand(),
                             booking.getCar().getModel(),
                             booking.getPickupDateTime(),
                             booking.getDropoffDateTime(),
+                            booking.getRentalCharge(),
+                            booking.getOneWayFee(),
+                            booking.getPremiumLocationFee(),
+                            booking.getTax(),
+                            booking.getAddonCharge(),
                             booking.getTotalPrice(),
+                            booking.getBookingOptionType(),
+                            booking.getBookingOptionDailyFee(),
+                            booking.getCancellationPolicyType(),
                             paymentStatus
                     );
                 })
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public AdminBookingDetailedListItem getBookingById(Long id) {
-        var booking = bookingRepository.findById(id)
+        var booking = bookingRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
         var paymentStatus = paymentService.findLatestPayment(booking)
                 .map(p -> p.getStatus())
                 .orElse(null);
+        var transferDetails = booking.getTransferDetails();
         return new AdminBookingDetailedListItem(
                 booking.getId(),
                 booking.getBookingReference(),
                 booking.getStatus(),
+                booking.getSource(),
                 booking.getCustomer().getFullName(),
                 booking.getCustomer().getEmail(),
                 booking.getCar().getBrand(),
                 booking.getCar().getModel(),
                 booking.getPickupDateTime(),
                 booking.getDropoffDateTime(),
+                booking.getRentalDays(),
+                booking.getBaseDailyPrice(),
+                booking.getDiscountedDailyPrice(),
+                booking.getDiscountPercentage(),
+                booking.getRentalCharge(),
+                booking.getOneWayFee(),
+                booking.getPremiumLocationFee(),
+                booking.getTax(),
+                booking.getAddonCharge(),
                 booking.getTotalPrice(),
+                booking.getIncludedKmSnapshot(),
+                booking.getUnlimitedKmPriceSnapshot(),
+                booking.getMileageOption(),
+                booking.getBookingOptionType(),
+                booking.getBookingOptionDailyFee(),
+                booking.getCancellationPolicyType(),
+                booking.getPassengers(),
+                transferDetails != null ? transferDetails.getDurationHours() : null,
+                transferDetails != null ? transferDetails.getHourlyPriceSnapshot() : null,
+                transferDetails != null ? transferDetails.getChauffeurCategoryCode() : null,
+                transferDetails != null ? transferDetails.getChauffeurCategoryName() : null,
+                booking.getNotes(),
+                booking.getCancellationReason(),
                 paymentStatus
         );
     }

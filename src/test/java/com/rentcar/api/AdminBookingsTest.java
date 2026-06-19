@@ -96,8 +96,40 @@ class AdminBookingsTest {
         assertThat((Object) JsonPath.read(json, "$[0].pickupDateTime")).isNotNull();
         assertThat((Object) JsonPath.read(json, "$[0].dropoffDateTime")).isNotNull();
         assertThat((Object) JsonPath.read(json, "$[0].totalPrice")).isNotNull();
+        assertThat(json).contains(
+                "\"source\"",
+                "\"rentalCharge\"",
+                "\"oneWayFee\"",
+                "\"premiumLocationFee\"",
+                "\"tax\"",
+                "\"addonCharge\"",
+                "\"bookingOptionType\"",
+                "\"bookingOptionDailyFee\"",
+                "\"cancellationPolicyType\"");
         // paymentStatus may be null before a payment intent is created — field must be present.
         assertThat(json).contains("\"paymentStatus\"");
+    }
+
+    @Test
+    void detailBooking_responseContainsPricingAndPolicySnapshot() throws Exception {
+        long bookingId = createBooking(daysFromNow(991), daysFromNow(992));
+
+        mockMvc.perform(get("/api/admin/bookings/{id}", bookingId)
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value((int) bookingId))
+                .andExpect(jsonPath("$.rentalDays").isNumber())
+                .andExpect(jsonPath("$.baseDailyPrice").isNumber())
+                .andExpect(jsonPath("$.effectiveDailyPrice").isNumber())
+                .andExpect(jsonPath("$.discountPercentage").isNumber())
+                .andExpect(jsonPath("$.rentalCharge").isNumber())
+                .andExpect(jsonPath("$.oneWayFee").isNumber())
+                .andExpect(jsonPath("$.premiumLocationFee").isNumber())
+                .andExpect(jsonPath("$.tax").isNumber())
+                .andExpect(jsonPath("$.addonCharge").isNumber())
+                .andExpect(jsonPath("$.bookingOptionType").value("BEST_PRICE"))
+                .andExpect(jsonPath("$.bookingOptionDailyFee").value(0.0))
+                .andExpect(jsonPath("$.cancellationPolicyType").value("STRICT"));
     }
 
     // ── Ordering ──────────────────────────────────────────────────────────────
