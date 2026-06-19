@@ -30,6 +30,8 @@ public class FakeEmailService implements EmailService {
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
 
+    private final EmailLocalizationService emailLocalizationService;
+
     private final List<ConfirmationEmailData> sentConfirmationEmails =
             Collections.synchronizedList(new ArrayList<>());
     private final List<CancellationEmailData> sentCancellationEmails =
@@ -37,9 +39,14 @@ public class FakeEmailService implements EmailService {
     private final List<RefundCompletedEmailData> sentRefundCompletedEmails =
             Collections.synchronizedList(new ArrayList<>());
 
+    public FakeEmailService(EmailLocalizationService emailLocalizationService) {
+        this.emailLocalizationService = emailLocalizationService;
+    }
+
     @Override
     public void sendBookingConfirmation(ConfirmationEmailData data) {
         sentConfirmationEmails.add(data);
+        LocalizedEmail localized = emailLocalizationService.bookingConfirmation(data);
 
         String manageLink = (data.managementUrl() != null && !data.managementUrl().isBlank())
                 ? "\n  Manage booking : " + data.managementUrl()
@@ -48,6 +55,7 @@ public class FakeEmailService implements EmailService {
         log.info("""
                 [FAKE EMAIL] Booking confirmation
                   To            : {} <{}>
+                  Subject       : {}
                   Reference     : {}
                   Pick-up       : {} — {}
                   Return        : {} — {}
@@ -55,6 +63,7 @@ public class FakeEmailService implements EmailService {
                   Total         : {} EUR{}
                 """,
                 data.customerName(), data.customerEmail(),
+                localized.subject(),
                 data.bookingReference(),
                 data.pickupLocation(), data.pickupDateTime().format(DISPLAY_FMT),
                 data.dropoffLocation(), data.dropoffDateTime().format(DISPLAY_FMT),
@@ -66,6 +75,7 @@ public class FakeEmailService implements EmailService {
     @Override
     public void sendBookingCancellation(CancellationEmailData data) {
         sentCancellationEmails.add(data);
+        LocalizedEmail localized = emailLocalizationService.bookingCancellation(data);
 
         String manageLink = (data.managementUrl() != null && !data.managementUrl().isBlank())
                 ? "\n  Manage booking : " + data.managementUrl()
@@ -74,20 +84,23 @@ public class FakeEmailService implements EmailService {
         log.info("""
                 [FAKE EMAIL] Booking cancellation
                   To            : {} <{}>
+                  Subject       : {}
                   Reference     : {}
                   Reason        : {}
                   Refund status : {}{}
                 """,
                 data.customerName(), data.customerEmail(),
+                localized.subject(),
                 data.bookingReference(),
                 data.cancellationReason(),
-                data.refundStatusLabel(),
+                emailLocalizationService.refundStatusLabel(data.refundStatus(), data.language()),
                 manageLink);
     }
 
     @Override
     public void sendRefundCompleted(RefundCompletedEmailData data) {
         sentRefundCompletedEmails.add(data);
+        LocalizedEmail localized = emailLocalizationService.refundCompleted(data);
 
         String manageLink = (data.managementUrl() != null && !data.managementUrl().isBlank())
                 ? "\n  Manage booking : " + data.managementUrl()
@@ -96,10 +109,12 @@ public class FakeEmailService implements EmailService {
         log.info("""
                 [FAKE EMAIL] Refund completed
                   To            : {} <{}>
+                  Subject       : {}
                   Reference     : {}
                   Refund ref    : {}{}
                 """,
                 data.customerName(), data.customerEmail(),
+                localized.subject(),
                 data.bookingReference(),
                 data.refundReference(),
                 manageLink);

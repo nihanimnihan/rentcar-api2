@@ -56,6 +56,9 @@ public class Customer {
     @Column(nullable = false)
     private String phone;
 
+    @Column(name = "preferred_language", length = 5)
+    private String preferredLanguage;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 

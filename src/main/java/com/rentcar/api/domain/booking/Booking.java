@@ -169,6 +169,10 @@ public class Booking {
     @Column(name = "manage_token_revoked_at")
     private Instant manageTokenRevokedAt;
 
+    @Builder.Default
+    @Column(length = 5)
+    private String language = "en";
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingSource source;

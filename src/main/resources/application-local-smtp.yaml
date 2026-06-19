@@ -8,4 +8,4 @@ spring:
 rentcar:
   email:
     from: no-reply@rentcar.local
-    from-name: RentCar Local
+    from-name: Paradise Deluxe Local

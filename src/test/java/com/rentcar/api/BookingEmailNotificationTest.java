@@ -5,6 +5,7 @@ import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.email.CancellationEmailData;
 import com.rentcar.api.email.ConfirmationEmailData;
+import com.rentcar.api.email.EmailLocalizationService;
 import com.rentcar.api.email.FakeEmailService;
 import com.rentcar.api.email.RefundCompletedEmailData;
 import com.rentcar.api.payment.provider.FakePaymentProvider;
@@ -52,6 +53,7 @@ class BookingEmailNotificationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired FakeEmailService fakeEmailService;
+    @Autowired EmailLocalizationService emailLocalizationService;
     @Autowired BookingRepository bookingRepository;
     @Autowired PaymentService paymentService;
 
@@ -122,7 +124,55 @@ class BookingEmailNotificationTest {
         assertThat(email.dropoffLocation()).isNotBlank();
         assertThat(email.selectedService()).isNotBlank();
         assertThat(email.totalPrice()).isPositive();
+        assertThat(email.language()).isEqualTo("en");
         assertTokenizedManageUrl(email.managementUrl());
+
+        var rendered = emailLocalizationService.bookingConfirmation(email);
+        assertThat(rendered.subject()).isEqualTo("Paradise Deluxe booking confirmed - " + bookingRef);
+        assertThat(rendered.body())
+                .contains("Your Paradise Deluxe booking is confirmed.")
+                .contains("Thank you for choosing Paradise Deluxe.")
+                .doesNotContain("RentCar booking")
+                .doesNotContain("Thank you for choosing RentCar");
+    }
+
+    @Test
+    void turkishBooking_sendsTurkishConfirmationEmail() throws Exception {
+        long carId = anyAvailableCarId(1412, 1413);
+
+        MvcResult created = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bookingBody(carId, daysFromNow(1412), daysFromNow(1413),
+                                "Turkish Confirmation", "turkish.confirmation@example.com", "tr")))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
+        String bookingRef = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
+        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
+
+        var persistedBooking = bookingRepository.findByIdWithDetails(bookingId).orElseThrow();
+        assertThat(persistedBooking.getLanguage()).isEqualTo("tr");
+        assertThat(persistedBooking.getCustomer().getPreferredLanguage()).isEqualTo("tr");
+
+        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payBody("pm_test_valid", checkoutToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+
+        List<ConfirmationEmailData> emails = fakeEmailService.getSentEmails();
+        assertThat(emails).hasSize(1);
+
+        ConfirmationEmailData email = emails.get(0);
+        assertThat(email.language()).isEqualTo("tr");
+        var rendered = emailLocalizationService.bookingConfirmation(email);
+        assertThat(rendered.subject()).isEqualTo("Paradise Deluxe rezervasyonunuz onaylandı - " + bookingRef);
+        assertThat(rendered.body())
+                .contains("Paradise Deluxe rezervasyonunuz onaylandı.")
+                .contains("Rezervasyon referansı: " + bookingRef)
+                .contains("Paradise Deluxe’i tercih ettiğiniz için teşekkür ederiz.")
+                .doesNotContain("RentCar");
     }
 
     // ── 3. Payment failure → no email sent ────────────────────────────────────
@@ -161,7 +211,7 @@ class BookingEmailNotificationTest {
         MvcResult created = mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bookingBody(carId, daysFromNow(1406), daysFromNow(1407),
-                                "Cancel Reason", "cancel.reason@example.com")))
+                                "Cancel Reason", "cancel.reason@example.com", "tr")))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -190,9 +240,17 @@ class BookingEmailNotificationTest {
         assertThat(email.customerEmail()).isEqualTo("cancel.reason@example.com");
         assertThat(email.cancellationReason()).isEqualTo("Travel plans changed");
         assertThat(email.refundStatus()).isEqualTo(PaymentStatus.REFUNDED);
-        assertThat(email.refundStatusLabel()).isEqualTo("Refund completed");
-        assertThat(email.bankProcessingMessage()).contains("few business days");
+        assertThat(email.language()).isEqualTo("tr");
         assertTokenizedManageUrl(email.managementUrl());
+
+        var rendered = emailLocalizationService.bookingCancellation(email);
+        assertThat(rendered.subject()).isEqualTo("Paradise Deluxe rezervasyonunuz iptal edildi - " + bookingRef);
+        assertThat(rendered.body())
+                .contains("Paradise Deluxe rezervasyonunuz iptal edildi.")
+                .contains("İade durumu: İade tamamlandı")
+                .contains("İade uygulanıyorsa, tutarın banka hesabınızda görünmesi birkaç iş günü sürebilir.")
+                .contains("Paradise Deluxe’i tercih ettiğiniz için teşekkür ederiz.")
+                .doesNotContain("RentCar");
     }
 
     // ── 5. Stripe async payment success sends confirmation once ─────────────
@@ -242,7 +300,7 @@ class BookingEmailNotificationTest {
         MvcResult created = mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bookingBody(carId, daysFromNow(1410), daysFromNow(1411),
-                                "Refund Webhook", "refund.webhook@example.com")))
+                                "Refund Webhook", "refund.webhook@example.com", "tr")))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -275,8 +333,58 @@ class BookingEmailNotificationTest {
         assertThat(emails.get(0).bookingReference()).isEqualTo(bookingRef);
         assertThat(emails.get(0).customerEmail()).isEqualTo("refund.webhook@example.com");
         assertThat(emails.get(0).refundReference()).isEqualTo("re_test_123");
-        assertThat(emails.get(0).bankProcessingMessage()).contains("few business days");
+        assertThat(emails.get(0).language()).isEqualTo("tr");
         assertTokenizedManageUrl(emails.get(0).managementUrl());
+
+        var rendered = emailLocalizationService.refundCompleted(emails.get(0));
+        assertThat(rendered.subject()).isEqualTo("Paradise Deluxe iadeniz tamamlandı - " + bookingRef);
+        assertThat(rendered.body())
+                .contains("Paradise Deluxe rezervasyonunuz için iade tamamlandı.")
+                .contains("İade tarafımızda tamamlandı, ancak tutarın banka hesabınızda görünmesi birkaç iş günü sürebilir.")
+                .contains("Paradise Deluxe’i tercih ettiğiniz için teşekkür ederiz.")
+                .doesNotContain("RentCar");
+    }
+
+    @Test
+    void customerLifecycleEmailsUseSharedLocalizedParadiseDeluxeBranding() {
+        ConfirmationEmailData confirmation = new ConfirmationEmailData(
+                "RC-TEST",
+                "brand@example.com",
+                "Brand Test",
+                LocalDateTime.now().plusDays(1),
+                "Airport T1",
+                LocalDateTime.now().plusDays(2),
+                "Airport T1",
+                "Mercedes Vito",
+                java.math.BigDecimal.valueOf(120),
+                "http://localhost:8091/manage-booking.html?token=test",
+                "es");
+        CancellationEmailData cancellation = new CancellationEmailData(
+                "RC-TEST",
+                "brand@example.com",
+                "Brand Test",
+                "Cambio de planes",
+                PaymentStatus.REFUND_PENDING,
+                "http://localhost:8091/manage-booking.html?token=test",
+                "es");
+        RefundCompletedEmailData refund = new RefundCompletedEmailData(
+                "RC-TEST",
+                "brand@example.com",
+                "Brand Test",
+                "re_test",
+                "http://localhost:8091/manage-booking.html?token=test",
+                "es");
+
+        assertThat(emailLocalizationService.bookingConfirmation(confirmation).subject())
+                .isEqualTo("Reserva Paradise Deluxe confirmada - RC-TEST");
+        assertThat(emailLocalizationService.bookingCancellation(cancellation).subject())
+                .isEqualTo("Reserva Paradise Deluxe cancelada - RC-TEST");
+        assertThat(emailLocalizationService.refundCompleted(refund).subject())
+                .isEqualTo("Reembolso Paradise Deluxe completado - RC-TEST");
+
+        assertThat(emailLocalizationService.bookingConfirmation(confirmation).body()).contains("Gracias por elegir Paradise Deluxe").doesNotContain("RentCar");
+        assertThat(emailLocalizationService.bookingCancellation(cancellation).body()).contains("Gracias por elegir Paradise Deluxe").doesNotContain("RentCar");
+        assertThat(emailLocalizationService.refundCompleted(refund).body()).contains("Gracias por elegir Paradise Deluxe").doesNotContain("RentCar");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -302,18 +410,29 @@ class BookingEmailNotificationTest {
 
     private String bookingBody(long carId, String pickup, String dropoff,
                                String name, String email) {
+        return bookingBody(carId, pickup, dropoff, name, email, null);
+    }
+
+    private String bookingBody(long carId, String pickup, String dropoff,
+                               String name, String email, String language) {
+        String languageLine = language == null
+                ? ""
+                : """
+                  "language": "%s",
+                """.formatted(language);
         return """
                 {
                   "carId": %d,
                   "customerName": "%s",
                   "customerEmail": "%s",
                   "customerPhone": "+34600000077",
+                %s
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "Airport T1",
                   "dropoffLocation": "Airport T1"
                 }
-                """.formatted(carId, name, email, pickup, dropoff);
+                """.formatted(carId, name, email, languageLine, pickup, dropoff);
     }
 
     private String payBody(String paymentMethodId, String checkoutToken) {

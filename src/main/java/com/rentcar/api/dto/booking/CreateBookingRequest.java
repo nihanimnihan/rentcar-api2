@@ -42,6 +42,9 @@ public record CreateBookingRequest(
         List<Long> addonIds,
 
         // nullable — defaults to INCLUDED when not provided
-        MileageOption mileageOption
+        MileageOption mileageOption,
+
+        // nullable — normalized to English when omitted or unsupported
+        String language
 ) {
 }

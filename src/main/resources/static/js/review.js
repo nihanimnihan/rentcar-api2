@@ -411,7 +411,8 @@ async function submitBooking() {
     pickupLocation,
     dropoffLocation,
     addonIds: addonIds.length > 0 ? addonIds : null,
-    mileageOption
+    mileageOption,
+    language: currentReviewLanguage()
   };
 
   const confirmBtn = document.getElementById("rfConfirmBtn");
@@ -858,6 +859,13 @@ function esc(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function currentReviewLanguage() {
+  if (typeof getLanguage === "function") {
+    return getLanguage();
+  }
+  return document.documentElement.lang || "en";
 }
 
 document.addEventListener('languageChanged', function () {

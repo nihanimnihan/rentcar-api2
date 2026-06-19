@@ -46,7 +46,7 @@ SMTP:
 - `SMTP_PASSWORD`
 - `SMTP_STARTTLS_ENABLE` - optional, defaults to `true`.
 - `MAIL_FROM`
-- `MAIL_FROM_NAME` - optional, defaults to `RentCar`.
+- `MAIL_FROM_NAME` - optional, defaults to `Paradise Deluxe`.
 
 Stripe lifecycle:
 

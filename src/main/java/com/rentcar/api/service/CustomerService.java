@@ -3,6 +3,7 @@ package com.rentcar.api.service;
 import com.rentcar.api.domain.customer.Customer;
 import com.rentcar.api.exception.CustomerNotFoundException;
 import com.rentcar.api.repository.CustomerRepository;
+import com.rentcar.api.util.LanguageNormalizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -34,8 +35,17 @@ public class CustomerService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Customer getOrCreateCustomer(String name, String email, String phone) {
+        return getOrCreateCustomer(name, email, phone, null);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Customer getOrCreateCustomer(String name, String email, String phone, String language) {
+        String preferredLanguage = LanguageNormalizer.normalizeOrDefault(language);
         return customerRepository.findByEmail(email)
                 .map(c -> {
+                    if (c.getPreferredLanguage() == null || c.getPreferredLanguage().isBlank()) {
+                        c.setPreferredLanguage(preferredLanguage);
+                    }
                     log.debug("Existing customer matched: id={}", c.getId());
                     return c;
                 })
@@ -46,6 +56,7 @@ public class CustomerService {
                                         .fullName(name)
                                         .email(email)
                                         .phone(phone)
+                                        .preferredLanguage(preferredLanguage)
                                         .build()
                         );
                         log.info("New customer created: id={}", created.getId());
@@ -54,9 +65,13 @@ public class CustomerService {
                         // Another thread inserted the same email between our SELECT and INSERT.
                         // The UNIQUE constraint caught it — re-select to get the existing row.
                         log.warn("Concurrent customer insert detected — re-selecting existing record");
-                        return customerRepository.findByEmail(email)
+                        Customer existing = customerRepository.findByEmail(email)
                                 .orElseThrow(() -> new IllegalStateException(
                                         "Customer not found after duplicate key for email: " + email, e));
+                        if (existing.getPreferredLanguage() == null || existing.getPreferredLanguage().isBlank()) {
+                            existing.setPreferredLanguage(preferredLanguage);
+                        }
+                        return existing;
                     }
                 });
     }

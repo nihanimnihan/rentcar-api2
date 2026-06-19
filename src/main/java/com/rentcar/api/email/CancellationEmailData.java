@@ -11,8 +11,7 @@ public record CancellationEmailData(
         String customerName,
         String cancellationReason,
         PaymentStatus refundStatus,
-        String refundStatusLabel,
-        String bankProcessingMessage,
         /** Optional manage-booking deep-link. Null if base URL not configured. */
-        String managementUrl
+        String managementUrl,
+        String language
 ) {}

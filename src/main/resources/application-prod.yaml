@@ -35,7 +35,7 @@ app:
 rentcar:
   email:
     from: ${MAIL_FROM}
-    from-name: ${MAIL_FROM_NAME:RentCar}
+    from-name: ${MAIL_FROM_NAME:Paradise Deluxe}
   admin:
     username: ${ADMIN_USERNAME}
     password: ${ADMIN_PASSWORD}

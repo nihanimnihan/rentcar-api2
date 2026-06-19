@@ -24,6 +24,7 @@ import com.rentcar.api.repository.BookingAddonRepository;
 import com.rentcar.api.repository.BookingRepository;
 import com.rentcar.api.util.BookingReferenceGenerator;
 import com.rentcar.api.util.BusinessTimezone;
+import com.rentcar.api.util.LanguageNormalizer;
 import com.rentcar.api.util.NameNormalizer;
 import com.rentcar.api.util.AppClock;
 import lombok.RequiredArgsConstructor;
@@ -106,7 +107,12 @@ public class BookingService {
                         .setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        Customer customer = customerService.getOrCreateCustomer(request.customerName(), request.customerEmail(), request.customerPhone());
+        String language = LanguageNormalizer.normalizeOrDefault(request.language());
+        Customer customer = customerService.getOrCreateCustomer(
+                request.customerName(),
+                request.customerEmail(),
+                request.customerPhone(),
+                language);
 
         String bookingReference = generateUniqueReference();
 
@@ -139,6 +145,7 @@ public class BookingService {
                 .status(BookingStatus.PENDING)
                 .expiresAt(appClock.nowUtc().plus(Duration.ofMinutes(15)))
                 .checkoutSessionToken(generateUniqueCheckoutSessionToken())
+                .language(language)
                 .source(BookingSource.WEB)
                 // Audit metadata: standard WEB checkout is always an anonymous customer.
                 .createdByType(BookingActorType.CUSTOMER_ANONYMOUS)
