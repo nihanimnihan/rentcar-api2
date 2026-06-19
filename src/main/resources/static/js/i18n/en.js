@@ -91,7 +91,7 @@ window.i18nTranslations['en'] = {
   'filter.automatic': 'Automatic',
   'filter.hotOffers': 'Hot offers',
   'filter.minSeats': 'Minimum number of seats',
-  'filter.bags': 'Bags',
+  'filter.bags': 'Minimum number of bags',
   'filter.driverAge': 'Primary driver age',
   'filter.show': 'Show',
   'filter.cars': 'cars',

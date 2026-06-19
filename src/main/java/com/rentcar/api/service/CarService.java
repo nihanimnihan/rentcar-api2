@@ -75,9 +75,10 @@ public class CarService {
     }
 
     public List<Car> searchCars(CarSearchRequest request) {
-        log.debug("Car search: pickup={} dropoff={} vehicleType={} segment={} transmission={} fuelType={}",
+        log.debug("Car search: pickup={} dropoff={} vehicleType={} segment={} transmission={} fuelType={} premium={} guaranteedModel={}",
                 request.getPickupLocation(), request.getDropoffDateTime(),
-                request.getVehicleType(), request.getSegment(), request.getTransmission(), request.getFuelType());
+                request.getVehicleType(), request.getSegment(), request.getTransmission(), request.getFuelType(),
+                request.getPremium(), request.getGuaranteedModel());
         if (request.getPickupDateTime() != null) {
             if (request.getPickupDateTime().isBefore(businessTimezone.nowBusinessLocal())) {
                 throw new InvalidSearchDateException("Pickup date must not be in the past");
@@ -98,6 +99,8 @@ public class CarService {
                     request.getMinSeats(),
                     request.getMinBags(),
                     request.getMinDriverAge(),
+                    request.getPremium(),
+                    request.getGuaranteedModel(),
                     appClock.nowUtc()
             );
             log.debug("Car search returned {} available cars", results.size());
@@ -110,7 +113,9 @@ public class CarService {
                 request.getFuelType(),
                 request.getMinSeats(),
                 request.getMinBags(),
-                request.getMinDriverAge()
+                request.getMinDriverAge(),
+                request.getPremium(),
+                request.getGuaranteedModel()
         );
         log.debug("Car search (no dates) returned {} cars", results.size());
         return results;

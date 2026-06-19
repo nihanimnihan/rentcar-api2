@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   var filtersContainer = document.getElementById("car-filters-placeholder");
   if (!filtersContainer) return;
 
-  var response = await fetch("/partials/car-filters.html");
+  var response = await fetch("/partials/car-filters.html?v=20260619-filter-fix");
   var html = await response.text();
 
   filtersContainer.innerHTML = html;

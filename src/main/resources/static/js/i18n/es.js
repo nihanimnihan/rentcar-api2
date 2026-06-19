@@ -90,7 +90,7 @@ window.i18nTranslations['es'] = {
   'filter.automatic': 'Automático',
   'filter.hotOffers': 'Ofertas especiales',
   'filter.minSeats': 'Número mínimo de asientos',
-  'filter.bags': 'Maletas',
+  'filter.bags': 'Número mínimo de maletas',
   'filter.driverAge': 'Edad del conductor principal',
   'filter.show': 'Mostrar',
   'filter.cars': 'coches',

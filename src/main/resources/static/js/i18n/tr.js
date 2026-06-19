@@ -86,7 +86,7 @@ window.i18nTranslations['tr'] = {
   'filter.automatic': 'Otomatik',
   'filter.hotOffers': 'Sıcak fırsatlar',
   'filter.minSeats': 'Minimum koltuk sayısı',
-  'filter.bags': 'Bagaj',
+  'filter.bags': 'Minimum bagaj sayısı',
   'filter.driverAge': 'Ana sürücü yaşı',
   'filter.show': 'Göster',
   'filter.cars': 'araç',

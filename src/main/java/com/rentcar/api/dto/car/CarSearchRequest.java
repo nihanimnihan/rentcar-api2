@@ -36,6 +36,9 @@ public class CarSearchRequest {
     private Integer minBags;
     private Integer minDriverAge;
 
+    private Boolean premium;
+    private Boolean guaranteedModel;
+
     public CarSearchRequest(String pickupLocation, String dropoffLocation, LocalDateTime pickupDateTime, LocalDateTime dropoffDateTime) {
         this.pickupLocation = pickupLocation;
         this.dropoffLocation = dropoffLocation;

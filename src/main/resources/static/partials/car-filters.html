@@ -59,7 +59,7 @@
 
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="STATION_WAGON">
+                                            <input type="checkbox" class="js-car-filter" data-filter="vehicleType" value="WAGON">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10" data-i18n="filter.stationWagon">Station wagon</div>
@@ -139,13 +139,6 @@
                                         <div class="text-15 ml-10" data-i18n="filter.automatic">Automatic</div>
                                     </div>
 
-                                    <div class="filter-chip">
-                                        <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="hotOffer" value="true">
-                                            <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
-                                        </div>
-                                        <div class="text-15 ml-10" data-i18n="filter.hotOffers">Hot offers</div>
-                                    </div>
                                 </div>
                             </div>
 
@@ -154,7 +147,7 @@
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="2">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minSeats" value="2">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">2</div>
@@ -162,7 +155,7 @@
 
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="4">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minSeats" value="4">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">4</div>
@@ -170,7 +163,7 @@
 
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="5">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minSeats" value="5">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">5</div>
@@ -178,7 +171,7 @@
 
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="seats" value="9">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minSeats" value="9">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">9</div>
@@ -191,7 +184,7 @@
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="2">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minBags" value="2">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">2</div>
@@ -199,7 +192,7 @@
 
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="3">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minBags" value="3">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">3</div>
@@ -207,7 +200,7 @@
 
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="4">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minBags" value="4">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">4</div>
@@ -215,7 +208,7 @@
 
                                     <div class="filter-chip">
                                         <div class="form-checkbox">
-                                            <input type="checkbox" class="js-car-filter" data-filter="bags" value="5">
+                                            <input type="checkbox" class="js-car-filter" data-filter="minBags" value="5">
                                             <div class="form-checkbox__mark"><div class="form-checkbox__icon icon-check"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">5</div>
@@ -228,21 +221,21 @@
                                 <div class="sidebar-checkbox">
                                     <div class="filter-chip">
                                         <div class="radio">
-                                            <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="21">
+                                            <input type="radio" class="js-car-filter" name="minDriverAge" data-filter="minDriverAge" value="21">
                                             <div class="radio__mark"><div class="radio__icon"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">21+</div>
                                     </div>
                                     <div class="filter-chip">
                                         <div class="radio">
-                                            <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="25">
+                                            <input type="radio" class="js-car-filter" name="minDriverAge" data-filter="minDriverAge" value="25">
                                             <div class="radio__mark"><div class="radio__icon"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">25+</div>
                                     </div>
                                     <div class="filter-chip">
                                         <div class="radio">
-                                            <input type="radio" class="js-car-filter" name="driverAge" data-filter="driverAge" value="30">
+                                            <input type="radio" class="js-car-filter" name="minDriverAge" data-filter="minDriverAge" value="30">
                                             <div class="radio__mark"><div class="radio__icon"></div></div>
                                         </div>
                                         <div class="text-15 ml-10">30+</div>

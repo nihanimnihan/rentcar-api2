@@ -54,6 +54,8 @@ public interface CarRepository extends JpaRepository<Car, Long> {
         AND (:minSeats      IS NULL OR c.seats         >= :minSeats)
         AND (:minBags       IS NULL OR c.bags          >= :minBags)
         AND (:minDriverAge  IS NULL OR c.minDriverAge  <= :minDriverAge)
+        AND (:premium       IS NULL OR c.premium       = :premium)
+        AND (:guaranteedModel IS NULL OR c.guaranteedModel = :guaranteedModel)
         AND NOT EXISTS (
             SELECT b FROM Booking b
             WHERE b.car = c
@@ -76,6 +78,8 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             @Param("minSeats")        Integer minSeats,
             @Param("minBags")         Integer minBags,
             @Param("minDriverAge")    Integer minDriverAge,
+            @Param("premium")         Boolean premium,
+            @Param("guaranteedModel") Boolean guaranteedModel,
             @Param("now")             java.time.Instant now
     );
 
@@ -93,6 +97,8 @@ public interface CarRepository extends JpaRepository<Car, Long> {
         AND (:minSeats      IS NULL OR c.seats         >= :minSeats)
         AND (:minBags       IS NULL OR c.bags          >= :minBags)
         AND (:minDriverAge  IS NULL OR c.minDriverAge  <= :minDriverAge)
+        AND (:premium       IS NULL OR c.premium       = :premium)
+        AND (:guaranteedModel IS NULL OR c.guaranteedModel = :guaranteedModel)
         ORDER BY c.dailyPrice ASC
     """)
     List<Car> searchCarsWithoutDateFilter(
@@ -102,7 +108,9 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             @Param("fuelType")        FuelType fuelType,
             @Param("minSeats")        Integer minSeats,
             @Param("minBags")         Integer minBags,
-            @Param("minDriverAge")    Integer minDriverAge
+            @Param("minDriverAge")    Integer minDriverAge,
+            @Param("premium")         Boolean premium,
+            @Param("guaranteedModel") Boolean guaranteedModel
     );
 
     /**
