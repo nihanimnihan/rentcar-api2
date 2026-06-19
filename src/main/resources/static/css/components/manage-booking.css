@@ -15,6 +15,26 @@
  *   .manage-booking-meta__*            ← reusable label / value / sub atoms
  */
 
+body.manage-booking-page {
+  min-height: 100vh;
+  background: #191B1E;
+}
+
+body.manage-booking-page main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+body.manage-booking-page main > section.layout-pt-xl {
+  flex: 1 0 auto;
+}
+
+body.manage-booking-page #minimal-footer-placeholder {
+  flex: 0 0 auto;
+}
+
 /* ── Collapsed form header (shown after successful lookup) ───────────────── */
 
 .manage-booking-collapsed-header {
@@ -462,4 +482,3 @@
     grid-template-columns: 1fr;
   }
 }
-

@@ -1,6 +1,57 @@
-/* Minimal styles for Google Places overlay input */
-.rentcar-places-overlay{box-shadow:0 10px 30px rgba(0,0,0,0.35);border-radius:10px;background:#fff;padding:8px}
-.rentcar-places-inner{display:flex;gap:8px;align-items:center}
-.rentcar-places-input{padding:10px;border-radius:8px;border:1px solid #e6e6e6;min-width:320px}
-.rentcar-places-close{background:transparent;border:none;font-size:16px;cursor:pointer}
-@media (max-width:600px){.rentcar-places-input{min-width:200px}}
+/* Google Places overlay input */
+.rentcar-places-overlay {
+  z-index: 99999;
+  padding: 10px;
+  border: 1px solid rgba(248, 212, 72, 0.35);
+  border-radius: 14px;
+  background: #fffaf0;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
+.rentcar-places-inner {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rentcar-places-input {
+  min-width: 360px;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgba(25, 27, 30, 0.14);
+  border-radius: 10px;
+  background: #fff;
+  color: #191B1E;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rentcar-places-input:focus {
+  outline: none;
+  border-color: #F8D448;
+  box-shadow: 0 0 0 4px rgba(248, 212, 72, 0.18);
+}
+
+.rentcar-places-close {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: #191B1E;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .rentcar-places-overlay {
+    left: 14px !important;
+    width: calc(100vw - 28px);
+    max-width: calc(100vw - 28px);
+  }
+
+  .rentcar-places-input {
+    min-width: 0;
+    width: 100%;
+  }
+}

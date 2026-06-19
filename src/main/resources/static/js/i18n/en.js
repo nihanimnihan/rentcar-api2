@@ -205,6 +205,7 @@ window.i18nTranslations['en'] = {
   'review.payAndBook': 'Pay and Book',
   'review.backToSearch': 'Back to search',
   'review.backToAddons': 'Back to add-ons',
+  'review.changeSearch': 'Change trip',
   'review.pickupReturn': 'Pickup and return',
   'review.pickup': 'Pickup',
   'review.return': 'Return',

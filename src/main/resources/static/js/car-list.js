@@ -539,6 +539,14 @@ function setDateTimeValue(dateTextId, hourSelectId, value) {
   if (hourSelect && timePart) {
     hourSelect.value = timePart.substring(0, 5);
   }
+
+  if (hourSelectId === "pickupHour" && timePart) {
+    setTextValue("rcssPickupTimeDisplay", timePart.substring(0, 5));
+  }
+
+  if (hourSelectId === "dropoffHour" && timePart) {
+    setTextValue("rcssDropoffTimeDisplay", timePart.substring(0, 5));
+  }
 }
 
 function setInputValue(id, value) {
@@ -546,6 +554,14 @@ function setInputValue(id, value) {
 
   if (element && value) {
     element.value = value;
+  }
+
+  if (id === "pickupLocation" && value) {
+    setTextValue("rcssPickupLocText", value);
+  }
+
+  if (id === "dropoffLocation" && value) {
+    setTextValue("rcssDropoffLocText", value);
   }
 }
 

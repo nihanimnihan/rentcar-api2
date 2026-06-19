@@ -46,16 +46,19 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initReviewBackToAddonsLink() {
-  const link = document.getElementById("reviewBackToAddonsLink");
-  if (!link) return;
+  const addonsLink = document.getElementById("reviewBackToAddonsLink");
+  const searchLink = document.getElementById("reviewChangeSearchLink");
 
   const params = new URLSearchParams(window.location.search);
   if (!params.get("carId")) {
-    link.style.display = "none";
+    if (addonsLink) addonsLink.style.display = "none";
+    if (searchLink) searchLink.style.display = "none";
     return;
   }
 
-  link.href = `addons.html?${params.toString()}`;
+  const query = params.toString();
+  if (addonsLink) addonsLink.href = `addons.html?${query}`;
+  if (searchLink) searchLink.href = `cars.html?${query}`;
 }
 
 // ── State ────────────────────────────────────────────────────────────────────

@@ -17,6 +17,21 @@ document.addEventListener("DOMContentLoaded", function () {
       String(d.getDate()).padStart(2, '0');
   }
 
+  function formatShortDisplayDate(date, locale) {
+    return date.toLocaleDateString(locale, {
+      day: '2-digit',
+      month: 'short'
+    }).replace(/\./g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(' ')
+      .map(function (part) {
+        if (!part || /\d/.test(part)) return part;
+        return part.charAt(0).toLocaleUpperCase(locale) + part.slice(1).toLocaleLowerCase(locale);
+      })
+      .join(' ');
+  }
+
   function displayFromIso(isoDate) {
     const date = new Date(isoDate + 'T00:00:00');
     if (isNaN(date.getTime())) return isoDate;
@@ -28,10 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
       lang === 'es' ? 'es-ES' :
       'en-GB';
 
-    return date.toLocaleDateString(locale, {
-      month: 'short',
-      day: '2-digit'
-    });
+    return formatShortDisplayDate(date, locale);
   }
 
   // Defaults: tomorrow (pickup) and day-after-tomorrow (dropoff).
@@ -165,10 +177,7 @@ document.addEventListener("languageChanged", function () {
       lang === "es" ? "es-ES" :
       "en-GB";
 
-    el.innerText = date.toLocaleDateString(locale, {
-      month: "short",
-      day: "2-digit"
-    });
+    el.innerText = formatShortDisplayDate(date, locale);
   }
 
   redisplayDate(pickupDateText);
@@ -197,6 +206,23 @@ function rcssCloseAll() {
     p.classList.remove('is-open');
     p.style.display = 'none';
   });
+}
+
+function rcssNudgeHomeSearchIntoView(anchorEl) {
+  if (!anchorEl || window.innerWidth <= 575) return;
+
+  var panel = anchorEl.closest ? anchorEl.closest('.mainSearch') : null;
+  if (!panel || !panel.closest || !panel.closest('.rentcar-home-hero')) return;
+
+  var rect = panel.getBoundingClientRect();
+  var targetTop = 150;
+
+  if (rect.top > targetTop + 24) {
+    window.scrollBy({
+      top: rect.top - targetTop,
+      behavior: 'smooth'
+    });
+  }
 }
 
   /**
@@ -231,16 +257,21 @@ function rcssOpenBelow(popup, anchorEl, alignRight) {
     popup.style.maxWidth = (window.innerWidth - 16) + 'px';
 
     var searchPanel = document.querySelector('.rentcar-sixt-search')
+      || document.querySelector('.rentcar-cars-search')
       || document.querySelector('.rentcar-home-hero .mainSearch');
 
     var panelRect = searchPanel ? searchPanel.getBoundingClientRect() : rect;
+    var anchorCell = anchorEl.closest ? (anchorEl.closest('.rcss-cell') || anchorEl) : anchorEl;
+    var anchorCellRect = anchorCell.getBoundingClientRect ? anchorCell.getBoundingClientRect() : rect;
 
     var isMobileSearch = window.innerWidth <= 575;
-    var left = isMobileSearch ? Math.max(16, panelRect.left) : panelRect.left;
-    var top = isMobileSearch ? rect.bottom + 8 : panelRect.bottom + 5;
+    var top = isMobileSearch ? rect.bottom + 8 : anchorCellRect.bottom + 8;
     var popupWidth = isMobileSearch
       ? Math.min(window.innerWidth - 32, panelRect.width)
-      : Math.min(800, panelRect.width);
+      : Math.min(800, Math.max(430, panelRect.right - anchorCellRect.left));
+    var left = isMobileSearch
+      ? Math.max(16, panelRect.left)
+      : Math.max(16, Math.min(anchorCellRect.left, window.innerWidth - popupWidth - 16));
 
     popup.style.left = left + 'px';
     popup.style.top = top + 'px';
@@ -266,6 +297,7 @@ function rcssOpenBelow(popup, anchorEl, alignRight) {
     popup.classList.add('is-open');
 
     var searchPanel = document.querySelector('.rentcar-sixt-search')
+      || document.querySelector('.rentcar-cars-search')
       || document.querySelector('.rentcar-home-hero .mainSearch');
 
     var panelRect = searchPanel ? searchPanel.getBoundingClientRect() : rect;
@@ -474,11 +506,15 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
         });
       });
 
+    var currentValue = getCurrentValue();
+    var selectedIndex = filtered.findIndex(function (loc) {
+      return loc.name === currentValue || loc.address === currentValue;
+    });
+
     list.innerHTML = filtered.map(function (loc, index) {
-      var isSelected = loc.name === getCurrentValue();
       return `
         <button type="button"
-                class="rc-location-option ${isSelected || index === 0 ? "is-selected" : ""}"
+                class="rc-location-option ${selectedIndex === index ? "is-selected" : ""}"
                 data-location-index="${index}">
           <span class="rc-location-option__icon">${loc.icon}</span>
           <span>
@@ -490,8 +526,8 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
     }).join("");
 
     var finalLocations = filtered;
-    var first = finalLocations[0];
-    if (first) renderDetail(first);
+    var detailLocation = selectedIndex >= 0 ? finalLocations[selectedIndex] : finalLocations[0];
+    if (detailLocation) renderDetail(detailLocation);
 
     list.querySelectorAll(".rc-location-option").forEach(function (item) {
       item.addEventListener("mouseenter", function () {
@@ -581,6 +617,8 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
       });
     }
 
+    window.addEventListener("google-places-ready", attachGooglePlaces);
+
     function fetchGooglePredictions(term) {
       if (!term || term.trim().length < 3) {
         googlePredictions = [];
@@ -650,6 +688,8 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
     rcssCloseAll();
 
     if (!wasOpen) {
+      renderList("");
+      rcssNudgeHomeSearchIntoView(btn);
       rcssOpenBelow(popup, btn, false);
 
       setTimeout(function () {
@@ -712,6 +752,7 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
             host._rcCalInstance.setDate(iso);
           }
         }
+        rcssNudgeHomeSearchIntoView(btn);
         rcssOpenBelow(popup, btn, false);
       }
     });
@@ -757,6 +798,7 @@ function rcssInitLocDropdown(btnId, popupId, textId, hiddenId, isPrimary) {
       var wasOpen = popup.style.display !== 'none';
       rcssCloseAll();
       if (!wasOpen) {
+        rcssNudgeHomeSearchIntoView(btn);
         rcssOpenBelow(popup, btn, true);
         setTimeout(function () {
           var sel = list.querySelector('.rcss-time-item.is-selected');

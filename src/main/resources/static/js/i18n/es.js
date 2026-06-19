@@ -204,6 +204,7 @@ window.i18nTranslations['es'] = {
   'review.payAndBook': 'Pagar y Reservar',
   'review.backToSearch': 'Volver a la búsqueda',
   'review.backToAddons': 'Volver a extras',
+  'review.changeSearch': 'Cambiar viaje',
   'review.pickupReturn': 'Recogida y devolución',
   'review.pickup': 'Recogida',
   'review.return': 'Devolución',

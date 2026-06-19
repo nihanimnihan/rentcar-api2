@@ -186,6 +186,7 @@ window.i18nTranslations['tr'] = {
   'review.payAndBook': 'Öde ve Rezervasyon Yap',
   'review.backToSearch': 'Aramaya geri dön',
   'review.backToAddons': 'Ek hizmetlere geri dön',
+  'review.changeSearch': 'Seyahati değiştir',
   'review.priceDetails': 'Fiyat detayları',
 
   // error messages

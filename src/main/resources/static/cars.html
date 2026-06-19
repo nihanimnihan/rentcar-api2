@@ -17,9 +17,9 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/cars.css">
     <link rel="stylesheet" href="css/components/alerts.css">
-    <link rel="stylesheet" href="css/brand-theme.css?v=20260619-logo-addons">
+    <link rel="stylesheet" href="css/brand-theme.css?v=20260619-picker-polish">
     <link rel="stylesheet" href="css/auth-session.css">
-    <link rel="stylesheet" href="css/places.css">
+    <link rel="stylesheet" href="css/places.css?v=20260619-cars-picker">
     <title>RentCar</title>
 </head>
 
@@ -105,185 +105,91 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <div class="mainSearch -col-5 border-light bg-white px-20 py-20 lg:px-20 lg:pt-5 lg:pb-20 rounded-4 mt-30">
-                        <div class="button-grid items-center">
+                    <div class="mainSearch -col-5 border-light bg-white px-20 py-20 lg:px-20 lg:pt-5 lg:pb-20 rounded-4 mt-30 rentcar-cars-search">
+                        <div class="rcss-grid" id="rcssGrid">
 
-                            <div class="searchMenu-loc pr-30 pl-10 lg:py-20 lg:px-0 js-form-dd js-liverSearch">
-
-                                <div data-x-dd-click="searchMenu-loc">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.pickUpLocation">Pick up location</h4>
-
-                                    <div class="text-15 text-light-1 ls-2 lh-16">
-                                    <input id="pickupLocation" autocomplete="off" type="search" placeholder="City or Airport" data-i18n-placeholder="search.cityOrAirport" class="js-search js-dd-focus" readonly />
-                                    </div>
-                                </div>
-
-
-                                <div class="searchMenu-loc__field shadow-2 js-popup-window" data-x-dd="searchMenu-loc" data-x-dd-toggle="-is-active">
-                                    <div class="bg-white px-30 py-30 sm:px-0 sm:py-15 rounded-4">
-                                        <div class="y-gap-5 js-results">
-
-                                            <div>
-                                                <button class="-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option">
-                                                    <div class="d-flex">
-                                                        <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
-                                                        <div class="ml-10">
-                                                            <div class="text-15 lh-12 fw-500 js-search-option-target">BCN Airport T1</div>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </div>
-
-                                            <div>
-                                                <button class="-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option">
-                                                    <div class="d-flex">
-                                                        <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
-                                                        <div class="ml-10">
-                                                            <div class="text-15 lh-12 fw-500 js-search-option-target">BCN Airport T2</div>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </div>
-
-                                            <div>
-                                                <button class="-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option">
-                                                    <div class="d-flex">
-                                                        <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
-                                                        <div class="ml-10">
-                                                            <div class="text-15 lh-12 fw-500 js-search-option-target">Office</div>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </div>
-
-                                        </div>
-                                    </div>
+                            <div class="rcss-cell rcss-cell-loc" id="rcssPickupLocCell">
+                                <div class="rcss-cell-inner">
+                                    <div class="rcss-label" data-i18n="search.pickUpLocation">Pick up location</div>
+                                    <button type="button" class="rcss-trigger" id="rcssPickupLocBtn">
+                                        <i class="icon-location-2 rcss-icon"></i>
+                                        <span id="rcssPickupLocText">BCN Airport T1</span>
+                                    </button>
+                                    <div class="rcss-popup rcss-loc-popup" id="rcssPickupLocPopup" style="display:none;"></div>
+                                    <input type="hidden" id="pickupLocation" value="BCN Airport T1">
                                 </div>
                             </div>
 
-
-                            <div class="searchMenu-loc px-30 lg:py-20 lg:px-0 js-form-dd js-liverSearch">
-
-                                <div data-x-dd-click="searchMenu-loc">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.dropOffLocation">Drop off location</h4>
-
-                                    <div class="text-15 text-light-1 ls-2 lh-16">
-                                    <input id="dropoffLocation" autocomplete="off" type="search" placeholder="City or Airport" data-i18n-placeholder="search.cityOrAirport" class="js-search js-dd-focus" readonly />
-                                    </div>
-                                </div>
-
-
-                                <div class="searchMenu-loc__field shadow-2 js-popup-window" data-x-dd="searchMenu-loc" data-x-dd-toggle="-is-active">
-                                    <div class="bg-white px-30 py-30 sm:px-0 sm:py-15 rounded-4">
-                                        <div class="y-gap-5 js-results">
-
-                                            <div>
-                                                <button class="-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option">
-                                                    <div class="d-flex">
-                                                        <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
-                                                        <div class="ml-10">
-                                                            <div class="text-15 lh-12 fw-500 js-search-option-target">BCN Airport T1</div>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </div>
-
-                                            <div>
-                                                <button class="-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option">
-                                                    <div class="d-flex">
-                                                        <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
-                                                        <div class="ml-10">
-                                                            <div class="text-15 lh-12 fw-500 js-search-option-target">BCN Airport T2</div>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </div>
-
-                                            <div>
-                                                <button class="-link d-block col-12 text-left rounded-4 px-20 py-15 js-search-option">
-                                                    <div class="d-flex">
-                                                        <div class="icon-location-2 text-light-1 text-20 pt-4"></div>
-                                                        <div class="ml-10">
-                                                            <div class="text-15 lh-12 fw-500 js-search-option-target">Office</div>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </div>
-
-                                        </div>
-                                    </div>
+                            <div class="rcss-cell rcss-cell-loc rcss-cell-loc--synced" id="rcssDropoffLocCell">
+                                <div class="rcss-cell-inner">
+                                    <div class="rcss-label" data-i18n="search.dropOffLocation">Drop off location</div>
+                                    <button type="button" class="rcss-trigger" id="rcssDropoffLocBtn">
+                                        <i class="icon-location-2 rcss-icon"></i>
+                                        <span id="rcssDropoffLocText">BCN Airport T1</span>
+                                    </button>
+                                    <div class="rcss-popup rcss-loc-popup" id="rcssDropoffLocPopup" style="display:none;"></div>
+                                    <input type="hidden" id="dropoffLocation" value="BCN Airport T1">
                                 </div>
                             </div>
 
-                            <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar js-calendar-el">
-                                <div data-x-dd-click="searchMenu-date">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.pickUp">Pick up</h4>
-
-                                    <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
-                                        <span id="pickupDateText" class="js-first-date" data-i18n="search.selectDate">Select date</span>
-
-                                        <select id="pickupHour" class="text-15 text-light-1">
-                                            <option value="09:00">09:00</option>
-                                            <option value="10:00" selected>10:00</option>
-                                            <option value="11:00">11:00</option>
-                                            <option value="12:00">12:00</option>
-                                            <option value="13:00">13:00</option>
-                                            <option value="14:00">14:00</option>
-                                            <option value="15:00">15:00</option>
-                                            <option value="16:00">16:00</option>
-                                            <option value="17:00">17:00</option>
-                                            <option value="18:00">18:00</option>
-                                            <option value="19:00">19:00</option>
-                                            <option value="20:00">20:00</option>
-                                        </select>
+                            <div class="rcss-cell rcss-cell-date js-calendar-el" id="rcssPickupDateCell">
+                                <div class="rcss-cell-inner">
+                                    <div class="rcss-label" data-i18n="search.pickUp">Pick up</div>
+                                    <div class="rcss-date-row">
+                                        <button type="button" class="rcss-trigger rcss-date-btn" id="rcssPickupDateBtn">
+                                            <i class="icon-calendar-2 rcss-icon"></i>
+                                            <span id="pickupDateText" class="js-first-date" data-date="">Select date</span>
+                                        </button>
+                                        <span class="rcss-dot">·</span>
+                                        <button type="button" class="rcss-trigger rcss-time-btn" id="rcssPickupTimeBtn">
+                                            <span id="rcssPickupTimeDisplay">10:00</span>
+                                        </button>
                                     </div>
-                                </div>
-
-                                <div class="searchMenu-date__field shadow-2" data-x-dd="searchMenu-date" data-x-dd-toggle="-is-active">
-                                    <div class="bg-white px-30 py-30 rounded-4">
+                                    <div class="rcss-popup rcss-cal-popup" id="rcssPickupCalPopup" style="display:none;">
                                         <div class="rc-calendar-host"></div>
                                     </div>
+                                    <div class="rcss-popup rcss-time-popup" id="rcssPickupTimePopup" style="display:none;">
+                                        <div class="rcss-time-list" id="rcssPickupTimeList"></div>
+                                    </div>
+                                    <input type="hidden" id="pickupHour" value="10:00">
                                 </div>
                             </div>
 
-                            <div class="searchMenu-date px-30 lg:py-20 lg:px-0 js-form-dd js-calendar js-calendar-el">
-                                <div data-x-dd-click="searchMenu-date">
-                                    <h4 class="text-15 fw-500 ls-2 lh-16" data-i18n="search.dropOff">Drop off</h4>
-
-                                    <div class="d-flex items-center x-gap-10 capitalize text-15 text-light-1 ls-2 lh-16">
-                                        <span id="dropoffDateText" class="js-first-date" data-i18n="search.selectDate">Select date</span>
-
-                                        <select id="dropoffHour" class="text-15 text-light-1">
-                                            <option value="09:00">09:00</option>
-                                            <option value="10:00" selected>10:00</option>
-                                            <option value="11:00">11:00</option>
-                                            <option value="12:00">12:00</option>
-                                            <option value="13:00">13:00</option>
-                                            <option value="14:00">14:00</option>
-                                            <option value="15:00">15:00</option>
-                                            <option value="16:00">16:00</option>
-                                            <option value="17:00">17:00</option>
-                                            <option value="18:00">18:00</option>
-                                            <option value="19:00">19:00</option>
-                                            <option value="20:00">20:00</option>
-                                        </select>
+                            <div class="rcss-cell rcss-cell-date js-calendar-el" id="rcssDropoffDateCell">
+                                <div class="rcss-cell-inner">
+                                    <div class="rcss-label" data-i18n="search.dropOff">Drop off</div>
+                                    <div class="rcss-date-row">
+                                        <button type="button" class="rcss-trigger rcss-date-btn" id="rcssDropoffDateBtn">
+                                            <i class="icon-calendar-2 rcss-icon"></i>
+                                            <span id="dropoffDateText" class="js-first-date" data-date="">Select date</span>
+                                        </button>
+                                        <span class="rcss-dot">·</span>
+                                        <button type="button" class="rcss-trigger rcss-time-btn" id="rcssDropoffTimeBtn">
+                                            <span id="rcssDropoffTimeDisplay">10:00</span>
+                                        </button>
                                     </div>
-                                </div>
-
-                                <div class="searchMenu-date__field shadow-2" data-x-dd="searchMenu-date" data-x-dd-toggle="-is-active">
-                                    <div class="bg-white px-30 py-30 rounded-4">
+                                    <div class="rcss-popup rcss-cal-popup" id="rcssDropoffCalPopup" style="display:none;">
                                         <div class="rc-calendar-host"></div>
                                     </div>
+                                    <div class="rcss-popup rcss-time-popup" id="rcssDropoffTimePopup" style="display:none;">
+                                        <div class="rcss-time-list" id="rcssDropoffTimeList"></div>
+                                    </div>
+                                    <input type="hidden" id="dropoffHour" value="10:00">
                                 </div>
                             </div>
 
-                            <div class="button-item">
-                                <button id="searchCarsButton" class="mainSearch__submit button -dark-1 py-20 px-35 col-12 rounded-4 bg-yellow-1 text-dark-1">
+                            <div class="rcss-cell rcss-cell-submit">
+                                <button id="searchCarsButton" type="button" class="mainSearch__submit button -dark-1 py-20 px-35 col-12 rounded-4 bg-yellow-1 text-dark-1">
                                     <i class="icon-search text-20 mr-10"></i>
                                     <span data-i18n="search.showCars">Search</span>
                                 </button>
                             </div>
                         </div>
+
+                        <label class="rcss-diff-return">
+                            <input type="checkbox" id="rcssDiffReturn">
+                            <span data-i18n="search.returnDifferentLocation">Return to a different location</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -307,9 +213,15 @@
 <script src="js/layout.js"></script>
 <script src="js/rentcar-calendar.js"></script>
 <script src="js/escape-html.js"></script>
-<script src="js/main-search.js"></script>
+<script src="js/main-search.js?v=20260619-picker-polish"></script>
 <script src="js/config.js"></script>
 <script src="js/maps-init.js"></script>
+<script>
+    window.initGooglePlaces = function () {
+        window.dispatchEvent(new Event('google-places-ready'));
+    };
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR_2YHxCNRdMpMuJTA1J8WMznjAVA_IkQ&libraries=places&callback=initGooglePlaces" async defer></script>
 <script src="js/price-details-modal.js"></script>
 <script src="js/car-list.js"></script>
 <script src="js/car-filters.js"></script>

@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/booking.css">
     <link rel="stylesheet" href="css/components/alerts.css">
-    <link rel="stylesheet" href="css/brand-theme.css?v=20260619-logo-addons">
+    <link rel="stylesheet" href="css/brand-theme.css?v=20260619-cars-picker">
     <link rel="stylesheet" href="css/auth-session.css">
     <title>RentCar - Review your booking</title>
 </head>
@@ -78,12 +78,21 @@
                         </a>
                     </div>
 
-                    <a id="reviewBackToAddonsLink"
-                       href="addons.html"
-                       class="rentcar-flow-back-link">
-                        <i class="icon-arrow-left text-14"></i>
-                        <span data-i18n="review.backToAddons">Back to add-ons</span>
-                    </a>
+                    <div class="rentcar-review-flow-links">
+                        <a id="reviewBackToAddonsLink"
+                           href="addons.html"
+                           class="rentcar-flow-back-link">
+                            <i class="icon-arrow-left text-14"></i>
+                            <span data-i18n="review.backToAddons">Back to add-ons</span>
+                        </a>
+
+                        <a id="reviewChangeSearchLink"
+                           href="cars.html"
+                           class="rentcar-flow-back-link rentcar-flow-back-link--secondary">
+                            <i class="icon-search text-14"></i>
+                            <span data-i18n="review.changeSearch">Change trip</span>
+                        </a>
+                    </div>
 
                     <!-- A: Driver details ──────────────────────────────── -->
                     <div class="rentcar-review-card" id="driverSection">
