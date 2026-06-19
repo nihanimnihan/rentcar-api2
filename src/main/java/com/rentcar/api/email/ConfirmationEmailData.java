@@ -17,6 +17,7 @@ public record ConfirmationEmailData(
         String pickupLocation,
         LocalDateTime dropoffDateTime,
         String dropoffLocation,
+        String selectedService,
         BigDecimal totalPrice,
         /** Optional manage-booking deep-link. Null if base URL not configured. */
         String managementUrl

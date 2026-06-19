@@ -1,5 +1,6 @@
 package com.rentcar.api.dto.booking;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record ManageCancelRequest(
         @NotBlank String bookingReference,
-        @NotBlank String lastName
+        @NotBlank String lastName,
+        @JsonAlias("reason") String cancellationReason
 ) {
 }

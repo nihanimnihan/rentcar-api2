@@ -34,7 +34,7 @@ public class BookingCancellationController {
     @PostMapping("/manage/cancel")
     public BookingResponse cancelByReference(@Valid @RequestBody ManageCancelRequest request) {
         Booking booking = bookingCancellationService.cancelBookingByReference(
-                request.bookingReference(), request.lastName());
+                request.bookingReference(), request.lastName(), request.cancellationReason());
         return enrichWithPayment(bookingMapper.toResponse(booking), booking);
     }
 

@@ -3,9 +3,8 @@ package com.rentcar.api.email;
 /**
  * Abstraction for outbound transactional email.
  *
- * <p>The only concrete implementation today is {@link FakeEmailService} (dev/local-postgres
- * profiles), which logs rather than sending real mail. A real SMTP/SES/SendGrid implementation
- * can be added later without touching any call site.
+ * <p>{@link FakeEmailService} is used for dev/local profiles and logs rather than sending real
+ * mail. {@link SmtpEmailService} is used for the production profile.
  *
  * <p>Implementations MUST NOT throw exceptions for transient failures — they should log a
  * warning instead. The booking confirmation flow wraps calls in a try-catch as a second
@@ -19,4 +18,18 @@ public interface EmailService {
      * @param data all content required to render the confirmation email
      */
     void sendBookingConfirmation(ConfirmationEmailData data);
+
+    /**
+     * Sends (or simulates sending) a booking cancellation email.
+     *
+     * @param data all content required to render the cancellation email
+     */
+    void sendBookingCancellation(CancellationEmailData data);
+
+    /**
+     * Sends (or simulates sending) a refund-completed email.
+     *
+     * @param data all content required to render the refund-completed email
+     */
+    void sendRefundCompleted(RefundCompletedEmailData data);
 }

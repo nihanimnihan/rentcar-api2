@@ -12,6 +12,18 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: ${SMTP_STARTTLS_ENABLE:true}
+
 stripe:
   api-key: ${STRIPE_API_KEY}
   publishable-key: ${STRIPE_PUBLISHABLE_KEY}
@@ -21,6 +33,9 @@ app:
   public-base-url: ${APP_PUBLIC_BASE_URL:}
 
 rentcar:
+  email:
+    from: ${MAIL_FROM}
+    from-name: ${MAIL_FROM_NAME:RentCar}
   admin:
     username: ${ADMIN_USERNAME}
     password: ${ADMIN_PASSWORD}

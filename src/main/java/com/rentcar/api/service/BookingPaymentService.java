@@ -6,15 +6,12 @@ import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.dto.payment.CreatePaymentIntentRequest;
 import com.rentcar.api.dto.payment.PaymentIntentResponse;
-import com.rentcar.api.email.ConfirmationEmailData;
-import com.rentcar.api.email.EmailService;
 import com.rentcar.api.exception.BookingNotFoundException;
 import com.rentcar.api.exception.InvalidBookingStateException;
 import com.rentcar.api.exception.PaymentNotFoundException;
 import com.rentcar.api.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +22,7 @@ public class BookingPaymentService {
 
     private final BookingRepository bookingRepository;
     private final PaymentService paymentService;
-    private final EmailService emailService;
-
-    /**
-     * Optional public base URL of the application (e.g. {@code http://localhost:8091}).
-     * Used to build manage-booking deep-links in confirmation emails.
-     * Configure via {@code app.public-base-url} in application properties.
-     * Defaults to empty — manage-booking link omitted from email if blank.
-     */
-    @Value("${app.public-base-url:}")
-    private String publicBaseUrl;
+    private final BookingEmailNotificationService bookingEmailNotificationService;
 
     private final com.rentcar.api.util.AppClock appClock;
 
@@ -193,14 +181,7 @@ public class BookingPaymentService {
                 bookingId, saved.getStatus(), payment.getStatus());
 
         if (payment.getStatus() == PaymentStatus.PAID) {
-            // Fire confirmation email. Failure must NEVER rollback the confirmed booking:
-            // the booking is already saved; we only log a warning if the email layer fails.
-            try {
-                emailService.sendBookingConfirmation(buildConfirmationEmailData(saved));
-            } catch (Exception e) {
-                log.warn("Confirmation email failed for bookingId={} reference={}: {}",
-                        bookingId, saved.getBookingReference(), e.getMessage());
-            }
+            bookingEmailNotificationService.sendBookingConfirmation(saved);
         }
 
         return saved;
@@ -255,20 +236,4 @@ public class BookingPaymentService {
         );
     }
 
-    private ConfirmationEmailData buildConfirmationEmailData(Booking booking) {
-        String manageUrl = (publicBaseUrl != null && !publicBaseUrl.isBlank())
-                ? publicBaseUrl + "/manage-booking.html?bookingReference=" + booking.getBookingReference()
-                : null;
-        return new ConfirmationEmailData(
-                booking.getBookingReference(),
-                booking.getCustomer().getEmail(),
-                booking.getCustomer().getFullName(),
-                booking.getPickupDateTime(),
-                booking.getPickupLocation(),
-                booking.getDropoffDateTime(),
-                booking.getDropoffLocation(),
-                booking.getTotalPrice(),
-                manageUrl
-        );
-    }
 }

@@ -1,5 +1,10 @@
 server:
   port: 8091
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
 
 # Local PostgreSQL datasource configuration.
 # Values can be overridden with SPRING_DATASOURCE_* environment variables.

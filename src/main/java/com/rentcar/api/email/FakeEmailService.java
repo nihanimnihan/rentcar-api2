@@ -13,29 +13,33 @@ import java.util.List;
  * Dev/local fake implementation of {@link EmailService}.
  *
  * <p>No real email is sent. Every call is logged at INFO level and appended to an
- * in-memory list so integration tests can assert that the confirmation was triggered.
+ * in-memory lists so integration tests can assert that notifications were triggered.
  *
  * <p>Thread-safety: {@code sentEmails} is synchronized for parallel-test safety.
  * Call {@link #clearSentEmails()} in a {@code @BeforeEach} if tests share the
  * Spring context and need a clean slate.
  *
- * <p>Replace this bean with a real SMTP/SES/SendGrid implementation (different profile)
- * when real email delivery is needed — no other code changes required.
+ * <p>The production profile uses {@link SmtpEmailService}; no call-site changes are
+ * required when switching between fake and real delivery.
  */
 @Slf4j
 @Service
-@Profile({"dev", "local-postgres"})
+@Profile({"dev & !prod & !local-smtp", "local-postgres & !prod & !local-smtp"})
 public class FakeEmailService implements EmailService {
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
 
-    private final List<ConfirmationEmailData> sentEmails =
+    private final List<ConfirmationEmailData> sentConfirmationEmails =
+            Collections.synchronizedList(new ArrayList<>());
+    private final List<CancellationEmailData> sentCancellationEmails =
+            Collections.synchronizedList(new ArrayList<>());
+    private final List<RefundCompletedEmailData> sentRefundCompletedEmails =
             Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public void sendBookingConfirmation(ConfirmationEmailData data) {
-        sentEmails.add(data);
+        sentConfirmationEmails.add(data);
 
         String manageLink = (data.managementUrl() != null && !data.managementUrl().isBlank())
                 ? "\n  Manage booking : " + data.managementUrl()
@@ -47,25 +51,82 @@ public class FakeEmailService implements EmailService {
                   Reference     : {}
                   Pick-up       : {} — {}
                   Return        : {} — {}
+                  Service       : {}
                   Total         : {} EUR{}
                 """,
                 data.customerName(), data.customerEmail(),
                 data.bookingReference(),
                 data.pickupLocation(), data.pickupDateTime().format(DISPLAY_FMT),
                 data.dropoffLocation(), data.dropoffDateTime().format(DISPLAY_FMT),
+                data.selectedService(),
                 data.totalPrice(),
                 manageLink);
     }
 
-    /** Returns an unmodifiable snapshot of all emails sent since the last {@link #clearSentEmails()}. */
+    @Override
+    public void sendBookingCancellation(CancellationEmailData data) {
+        sentCancellationEmails.add(data);
+
+        String manageLink = (data.managementUrl() != null && !data.managementUrl().isBlank())
+                ? "\n  Manage booking : " + data.managementUrl()
+                : "";
+
+        log.info("""
+                [FAKE EMAIL] Booking cancellation
+                  To            : {} <{}>
+                  Reference     : {}
+                  Reason        : {}
+                  Refund status : {}{}
+                """,
+                data.customerName(), data.customerEmail(),
+                data.bookingReference(),
+                data.cancellationReason(),
+                data.refundStatusLabel(),
+                manageLink);
+    }
+
+    @Override
+    public void sendRefundCompleted(RefundCompletedEmailData data) {
+        sentRefundCompletedEmails.add(data);
+
+        log.info("""
+                [FAKE EMAIL] Refund completed
+                  To            : {} <{}>
+                  Reference     : {}
+                  Refund ref    : {}
+                """,
+                data.customerName(), data.customerEmail(),
+                data.bookingReference(),
+                data.refundReference());
+    }
+
+    /** Returns an unmodifiable snapshot of all confirmation emails sent since the last {@link #clearSentEmails()}. */
     public List<ConfirmationEmailData> getSentEmails() {
-        synchronized (sentEmails) {
-            return List.copyOf(sentEmails);
+        return getSentConfirmationEmails();
+    }
+
+    public List<ConfirmationEmailData> getSentConfirmationEmails() {
+        synchronized (sentConfirmationEmails) {
+            return List.copyOf(sentConfirmationEmails);
+        }
+    }
+
+    public List<CancellationEmailData> getSentCancellationEmails() {
+        synchronized (sentCancellationEmails) {
+            return List.copyOf(sentCancellationEmails);
+        }
+    }
+
+    public List<RefundCompletedEmailData> getSentRefundCompletedEmails() {
+        synchronized (sentRefundCompletedEmails) {
+            return List.copyOf(sentRefundCompletedEmails);
         }
     }
 
     /** Clears the captured email list. Call in {@code @BeforeEach} when sharing a Spring context. */
     public void clearSentEmails() {
-        sentEmails.clear();
+        sentConfirmationEmails.clear();
+        sentCancellationEmails.clear();
+        sentRefundCompletedEmails.clear();
     }
 }

@@ -27,6 +27,7 @@ public class BookingCancellationService {
     private final BookingService bookingService;
     private final PaymentService paymentService;
     private final BusinessTimezone businessTimezone;
+    private final BookingEmailNotificationService bookingEmailNotificationService;
 
     @Transactional
     public Booking cancelBooking(Long id) {
@@ -47,6 +48,9 @@ public class BookingCancellationService {
         booking.setCancellationReason("Cancelled by admin");
         Booking savedBooking = bookingRepository.save(booking);
         paymentService.handleCancellationPayment(savedBooking);
+        paymentService.findLatestPayment(savedBooking)
+                .ifPresent(payment -> bookingEmailNotificationService
+                        .sendBookingCancellation(savedBooking, payment.getStatus()));
         log.info("Booking cancelled by admin: bookingId={} reference={} status={} cancelledByType={} cancelledChannel={}",
                 savedBooking.getId(), savedBooking.getBookingReference(), savedBooking.getStatus(),
                 savedBooking.getCancelledByType(), savedBooking.getCancelledChannel());
@@ -68,6 +72,11 @@ public class BookingCancellationService {
      */
     @Transactional
     public Booking cancelBookingByReference(String bookingReference, String lastName) {
+        return cancelBookingByReference(bookingReference, lastName, null);
+    }
+
+    @Transactional
+    public Booking cancelBookingByReference(String bookingReference, String lastName, String cancellationReason) {
         // Step 1: Verify identity and check policy (non-locked read).
         Booking booking = bookingService.findBookingByReferenceAndLastName(bookingReference, lastName);
         LocalDateTime now = businessTimezone.nowBusinessLocal();
@@ -99,11 +108,14 @@ public class BookingCancellationService {
         locked.setCancelledByType(BookingActorType.CUSTOMER_ANONYMOUS);
         locked.setCancelledChannel(BookingChannel.WEB);
         locked.setCancelledAt(businessTimezone.nowBusiness().toInstant());
-        locked.setCancellationReason("Customer requested cancellation from manage booking");
+        locked.setCancellationReason(cancellationReasonOrDefault(cancellationReason));
         Booking saved = bookingRepository.save(locked);
         // handleCancellationPayment handles PAID (mock refund → REFUNDED) and
         // PENDING/FAILED (voids the record → CANCELLED).
         paymentService.handleCancellationPayment(saved);
+        paymentService.findLatestPayment(saved)
+                .ifPresent(payment -> bookingEmailNotificationService
+                        .sendBookingCancellation(saved, payment.getStatus()));
         log.info("Booking cancelled by customer: bookingId={} reference={} status={} cancelledByType={} cancelledChannel={}",
                 saved.getId(), bookingReference, saved.getStatus(),
                 saved.getCancelledByType(), saved.getCancelledChannel());
@@ -176,5 +188,13 @@ public class BookingCancellationService {
                 BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
                 BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
                 policyMessage);
+    }
+
+    private String cancellationReasonOrDefault(String cancellationReason) {
+        if (cancellationReason == null || cancellationReason.isBlank()) {
+            return "Customer requested cancellation from manage booking";
+        }
+        String trimmed = cancellationReason.trim();
+        return trimmed.length() > 512 ? trimmed.substring(0, 512) : trimmed;
     }
 }

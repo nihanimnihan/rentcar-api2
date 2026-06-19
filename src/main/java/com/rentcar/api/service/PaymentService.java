@@ -30,6 +30,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentProvider paymentProvider;
     private final AppClock appClock;
+    private final BookingEmailNotificationService bookingEmailNotificationService;
 
     @Transactional
     public Payment createPendingPayment(Booking booking) {
@@ -162,8 +163,9 @@ public class PaymentService {
             String providerStatus,
             String providerReference) {
 
-        return paymentRepository.findByStripePaymentIntentId(stripePaymentIntentId)
+        return paymentRepository.findByStripePaymentIntentIdForUpdate(stripePaymentIntentId)
                 .map(payment -> {
+                    BookingStatus previousBookingStatus = payment.getBooking().getStatus();
                     if (providerReference != null && !providerReference.isBlank()) {
                         payment.setProviderReference(providerReference);
                     }
@@ -181,7 +183,13 @@ public class PaymentService {
                             keepBookingPendingIfOpen(payment.getBooking());
                         }
                     }
-                    return paymentRepository.save(payment);
+                    Payment saved = paymentRepository.save(payment);
+                    if ("succeeded".equals(providerStatus)
+                            && previousBookingStatus != BookingStatus.CONFIRMED
+                            && saved.getBooking().getStatus() == BookingStatus.CONFIRMED) {
+                        bookingEmailNotificationService.sendBookingConfirmation(saved.getBooking());
+                    }
+                    return saved;
                 });
     }
 
@@ -195,8 +203,9 @@ public class PaymentService {
             String refundId,
             String refundStatus) {
 
-        return paymentRepository.findByStripePaymentIntentId(stripePaymentIntentId)
+        return paymentRepository.findByStripePaymentIntentIdForUpdate(stripePaymentIntentId)
                 .map(payment -> {
+                    PaymentStatus previousStatus = payment.getStatus();
                     if (refundId != null && !refundId.isBlank()) {
                         payment.setProviderReference(refundId);
                     }
@@ -212,7 +221,13 @@ public class PaymentService {
                         log.warn("Stripe refund status needs manual review: paymentId={} bookingId={} refundId={} status={}",
                                 payment.getId(), payment.getBooking().getId(), refundId, refundStatus);
                     }
-                    return paymentRepository.save(payment);
+                    Payment saved = paymentRepository.save(payment);
+                    if ("succeeded".equals(refundStatus)
+                            && previousStatus != PaymentStatus.REFUNDED
+                            && saved.getStatus() == PaymentStatus.REFUNDED) {
+                        bookingEmailNotificationService.sendRefundCompleted(saved.getBooking(), saved);
+                    }
+                    return saved;
                 });
     }
 

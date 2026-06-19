@@ -20,9 +20,9 @@ package com.rentcar.api.domain.payment;
  *   <li>{@link #REFUND_PENDING} is reserved for when a real payment provider (e.g. Stripe)
  *       initiates a refund asynchronously and confirmation arrives via webhook.
  *       The {@link FakePaymentProvider} transitions directly to {@link #REFUNDED}.</li>
- *   <li>A future {@code PaymentWebhookHandler} will consume Stripe events and advance
+ *   <li>The Stripe webhook service consumes refund events and advances
  *       {@code REFUND_PENDING → REFUNDED} without any synchronous waiting.</li>
- *   <li>Similarly, a real Stripe charge confirmation webhook can advance
+ *   <li>Similarly, the Stripe webhook service can advance
  *       {@code PENDING → PAID} asynchronously instead of relying on the synchronous charge call.</li>
  * </ul>
  */
@@ -44,7 +44,7 @@ public enum PaymentStatus {
      * initiated, then advance to {@link #REFUNDED} when the provider webhook confirms.
      * The {@link FakePaymentProvider} skips this state and goes directly to {@link #REFUNDED}.
      *
-     * <p>TODO: implement webhook handler to transition REFUND_PENDING → REFUNDED.
+     * <p>The Stripe webhook handler transitions this to {@link #REFUNDED}.
      */
     REFUND_PENDING,
 
