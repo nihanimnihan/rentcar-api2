@@ -125,7 +125,10 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> {
                             // For API endpoints prefer JSON 401; for browser requests redirect to signup
                             String path = request instanceof HttpServletRequest ? ((HttpServletRequest) request).getRequestURI() : null;
-                            if (path != null && path.startsWith("/api/")) {
+                            if (path != null && path.startsWith("/admin")) {
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setHeader("WWW-Authenticate", "Basic realm=\"RentCar Admin\"");
+                            } else if (path != null && path.startsWith("/api/")) {
                                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                                 response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}");

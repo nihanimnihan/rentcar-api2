@@ -7,20 +7,50 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/components/alerts.css">
     <link rel="stylesheet" href="css/components/manage-booking.css">
-    <link rel="stylesheet" href="css/brand-theme.css">
+    <link rel="stylesheet" href="css/brand-theme.css?v=20260619-header">
     <link rel="stylesheet" href="css/auth-session.css">
     <title>Manage booking</title>
 </head>
 
 <body>
 <main>
-    <header class="header bg-dark-1">
-        <div class="header__container header__container-1500 mx-auto px-30">
-            <a href="index.html" class="header-logo">
-                <img src="img/general/logo-light.svg" alt="RentCar">
-            </a>
+    <section class="py-20 bg-dark-3 rc-simple-header">
+        <div class="container">
+            <div class="row justify-between items-center">
+
+                <div class="col-auto">
+                    <div class="d-flex items-center rc-simple-header__brand">
+                        <button type="button"
+                                onclick="history.back()"
+                                class="button -blue-1 size-40 rounded-full bg-white-10 mr-15 text-white rc-simple-header__back">
+                            <i class="icon-arrow-left text-18"></i>
+                        </button>
+                        <a href="index.html" class="header-logo">
+                            <img src="img/general/logo-light.svg" alt="RentCar logo">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <div class="d-flex items-center x-gap-20 rc-simple-header__actions">
+                        <button class="d-flex items-center text-14 text-white js-lang-toggle" type="button">
+                            <img src="img/general/lang.png" alt="language" class="rounded-full mr-10" style="width:20px;height:20px">
+                            <span data-i18n-lang-label>English</span>
+                            <i class="icon-chevron-sm-down text-7 ml-10"></i>
+                        </button>
+                        <a href="signup.html" class="rc-header-auth-link" data-i18n="header.signIn">
+                            Sign In / Register
+                        </a>
+                        <a href="signup.html"
+                           class="rc-simple-header__user-icon icon-user"
+                           aria-label="Sign In / Register">
+                        </a>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </header>
+    </section>
 
     <section class="layout-pt-xl layout-pb-xl">
         <div class="container">
@@ -33,7 +63,7 @@
                         <div class="manage-booking-collapsed-header__label" data-i18n="manage.title">Manage your booking</div>
                         <div class="manage-booking-collapsed-header__ref" id="mfCollapsedRef"></div>
                         </div>
-                        <button id="mfChangeBtn" type="button" class="manage-booking-change-btn">
+                        <button id="mfChangeBtn" type="button" class="manage-booking-change-btn" data-i18n="manage.change">
                         Change
                         </button>
                     </div>
@@ -97,8 +127,11 @@
     <div id="minimal-footer-placeholder"></div>
 </main>
 
+<div id="language-modal-placeholder"></div>
+
 <script src="js/i18n/en.js"></script>
 <script src="js/i18n/es.js"></script>
+<script src="js/i18n/tr.js"></script>
 <script src="js/i18n/i18n.js"></script>
 <script src="js/vendors.js"></script>
 <script src="js/layout.js"></script>

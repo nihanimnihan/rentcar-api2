@@ -14,6 +14,8 @@
 // re-prompting the user and without exposing the numeric booking id.
 let _currentRef      = null;
 let _currentLastName = null;
+let _currentBooking  = null;
+let _currentPolicy   = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('mfSubmitBtn');
@@ -25,9 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') lookupBooking(); });
   });
 
-  // "Change" button in collapsed header → re-expand the form (result stays visible).
+  // "Change" button in collapsed header toggles the lookup form (result stays visible).
   const changeBtn = document.getElementById('mfChangeBtn');
-  if (changeBtn) changeBtn.addEventListener('click', expandForm);
+  if (changeBtn) changeBtn.addEventListener('click', toggleLookupForm);
+
+  document.addEventListener('languageChanged', () => {
+    const collapsed = document.getElementById('mfCollapsedHeader');
+    setLookupToggleLabel(collapsed?.classList.contains('is-editing'));
+    if (_currentBooking && document.getElementById('mfResultSection')?.style.display !== 'none') {
+      renderResult(_currentBooking, _currentPolicy);
+    }
+    refreshCancelConfirmationText();
+  });
 });
 
 async function lookupBooking() {
@@ -57,7 +68,7 @@ async function lookupBooking() {
       let msg = trans('manage.notFound');
       try {
         const body = await resp.json();
-        if (body?.message) msg = body.message;
+        if (body?.message) msg = localizeBackendMessage(body.message, msg);
       } catch (_) { /* ignore parse errors */ }
       showError(trans('manage.notFoundTitle'), msg);
       return;
@@ -67,7 +78,7 @@ async function lookupBooking() {
       let msg = trans('manage.networkError');
       try {
         const body = await resp.json();
-        if (body?.message) msg = body.message;
+        if (body?.message) msg = localizeBackendMessage(body.message, msg);
       } catch (_) { /* ignore parse errors */ }
       showError('', msg);
       return;
@@ -100,6 +111,8 @@ async function lookupBooking() {
 function renderResult(booking, policy) {
   const section = document.getElementById('mfResultSection');
   if (!section) return;
+  _currentBooking = booking;
+  _currentPolicy = policy;
 
   const ref    = booking.bookingReference ? escHtml(booking.bookingReference) : '—';
   const car    = booking.car
@@ -110,12 +123,12 @@ function renderResult(booking, policy) {
   const pickupLoc  = booking.pickupLocation  ? escHtml(booking.pickupLocation)  : null;
   const dropoffLoc = booking.dropoffLocation ? escHtml(booking.dropoffLocation) : null;
   const days    = booking.rentalDays ?? '—';
-  const dayWord = booking.rentalDays === 1 ? 'day' : 'days';
+  const dayWord = booking.rentalDays === 1 ? trans('manage.day') : trans('manage.days');
   const total   = booking.totalPrice != null
     ? `€${Number(booking.totalPrice).toFixed(2)}`
     : '—';
   const daily   = booking.effectiveDailyPrice != null
-    ? `€${Number(booking.effectiveDailyPrice).toFixed(2)} / day`
+    ? `€${Number(booking.effectiveDailyPrice).toFixed(2)} ${trans('manage.perDay')}`
     : '';
 
   section.innerHTML = `
@@ -160,7 +173,7 @@ function renderResult(booking, policy) {
           ${daily ? `<div class="manage-booking-meta__sub">${escHtml(daily)}</div>` : ''}
         </div>
         <div class="manage-booking-grid__cell">
-          <div class="manage-booking-meta__label">Total</div>
+          <div class="manage-booking-meta__label">${trans('manage.totalLabel')}</div>
           <div class="manage-booking-meta__value manage-booking-meta__value--price">${total}</div>
         </div>
       </div>
@@ -197,7 +210,7 @@ function cancellationPolicySectionHtml(policy) {
 
   const refundHtml = (policy.cancellable && policy.refundEligible && policy.refundAmount != null)
     ? `<div class="manage-booking-policy__refund">
-         <span class="manage-booking-policy__refund-label">Refund amount</span>
+         <span class="manage-booking-policy__refund-label">${trans('manage.refundAmount')}</span>
          <span class="manage-booking-policy__refund-amount">€${Number(policy.refundAmount).toFixed(2)}</span>
        </div>`
     : '';
@@ -206,17 +219,17 @@ function cancellationPolicySectionHtml(policy) {
     ? `<div class="manage-booking-actions">
          <button class="manage-booking-cancel-btn manage-booking-cancel-btn--active"
                  onclick="confirmAndCancelBooking()">
-           Cancel booking
+           ${trans('manage.cancelBooking')}
          </button>
        </div>`
     : '';
 
   return `
     <div class="manage-booking-policy">
-      <div class="manage-booking-meta__label">Cancellation</div>
+      <div class="manage-booking-meta__label">${trans('manage.cancellation')}</div>
       <div class="manage-booking-policy-row manage-booking-policy-row--${rowVariant}">
         <div class="manage-booking-policy-row__icon"><i class="${icon}"></i></div>
-        <span>${escHtml(policy.policyMessage ?? '')}</span>
+        <span>${escHtml(localizePolicyMessage(policy.policyMessage))}</span>
       </div>
       ${refundHtml}
     </div>
@@ -231,15 +244,11 @@ function cancellationPolicySectionHtml(policy) {
 async function confirmAndCancelBooking() {
   if (!_currentRef || !_currentLastName) return;
 
-  const confirmed = window.confirm(
-    'Are you sure you want to cancel this booking?\n\n' +
-    'Reference: ' + _currentRef + '\n\n' +
-    'This action cannot be undone.'
-  );
+  const confirmed = await showCancelConfirmation(_currentRef);
   if (!confirmed) return;
 
   const btn = document.querySelector('.manage-booking-cancel-btn--active');
-  if (btn) { btn.disabled = true; btn.textContent = 'Cancelling…'; }
+  if (btn) { btn.disabled = true; btn.textContent = trans('manage.cancelling'); }
 
   try {
     const resp = await fetch('/api/bookings/manage/cancel', {
@@ -267,25 +276,25 @@ async function confirmAndCancelBooking() {
       if (section) {
         const banner = document.createElement('div');
         banner.innerHTML = buildErrorPanel(
-          'Booking cancelled',
-          'Your booking ' + escHtml(_currentRef) + ' has been successfully cancelled.',
+          trans('manage.cancelSuccessTitle'),
+          trans('manage.cancelSuccessMessage', { reference: _currentRef }),
           'success'
         );
         section.prepend(banner);
       }
     } else {
-      let msg = 'Your booking could not be cancelled. Please try again.';
+      let msg = trans('manage.cancelError');
       try {
         const body = await resp.json();
-        if (body?.message) msg = body.message;
+        if (body?.message) msg = localizeBackendMessage(body.message, msg);
       } catch (_) { /* ignore */ }
       // Re-enable the button so the user can retry.
-      if (btn) { btn.disabled = false; btn.textContent = 'Cancel booking'; }
+      if (btn) { btn.disabled = false; btn.textContent = trans('manage.cancelBooking'); }
       showCancelError(msg);
     }
   } catch (_err) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Cancel booking'; }
-    showCancelError('Network error. Please check your connection and try again.');
+    if (btn) { btn.disabled = false; btn.textContent = trans('manage.cancelBooking'); }
+    showCancelError(trans('manage.networkError'));
   }
 }
 
@@ -298,6 +307,127 @@ function showCancelError(msg) {
   div.className = 'manage-cancel-error';
   div.innerHTML = buildErrorPanel('', msg, 'error');
   section.prepend(div);
+}
+
+let _cancelConfirmResolve = null;
+
+function showCancelConfirmation(reference) {
+  const modal = ensureCancelConfirmModal();
+  const refEl = document.getElementById('manageCancelModalRef');
+  if (refEl) refEl.textContent = reference;
+  refreshCancelConfirmationText();
+
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('manage-cancel-modal-open');
+
+  return new Promise(resolve => {
+    _cancelConfirmResolve = resolve;
+    setTimeout(() => {
+      modal.querySelector('[data-manage-cancel-confirm]')?.focus();
+    }, 0);
+  });
+}
+
+function ensureCancelConfirmModal() {
+  let modal = document.getElementById('manageCancelModal');
+  if (modal) return modal;
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <div id="manageCancelModal"
+         class="manage-cancel-modal"
+         aria-hidden="true">
+      <div class="manage-cancel-modal__backdrop" data-manage-cancel-close></div>
+      <div class="manage-cancel-modal__card"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="manageCancelModalTitle">
+        <button type="button"
+                class="manage-cancel-modal__close"
+                aria-label="${trans('manage.close')}"
+                data-manage-cancel-close>
+          <i class="icon-close"></i>
+        </button>
+
+        <div class="manage-cancel-modal__icon">
+          <i class="icon-notification"></i>
+        </div>
+
+        <h2 id="manageCancelModalTitle" class="manage-cancel-modal__title" data-manage-cancel-title>
+          ${trans('manage.cancelModalTitle')}
+        </h2>
+        <p class="manage-cancel-modal__copy" data-manage-cancel-copy>
+          ${trans('manage.cancelModalCopy')}
+        </p>
+
+        <div class="manage-cancel-modal__reference">
+          <span data-manage-cancel-reference-label>${trans('manage.reference')}</span>
+          <strong id="manageCancelModalRef"></strong>
+        </div>
+
+        <p class="manage-cancel-modal__warning" data-manage-cancel-warning>
+          ${trans('manage.cancelModalWarning')}
+        </p>
+
+        <div class="manage-cancel-modal__actions">
+          <button type="button"
+                  class="manage-cancel-modal__btn manage-cancel-modal__btn--secondary"
+                  data-manage-cancel-close>
+            <span data-manage-cancel-keep-label>${trans('manage.keepBooking')}</span>
+          </button>
+          <button type="button"
+                  class="manage-cancel-modal__btn manage-cancel-modal__btn--danger"
+                  data-manage-cancel-confirm>
+            <span data-manage-cancel-confirm-label>${trans('manage.cancelBooking')}</span>
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(wrapper.firstElementChild);
+  modal = document.getElementById('manageCancelModal');
+
+  modal.querySelectorAll('[data-manage-cancel-close]').forEach(el => {
+    el.addEventListener('click', () => settleCancelConfirmation(false));
+  });
+  modal.querySelector('[data-manage-cancel-confirm]')?.addEventListener('click', () => {
+    settleCancelConfirmation(true);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+      settleCancelConfirmation(false);
+    }
+  });
+
+  return modal;
+}
+
+function settleCancelConfirmation(confirmed) {
+  const modal = document.getElementById('manageCancelModal');
+  if (modal) {
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  document.body.classList.remove('manage-cancel-modal-open');
+
+  if (_cancelConfirmResolve) {
+    const resolve = _cancelConfirmResolve;
+    _cancelConfirmResolve = null;
+    resolve(confirmed);
+  }
+}
+
+function refreshCancelConfirmationText() {
+  const modal = document.getElementById('manageCancelModal');
+  if (!modal) return;
+  setText(modal.querySelector('[data-manage-cancel-title]'), trans('manage.cancelModalTitle'));
+  setText(modal.querySelector('[data-manage-cancel-copy]'), trans('manage.cancelModalCopy'));
+  setText(modal.querySelector('[data-manage-cancel-reference-label]'), trans('manage.reference'));
+  setText(modal.querySelector('[data-manage-cancel-warning]'), trans('manage.cancelModalWarning'));
+  setText(modal.querySelector('[data-manage-cancel-keep-label]'), trans('manage.keepBooking'));
+  setText(modal.querySelector('[data-manage-cancel-confirm-label]'), trans('manage.cancelBooking'));
+  modal.querySelector('.manage-cancel-modal__close')?.setAttribute('aria-label', trans('manage.close'));
 }
 
 /**
@@ -317,16 +447,16 @@ function paymentSectionHtml(booking) {
   if (!s || s === 'NOT_STARTED') return '';
 
   const map = {
-    PAID:       { label: 'Paid',              variant: 'success' },
-    PENDING:    { label: 'Payment pending',   variant: 'warning' },
-    FAILED:     { label: 'Payment failed',    variant: 'error'   },
-    REFUNDED:   { label: 'Refunded',          variant: 'info'    },
-    CANCELLED:  { label: 'Payment cancelled', variant: 'neutral' },
+    PAID:       { label: trans('manage.paymentPaid'),      variant: 'success' },
+    PENDING:    { label: trans('manage.paymentPending'),   variant: 'warning' },
+    FAILED:     { label: trans('manage.paymentFailed'),    variant: 'error'   },
+    REFUNDED:   { label: trans('manage.paymentRefunded'),  variant: 'info'    },
+    CANCELLED:  { label: trans('manage.paymentCancelled'), variant: 'neutral' },
   };
   const { label, variant } = map[s] ?? { label: s, variant: 'neutral' };
 
-  const methodLabel = booking.paymentMethod === 'CARD'  ? 'Card'
-                    : booking.paymentMethod === 'POST'   ? 'Post'
+  const methodLabel = booking.paymentMethod === 'CARD'  ? trans('manage.paymentMethodCard')
+                    : booking.paymentMethod === 'POST'   ? trans('manage.paymentMethodPost')
                     : null;
   const methodHtml = methodLabel
     ? `<span class="manage-booking-meta__sub">${escHtml(methodLabel)}</span>`
@@ -334,7 +464,7 @@ function paymentSectionHtml(booking) {
 
   return `
     <div class="manage-booking-section manage-booking-section--payment">
-      <div class="manage-booking-meta__label">Payment</div>
+      <div class="manage-booking-meta__label">${trans('manage.payment')}</div>
       <div class="manage-booking-payment-row">
         <span class="rc-badge rc-badge--${variant}">${escHtml(label)}</span>
         ${methodHtml}
@@ -374,20 +504,20 @@ function statusBadgeHtml(status) {
   // bg-green-2 (#008009) gives a strong, readable green — avoids the pale mint
   // of bg-green-1 (#EBFCEA) which has poor contrast against white text.
   const map = {
-    CONFIRMED: { label: 'Confirmed', cls: 'rc-badge rc-badge--success' },
-    PENDING:   { label: 'Pending',   cls: 'rc-badge rc-badge--warning' },
-    FAILED:    { label: 'Failed',    cls: 'rc-badge rc-badge--error' },
-    CANCELLED: { label: 'Cancelled', cls: 'rc-badge rc-badge--warning' },
-    COMPLETED: { label: 'Completed', cls: 'rc-badge rc-badge--success' },
+    CONFIRMED: { label: trans('manage.statusConfirmed'), cls: 'rc-badge rc-badge--success' },
+    PENDING:   { label: trans('manage.statusPending'),   cls: 'rc-badge rc-badge--warning' },
+    FAILED:    { label: trans('manage.statusFailed'),    cls: 'rc-badge rc-badge--error' },
+    CANCELLED: { label: trans('manage.statusCancelled'), cls: 'rc-badge rc-badge--warning' },
+    COMPLETED: { label: trans('manage.statusCompleted'), cls: 'rc-badge rc-badge--success' },
   };
   const s = map[status] ?? { label: status ?? '—', cls: 'rc-badge rc-badge--warning' };
-  return `<span class="${s.cls}">${s.label}</span>`;
+  return `<span class="${s.cls}">${escHtml(s.label)}</span>`;
 }
 
 function formatDatetime(dt) {
   if (!dt) return '—';
   try {
-    return new Date(dt).toLocaleString(undefined, {
+    return new Date(dt).toLocaleString(localeForCurrentLanguage(), {
       year: 'numeric', month: 'short', day: 'numeric',
       hour: '2-digit', minute: '2-digit'
     });
@@ -429,7 +559,11 @@ function collapseForm(bookingReference) {
   const refLabel  = document.getElementById('mfCollapsedRef');
   if (panel)    panel.style.display    = 'none';
   if (refLabel) refLabel.textContent   = bookingReference;
-  if (collapsed) collapsed.style.display = 'flex';
+  if (collapsed) {
+    collapsed.style.display = 'flex';
+    collapsed.classList.remove('is-editing');
+  }
+  setLookupToggleLabel(false);
 }
 
 /**
@@ -440,11 +574,31 @@ function collapseForm(bookingReference) {
 function expandForm() {
   const panel    = document.getElementById('mfFormPanel');
   const collapsed = document.getElementById('mfCollapsedHeader');
-  if (collapsed) collapsed.style.display = 'none';
+  if (collapsed && _currentRef) {
+    collapsed.style.display = 'flex';
+    collapsed.classList.add('is-editing');
+  }
+  setLookupToggleLabel(true);
   if (panel)     panel.style.display     = 'block';
   hideError();
   // Focus first input for quick re-entry.
   document.getElementById('mfReference')?.focus();
+}
+
+function toggleLookupForm() {
+  const panel = document.getElementById('mfFormPanel');
+  const isExpanded = panel && panel.style.display !== 'none';
+  if (isExpanded) {
+    collapseForm(_currentRef || document.getElementById('mfReference')?.value || '');
+  } else {
+    expandForm();
+  }
+}
+
+function setLookupToggleLabel(isEditing) {
+  const changeBtn = document.getElementById('mfChangeBtn');
+  if (!changeBtn) return;
+  changeBtn.textContent = isEditing ? trans('manage.done') : trans('manage.change');
 }
 
 function setLoading(btn, isLoading) {
@@ -463,9 +617,55 @@ function setLoading(btn, isLoading) {
  * Named `trans` to avoid shadowing the global window.t.
  * Falls back to the last key segment when the i18n module is unavailable.
  */
-function trans(key) {
+function trans(key, params) {
   if (typeof window.t === 'function') {
-    return window.t(key);
+    return window.t(key, params);
   }
-  return key.split('.').pop();
+  let value = key.split('.').pop();
+  if (params) {
+    Object.keys(params).forEach(k => {
+      value = value.replace(new RegExp('{' + k + '}', 'g'), params[k]);
+    });
+  }
+  return value;
+}
+
+function setText(el, value) {
+  if (el) el.textContent = value;
+}
+
+function localizePolicyMessage(message) {
+  const keyByMessage = {
+    'Booking is already cancelled.': 'manage.policyAlreadyCancelledReason',
+    'This booking has already been cancelled and cannot be modified.': 'manage.policyAlreadyCancelled',
+    'Your pickup date has passed.': 'manage.policyPickupPassedReason',
+    'The booking can no longer be modified after the pickup date.': 'manage.policyPickupPassed',
+    'Full refund will be applied.': 'manage.policyFullRefund',
+    'Cancellation within 24 hours of pickup — no refund applies.': 'manage.policyNoRefundWithin24h',
+    'Your booking has not been paid — no charge applies.': 'manage.policyNoCharge',
+  };
+  const key = keyByMessage[message];
+  return key ? trans(key) : (message ?? '');
+}
+
+function localizeBackendMessage(message, fallback) {
+  if (!message) return fallback ?? '';
+
+  const policyMessage = localizePolicyMessage(message);
+  if (policyMessage !== message) return policyMessage;
+
+  const keyByMessage = {
+    "We couldn't find a booking with these details. Please check your reference and last name.": 'manage.notFound',
+    'Booking not found': 'manage.notFoundTitle',
+    'Booking cannot be cancelled': 'manage.cancelError',
+  };
+  const key = keyByMessage[message];
+  return key ? trans(key) : (fallback ?? message);
+}
+
+function localeForCurrentLanguage() {
+  const lang = typeof window.getLanguage === 'function' ? window.getLanguage() : document.documentElement.lang;
+  if (lang === 'tr') return 'tr-TR';
+  if (lang === 'es') return 'es-ES';
+  return 'en-US';
 }

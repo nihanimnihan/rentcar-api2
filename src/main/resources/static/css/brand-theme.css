@@ -778,6 +778,105 @@ section.bg-dark-2 {
 }
 
 /* =========================================================
+   SIMPLE FLOW HEADER - review + manage booking
+   ========================================================= */
+
+.rc-simple-header {
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(248, 212, 72, 0.16) !important;
+  box-shadow: none !important;
+}
+
+.rc-simple-header .container {
+  max-width: 1500px;
+}
+
+.rc-simple-header .row {
+  flex-wrap: nowrap !important;
+}
+
+.rc-simple-header__brand,
+.rc-simple-header__actions {
+  min-width: 0;
+}
+
+.rc-simple-header .header-logo img {
+  width: auto;
+  max-height: 34px;
+}
+
+.rc-simple-header .js-lang-toggle,
+.rc-simple-header .js-lang-toggle span,
+.rc-simple-header .js-lang-toggle i {
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
+.rc-simple-header .js-lang-toggle:hover,
+.rc-simple-header .js-lang-toggle:hover span,
+.rc-simple-header .js-lang-toggle:hover i {
+  color: #F8D448 !important;
+}
+
+.rc-simple-header__user-icon {
+  display: none !important;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+.rc-simple-header__user-icon:hover {
+  border-color: rgba(248, 212, 72, 0.55);
+  color: #F8D448 !important;
+}
+
+@media (max-width: 575px) {
+  .rc-simple-header {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .rc-simple-header .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .rc-simple-header__back,
+  .rc-simple-header .rc-header-auth-link {
+    display: none !important;
+  }
+
+  .rc-simple-header__actions {
+    column-gap: 14px;
+  }
+
+  .rc-simple-header__user-icon {
+    display: inline-flex !important;
+  }
+
+  .rc-simple-header .js-lang-toggle {
+    white-space: nowrap;
+    font-size: 12px !important;
+  }
+
+  .rc-simple-header .js-lang-toggle img {
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 8px !important;
+  }
+
+  .rc-simple-header .js-lang-toggle i {
+    margin-left: 8px !important;
+  }
+}
+
+/* =========================================================
    CARS PAGE — premium graphite header + controls
    ========================================================= */
 
