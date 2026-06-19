@@ -235,12 +235,16 @@ function rcssOpenBelow(popup, anchorEl, alignRight) {
 
     var panelRect = searchPanel ? searchPanel.getBoundingClientRect() : rect;
 
-    var left = panelRect.left;
-    var top = panelRect.bottom + 5;
+    var isMobileSearch = window.innerWidth <= 575;
+    var left = isMobileSearch ? Math.max(16, panelRect.left) : panelRect.left;
+    var top = isMobileSearch ? rect.bottom + 8 : panelRect.bottom + 5;
+    var popupWidth = isMobileSearch
+      ? Math.min(window.innerWidth - 32, panelRect.width)
+      : Math.min(800, panelRect.width);
 
     popup.style.left = left + 'px';
     popup.style.top = top + 'px';
-    popup.style.width = Math.min(800, panelRect.width) + 'px';
+    popup.style.width = popupWidth + 'px';
 
 
     // Ensure popup is attached to <body> so it's not clipped by parents
@@ -829,4 +833,3 @@ document.addEventListener("click", function (event) {
   document.querySelector(".js-header")?.classList.remove("is-menu-opened");
   document.documentElement.classList.remove("html-overflow-hidden");
 });
-

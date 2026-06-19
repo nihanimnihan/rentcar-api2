@@ -25,7 +25,7 @@ window.i18nTranslations['en'] = {
   'search.dropOff': 'Drop off',
   'search.selectDate': 'Select date',
   'search.cityOrAirport': 'City or Airport',
-  'search.showCars': 'Show Cars',
+  'search.showCars': 'Show Available Cars',
   'search.returnDifferentLocation': 'Return to a different location',
 
   // home page
@@ -204,6 +204,7 @@ window.i18nTranslations['en'] = {
   'review.acceptTerms': 'Please accept the terms and conditions to continue',
   'review.payAndBook': 'Pay and Book',
   'review.backToSearch': 'Back to search',
+  'review.backToAddons': 'Back to add-ons',
   'review.pickupReturn': 'Pickup and return',
   'review.pickup': 'Pickup',
   'review.return': 'Return',
@@ -346,9 +347,9 @@ window.i18nTranslations['en'] = {
   'error.carNoLongerAvailable': 'This car is no longer available for the selected dates.',
   'error.checkDetails': 'Please check your details and try again.',
   'error.somethingWrong': 'Something went wrong. Please try again.',
-  'search.cars': 'Cars',
+  'search.cars': 'Car Rental',
   'search.airportTransfer': 'Airport Transfer',
-  'search.viewEditBooking': 'View / edit my booking',
+  'search.viewEditBooking': 'Manage booking',
   'manage.title': 'Manage your booking',
   'manage.description': 'Access your rental with your booking reference and last name.',
   'manage.bookingNumber': 'Booking reference number',

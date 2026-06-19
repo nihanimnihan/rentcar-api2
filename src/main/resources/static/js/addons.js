@@ -44,6 +44,7 @@ async function loadAddonPage() {
     }
 
     selectedCar = await carRes.json();
+    hydrateSelectedAddonsFromUrl(params);
   } catch (err) {
     console.error("Failed to load page data:", err);
     showPageError(t('error.failedToLoadPage'));
@@ -53,6 +54,15 @@ async function loadAddonPage() {
   renderAddonCards(availableAddons);
   renderSummary();
   renderAddonsPriceModal();
+}
+
+function hydrateSelectedAddonsFromUrl(params) {
+  const addonIds = params
+    .getAll("addonIds")
+    .map(Number)
+    .filter(Number.isFinite);
+
+  selectedAddons = new Set(addonIds);
 }
 
 function showPageError(message) {
@@ -103,13 +113,18 @@ function renderAddonCards(addons) {
 }
 
 function renderAddonCard(addon, isRecommended) {
+  const addonId = Number(addon.id);
+  const selected = selectedAddons.has(addonId);
+  const buttonLabel = selected
+    ? `${t('addon.added')} <span>✓</span>`
+    : `${t('addon.add')} <span>+</span>`;
   const priceLabel = addon.pricingType === "DAILY"
     ? `€${Number(addon.price).toFixed(2)} ${t('car.perDay')}`
     : `€${Number(addon.price).toFixed(2)} ${t('addon.oneTime')}`;
 
   if (isRecommended && addon.imageUrl) {
     return `
-      <div class="rentcar-addon-card" data-addon-id="${addon.id}">
+      <div class="rentcar-addon-card${selected ? ' is-selected' : ''}" data-addon-id="${addon.id}">
         <div class="rentcar-addon-image">
           <img src="${safeSrc(addon.imageUrl, "")}" alt="${escapeHtml(addon.name)}">
         </div>
@@ -124,7 +139,7 @@ function renderAddonCard(addon, isRecommended) {
           <div class="d-flex justify-between items-center mt-20">
             <div class="text-16 fw-700">${priceLabel}</div>
             <button type="button" class="rentcar-addon-button" onclick="toggleAddon(${addon.id})">
-              ${t('addon.add')} <span>+</span>
+              ${buttonLabel}
             </button>
           </div>
         </div>
@@ -138,7 +153,7 @@ function renderAddonCard(addon, isRecommended) {
     : `<i class="icon-user text-28"></i>`;
 
   return `
-    <div class="rentcar-addon-card" data-addon-id="${addon.id}">
+    <div class="rentcar-addon-card${selected ? ' is-selected' : ''}" data-addon-id="${addon.id}">
       <div class="rentcar-addon-icon">
         ${iconHtml}
       </div>
@@ -153,7 +168,7 @@ function renderAddonCard(addon, isRecommended) {
         <div class="d-flex justify-between items-center mt-20">
           <div class="text-16 fw-700">${priceLabel}</div>
           <button type="button" class="rentcar-addon-button" onclick="toggleAddon(${addon.id})">
-            ${t('addon.add')} <span>+</span>
+            ${buttonLabel}
           </button>
         </div>
       </div>

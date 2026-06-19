@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initPaymentOptions();
   initFlightToggle();
   initConfirmButtons();
+  initReviewBackToAddonsLink();
 
   loadStripePublishableKey().then(key => {
     if (key) {
@@ -43,6 +44,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+function initReviewBackToAddonsLink() {
+  const link = document.getElementById("reviewBackToAddonsLink");
+  if (!link) return;
+
+  const params = new URLSearchParams(window.location.search);
+  if (!params.get("carId")) {
+    link.style.display = "none";
+    return;
+  }
+
+  link.href = `addons.html?${params.toString()}`;
+}
 
 // ── State ────────────────────────────────────────────────────────────────────
 

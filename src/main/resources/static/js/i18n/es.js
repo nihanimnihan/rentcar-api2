@@ -24,7 +24,7 @@ window.i18nTranslations['es'] = {
   'search.dropOff': 'Devolución',
   'search.selectDate': 'Seleccionar fecha',
   'search.cityOrAirport': 'Ciudad o aeropuerto',
-  'search.showCars': 'Ver Coches',
+  'search.showCars': 'Ver coches disponibles',
   'search.returnDifferentLocation': 'Devolver en otra ubicación',
 
   // home page
@@ -203,6 +203,7 @@ window.i18nTranslations['es'] = {
   'review.acceptTerms': 'Debes aceptar los términos y condiciones para continuar',
   'review.payAndBook': 'Pagar y Reservar',
   'review.backToSearch': 'Volver a la búsqueda',
+  'review.backToAddons': 'Volver a extras',
   'review.pickupReturn': 'Recogida y devolución',
   'review.pickup': 'Recogida',
   'review.return': 'Devolución',
@@ -318,9 +319,9 @@ window.i18nTranslations['es'] = {
   'error.carNoLongerAvailable': 'Este coche ya no está disponible para las fechas seleccionadas.',
   'error.checkDetails': 'Por favor, verifica tus datos e inténtalo de nuevo.',
   'error.somethingWrong': 'Algo ha ido mal. Por favor, inténtalo de nuevo.',
-  'search.cars': 'Coches',
+  'search.cars': 'Alquiler de coches',
   'search.airportTransfer': 'Traslado al aeropuerto',
-  'search.viewEditBooking': 'Ver / editar mi reserva',
+  'search.viewEditBooking': 'Gestionar reserva',
   'manage.title': 'Gestiona tu reserva',
   'manage.description': 'Accede a tu alquiler con tu referencia de reserva y apellido.',
   'manage.bookingNumber': 'Número de reserva',

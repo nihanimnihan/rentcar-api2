@@ -20,7 +20,7 @@ window.i18nTranslations['tr'] = {
   'search.dropOff': 'Teslim tarihi',
   'search.selectDate': 'Tarih seçin',
   'search.cityOrAirport': 'Şehir veya havalimanı',
-  'search.showCars': 'Araçları Göster',
+  'search.showCars': 'Uygun Araçları Göster',
   'search.returnDifferentLocation': 'Farklı bir lokasyona teslim et',
 
   // home page
@@ -185,6 +185,7 @@ window.i18nTranslations['tr'] = {
   'review.privacyPolicy': 'Gizlilik Politikası',
   'review.payAndBook': 'Öde ve Rezervasyon Yap',
   'review.backToSearch': 'Aramaya geri dön',
+  'review.backToAddons': 'Ek hizmetlere geri dön',
   'review.priceDetails': 'Fiyat detayları',
 
   // error messages
@@ -352,9 +353,9 @@ window.i18nTranslations['tr'] = {
     'enum.vehicleType.PREMIUM': 'Premium',
     'enum.vehicleType.COMPACT': 'Kompakt',
 
-    'search.cars': 'Araçlar',
+    'search.cars': 'Araç Kiralama',
     'search.airportTransfer': 'Havalimanı Transferi',
-    'search.viewEditBooking': 'Rezervasyonumu görüntüle / düzenle',
+    'search.viewEditBooking': 'Rezervasyonumu yönet',
 
 
     'auth.welcome': 'Paradise’a hoş geldiniz',

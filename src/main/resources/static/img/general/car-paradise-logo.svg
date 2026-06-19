@@ -1,0 +1,42 @@
+<svg width="430" height="92" viewBox="0 0 430 92" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">Rent Car Paradise Deluxe</title>
+  <desc id="logoDesc">Rent Car Paradise Deluxe wordmark with a crown, car silhouette, and transparent background.</desc>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.28" stop-color="#D8DCE1"/>
+      <stop offset="0.5" stop-color="#FFFFFF"/>
+      <stop offset="0.72" stop-color="#8E98A4"/>
+      <stop offset="1" stop-color="#F7F9FB"/>
+    </linearGradient>
+    <linearGradient id="silverDark" x1="0" y1="0" x2="0" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F2F5F7"/>
+      <stop offset="0.45" stop-color="#9CA6B1"/>
+      <stop offset="1" stop-color="#FFFFFF"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="130" y1="2" x2="300" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE19A"/>
+      <stop offset="0.5" stop-color="#C79632"/>
+      <stop offset="1" stop-color="#FFF3C2"/>
+    </linearGradient>
+    <filter id="shadow" x="-18" y="-18" width="466" height="128" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="1.4" flood-color="#FFE1A0" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <g transform="translate(172 4)">
+      <path d="M18 9H86V18M18 9V18" stroke="url(#silver)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 31C22 27 30 17 38 14C47 11 60 12 69 14C79 17 89 25 99 31C82 29 65 28 54 28C42 28 25 29 10 31Z" fill="url(#silverDark)"/>
+      <path d="M21 34C39 31 69 31 90 34" stroke="url(#gold)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M35 11L40 5L45 11L52 2L59 11L64 5L69 11" stroke="url(#gold)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M25 41C34 55 42 62 54 66C66 62 75 55 84 41" stroke="url(#silver)" stroke-width="4" stroke-linecap="round"/>
+    </g>
+
+    <text x="8" y="59" fill="url(#silver)" font-family="Arial Black, Impact, Helvetica, sans-serif" font-size="31" font-weight="900" letter-spacing="2.35">RENT CAR PARADISE</text>
+    <path d="M154 68H206" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M258 68H310" stroke="url(#gold)" stroke-width="2.2" stroke-linecap="round"/>
+    <text x="232" y="76" text-anchor="middle" fill="#F6F2EA" font-family="Georgia, Times New Roman, serif" font-size="19" font-style="italic">Deluxe</text>
+  </g>
+</svg>

@@ -805,6 +805,18 @@ section.bg-dark-2 {
   max-height: 34px;
 }
 
+.header-logo img[src$="car-paradise-logo.svg"] {
+  width: auto !important;
+  max-width: 190px !important;
+  max-height: 38px !important;
+}
+
+.rc-simple-header .header-logo img[src$="car-paradise-logo.svg"],
+.cars-page-main .header-logo img[src$="car-paradise-logo.svg"] {
+  max-width: 174px !important;
+  max-height: 36px !important;
+}
+
 .rc-simple-header .js-lang-toggle,
 .rc-simple-header .js-lang-toggle span,
 .rc-simple-header .js-lang-toggle i {
@@ -1133,6 +1145,176 @@ section.bg-dark-2 {
 
 #continueButton:hover {
   background: linear-gradient(180deg, #FFE16A 0%, #E9B516 100%) !important;
+}
+
+.rentcar-addons-header__actions {
+  min-width: 0;
+}
+
+.rentcar-flow-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: #191B1E !important;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none !important;
+}
+
+.rentcar-flow-back-link i {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(25, 27, 30, 0.12);
+  border-radius: 50%;
+  background: #fff;
+  color: #191B1E !important;
+}
+
+.rentcar-flow-back-link:hover,
+.rentcar-flow-back-link:hover i {
+  color: #B8860B !important;
+  border-color: rgba(248, 212, 72, 0.6);
+}
+
+@media (max-width: 575px) {
+  .rentcar-addons-header {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .rentcar-addons-header .row {
+    flex-wrap: wrap !important;
+    gap: 12px;
+  }
+
+  .rentcar-addons-header .col-auto {
+    width: 100%;
+  }
+
+  .rentcar-addons-header .rc-simple-header__brand {
+    justify-content: space-between;
+  }
+
+  .rentcar-addons-header .header-logo img[src$="car-paradise-logo.svg"] {
+    max-width: 160px !important;
+    max-height: 34px !important;
+  }
+
+  .rentcar-addons-header .rc-simple-header__back {
+    display: inline-flex !important;
+    width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 36px !important;
+    margin-right: 12px !important;
+  }
+
+  .rentcar-addons-header__actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px !important;
+    padding: 10px;
+    border: 1px solid rgba(248, 212, 72, 0.18);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .rentcar-addons-header__actions > div {
+    min-width: 0;
+  }
+
+  .rentcar-addons-header__actions .text-15 {
+    font-size: 12px !important;
+  }
+
+  .rentcar-addons-header__actions #addonsHeaderTotal {
+    display: block;
+    font-size: 20px !important;
+    line-height: 1.15 !important;
+  }
+
+  .rentcar-addons-header__actions #addonsPriceDetailsButton {
+    margin-top: 2px;
+    font-size: 12px !important;
+  }
+
+  #continueButton.rentcar-addons-continue {
+    height: 42px !important;
+    min-width: 122px;
+    padding: 0 18px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    white-space: nowrap;
+  }
+
+  .rentcar-addons-content {
+    padding-top: 28px !important;
+    padding-bottom: 34px !important;
+  }
+
+  .rentcar-addon-section-title {
+    margin-bottom: 14px !important;
+    font-size: 18px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rentcar-addon-card {
+    gap: 14px !important;
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .rentcar-addon-image {
+    height: 150px !important;
+    border-radius: 12px !important;
+  }
+
+  .rentcar-addon-icon {
+    width: 64px !important;
+    height: 64px !important;
+    flex: 0 0 64px !important;
+    border-radius: 14px !important;
+  }
+
+  .rentcar-addon-content .d-flex.justify-between.items-start {
+    gap: 12px !important;
+  }
+
+  .rentcar-addon-content h3 {
+    font-size: 17px !important;
+    line-height: 1.25 !important;
+  }
+
+  .rentcar-addon-content .text-15 {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+  }
+
+  .rentcar-addon-card .mt-20 {
+    margin-top: 14px !important;
+  }
+
+  .rentcar-addon-button {
+    height: 38px !important;
+    padding: 0 16px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+
+  .rentcar-addon-summary {
+    position: static !important;
+    padding: 18px !important;
+    border-radius: 16px !important;
+  }
+
+  .rentcar-flow-back-link {
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
 }
 
 /* Eklenti Kartları İçin */
@@ -1758,6 +1940,236 @@ section.bg-dark-2 {
   .rentcar-home-yellow-header.is-menu-opened [data-x="header-mobile-icons"] a.icon-user,
   .rentcar-home-yellow-header.is-menu-opened [data-x="header-mobile-icons"] .icon-user {
     color: #191B1E !important;
+  }
+}
+
+/* =========================================================
+   HOME MOBILE COMPOSITION - tighter hero + clearer search
+   ========================================================= */
+
+@media (max-width: 575px) {
+  .rentcar-home-yellow-header .header__container {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .rentcar-home-yellow-header .header-logo {
+    max-width: 150px !important;
+    margin-right: 0 !important;
+  }
+
+  .rentcar-home-yellow-header .header-logo img[src$="car-paradise-logo.svg"] {
+    max-width: 150px !important;
+    max-height: 32px !important;
+  }
+
+  .rentcar-home-yellow-header .js-lang-toggle {
+    font-size: 12px !important;
+    white-space: nowrap !important;
+  }
+
+  .rentcar-home-yellow-header .js-lang-toggle img {
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 7px !important;
+  }
+
+  .rentcar-home-yellow-header .js-lang-toggle i {
+    margin-left: 7px !important;
+  }
+
+  .rentcar-home-hero {
+    min-height: auto !important;
+    padding-top: 78px !important;
+    padding-bottom: 34px !important;
+    background-position: center top !important;
+  }
+
+  .rentcar-home-hero .container {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  .rentcar-home-hero .text-center {
+    max-width: 330px !important;
+  }
+
+  .rentcar-home-hero .text-center::before {
+    margin-bottom: 8px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.16em !important;
+  }
+
+  .rentcar-home-hero .text-center h1 {
+    max-width: 320px !important;
+    font-size: 34px !important;
+    line-height: 1.08 !important;
+  }
+
+  .rentcar-home-hero .text-center p {
+    max-width: 315px !important;
+    margin-top: 8px !important;
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+  }
+
+  .rentcar-home-hero .masthead-bottom {
+    margin: 42px auto 0 !important;
+    padding: 0 14px !important;
+  }
+
+  .rentcar-home-hero.masthead.-type-8 .mainSearch,
+  .rentcar-home-hero .mainSearch,
+  .rentcar-home-hero .rentcar-sixt-search {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px 18px 18px !important;
+    border-radius: 14px !important;
+    background: rgba(251, 247, 236, 0.96) !important;
+  }
+
+  .rentcar-home-hero .rentcar-search-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .rentcar-home-hero .rentcar-search-tabs {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+  }
+
+  .rentcar-home-hero .rentcar-search-tab {
+    height: 36px !important;
+    min-width: 132px !important;
+    padding: 0 14px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .rentcar-home-hero .rentcar-edit-booking-link {
+    max-width: 140px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    text-align: right !important;
+  }
+
+  .rentcar-home-hero .rcss-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    border-top-color: rgba(25, 27, 30, 0.08) !important;
+    padding-top: 10px !important;
+  }
+
+  .rentcar-home-hero #rcssPickupLocCell,
+  .rentcar-home-hero #rcssDropoffLocCell,
+  .rentcar-home-hero .rcss-cell-submit {
+    grid-column: 1 / -1 !important;
+  }
+
+  .rentcar-home-hero #rcssPickupDateCell {
+    grid-column: 1 !important;
+    padding-right: 10px !important;
+    border-right: 1px solid rgba(25, 27, 30, 0.08) !important;
+  }
+
+  .rentcar-home-hero #rcssDropoffDateCell {
+    grid-column: 2 !important;
+    padding-left: 10px !important;
+  }
+
+  .rentcar-home-hero .rcss-cell {
+    min-height: 66px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .rentcar-home-hero .rcss-label {
+    font-size: 11px !important;
+    font-weight: 800 !important;
+  }
+
+  .rentcar-home-hero .rcss-trigger {
+    gap: 7px !important;
+    font-size: 13px !important;
+  }
+
+  .rentcar-home-hero .rcss-icon {
+    font-size: 16px !important;
+  }
+
+  .rentcar-home-hero .rcss-date-row {
+    gap: 6px !important;
+  }
+
+  .rentcar-home-hero .rcss-dot {
+    display: none !important;
+  }
+
+  .rentcar-home-hero .rcss-time-btn {
+    margin-left: 2px !important;
+  }
+
+  .rentcar-home-hero .mainSearch__submit {
+    height: 50px !important;
+    border-radius: 10px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .rentcar-home-hero .mainSearch__submit span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 14px !important;
+  }
+
+  .rentcar-home-hero .rcss-diff-return {
+    margin-top: 12px !important;
+  }
+
+  .rc-location-picker {
+    width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: min(380px, calc(100vh - 24px)) !important;
+    border-radius: 16px !important;
+  }
+
+  .rc-location-picker__left {
+    padding: 16px !important;
+  }
+
+  .rc-location-search {
+    height: 46px !important;
+    grid-template-columns: 28px minmax(0, 1fr) 28px !important;
+    padding: 0 12px !important;
+  }
+
+  .rc-location-search input {
+    font-size: 14px !important;
+  }
+
+  .rc-location-section-title {
+    margin: 16px 0 8px !important;
+    font-size: 11px !important;
+  }
+
+  .rc-location-option,
+  .rc-location-recent {
+    min-height: 54px !important;
+    padding: 10px 12px !important;
+    grid-template-columns: 28px minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .rc-location-option strong {
+    font-size: 14px !important;
+  }
+
+  .rc-location-option small {
+    font-size: 12px !important;
   }
 }
 
