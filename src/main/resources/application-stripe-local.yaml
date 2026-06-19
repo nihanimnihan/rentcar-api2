@@ -1,3 +1,4 @@
 stripe:
   api-key: ${STRIPE_API_KEY:}
   publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}

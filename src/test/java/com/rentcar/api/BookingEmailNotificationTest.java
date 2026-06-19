@@ -66,12 +66,13 @@ class BookingEmailNotificationTest {
                 .andReturn();
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
+        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
 
         assertThat(fakeEmailService.getSentEmails()).as("No email before payment").isEmpty();
 
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\":\"pm_test_valid\"}"))
+                        .content(payBody("pm_test_valid", checkoutToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
 
@@ -95,10 +96,11 @@ class BookingEmailNotificationTest {
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
         String bookingRef = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
+        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
 
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\":\"pm_test_valid\"}"))
+                        .content(payBody("pm_test_valid", checkoutToken)))
                 .andExpect(status().isOk());
 
         List<ConfirmationEmailData> emails = fakeEmailService.getSentEmails();
@@ -127,10 +129,11 @@ class BookingEmailNotificationTest {
                 .andReturn();
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
+        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
 
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\":\"" + FakePaymentProvider.FORCE_FAIL_METHOD_ID + "\"}"))
+                        .content(payBody(FakePaymentProvider.FORCE_FAIL_METHOD_ID, checkoutToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("FAILED"));
 
@@ -174,5 +177,11 @@ class BookingEmailNotificationTest {
                   "dropoffLocation": "Airport T1"
                 }
                 """.formatted(carId, name, email, pickup, dropoff);
+    }
+
+    private String payBody(String paymentMethodId, String checkoutToken) {
+        return """
+                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
+                """.formatted(paymentMethodId, checkoutToken);
     }
 }

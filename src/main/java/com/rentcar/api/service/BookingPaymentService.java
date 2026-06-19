@@ -123,12 +123,12 @@ public class BookingPaymentService {
             case CANCELLED -> throw new InvalidBookingStateException(
                     "Booking " + bookingId + " is cancelled — payment is not possible");
             case FAILED -> {
-            // Previous charge attempt failed — reset with a fresh PENDING payment and refresh the hold.
+                // Previous charge attempt failed — reset with a fresh PENDING payment and refresh the hold.
                 Payment fresh = paymentService.createPendingPayment(booking);
                 booking.setStatus(BookingStatus.PENDING);
-            booking.setExpiresAt(appClock.nowUtc().plus(java.time.Duration.ofMinutes(15)));
-            bookingRepository.save(booking);
-            yield buildIntentResponse(booking, fresh);
+                booking.setExpiresAt(appClock.nowUtc().plus(java.time.Duration.ofMinutes(15)));
+                bookingRepository.save(booking);
+                yield buildIntentResponse(booking, fresh);
             }
             default -> {
                 // PENDING — idempotent: return intent for existing payment record.
@@ -140,10 +140,12 @@ public class BookingPaymentService {
     }
 
     @Transactional
-    public Booking completePayment(Long bookingId, String paymentMethodId) {
+    public Booking completePayment(Long bookingId, String paymentMethodId, String checkoutSessionToken) {
         // Lock the booking row to prevent concurrent cancel + completePayment races.
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        validateCheckoutSessionForPayment(booking, checkoutSessionToken);
 
         if (booking.getStatus() == BookingStatus.FAILED) {
             // Previous attempt failed — create a fresh PENDING payment and reset the
@@ -170,10 +172,10 @@ public class BookingPaymentService {
             payment = paymentService.processLatestPaymentForBooking(booking, paymentMethodId);
         }
 
-        // TODO (async): with real Stripe, payment may stay PENDING here while the provider
-        //   processes it (e.g. 3DS challenge, bank redirect). In that case, keep the booking
-        //   PENDING and let a PaymentWebhookHandler advance it to CONFIRMED when Stripe sends
-        //   'payment_intent.succeeded'. FakePaymentProvider resolves synchronously.
+        // With real Stripe, payment may stay PENDING while the provider processes it
+        // (e.g. 3DS challenge, bank redirect). The Stripe webhook advances it to
+        // CONFIRMED when Stripe sends payment_intent.succeeded. FakePaymentProvider
+        // resolves synchronously.
         if (payment.getStatus() == PaymentStatus.PAID) {
             booking.setStatus(BookingStatus.CONFIRMED);
             booking.setExpiresAt(null);
@@ -202,6 +204,35 @@ public class BookingPaymentService {
         }
 
         return saved;
+    }
+
+    /**
+     * Public payment completion is allowed only for the anonymous checkout owner.
+     * Admin/customer-account flows should use separate authenticated endpoints.
+     */
+    private void validateCheckoutSessionForPayment(Booking booking, String token) {
+        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.FAILED) {
+            return;
+        }
+        if (booking.getCheckoutSessionToken() == null && booking.getStatus() == BookingStatus.PENDING) {
+            // Legacy pending booking created before checkout tokens existed.
+            return;
+        }
+        if (booking.getCheckoutSessionToken() == null) {
+            throw new com.rentcar.api.exception.CheckoutSessionUnauthorizedException(
+                    "Missing checkout session token for payment retry");
+        }
+        if (token == null || !token.equals(booking.getCheckoutSessionToken())) {
+            throw new com.rentcar.api.exception.CheckoutSessionUnauthorizedException(
+                    "Invalid or missing checkout session token");
+        }
+        if (booking.getExpiresAt() == null || !booking.getExpiresAt().isAfter(appClock.nowUtc())) {
+            booking.setStatus(BookingStatus.EXPIRED);
+            booking.setExpiresAt(null);
+            booking.setCheckoutSessionToken(null);
+            bookingRepository.save(booking);
+            throw new InvalidBookingStateException("Booking hold has expired");
+        }
     }
 
     private PaymentIntentResponse buildIntentResponse(Booking booking, Payment payment) {

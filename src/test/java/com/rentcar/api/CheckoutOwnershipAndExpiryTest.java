@@ -50,6 +50,8 @@ class CheckoutOwnershipAndExpiryTest {
     @Autowired
     private AppClock appClock;
 
+    private String lastCheckoutToken;
+
     // Helpers copied from existing tests for consistency
     private long anyAvailableCarId(int pickupOffset, int dropoffOffset) throws Exception {
         MvcResult result = mockMvc.perform(get("/api/cars/search")
@@ -73,6 +75,7 @@ class CheckoutOwnershipAndExpiryTest {
                         .content(bookingBody(carId, pickup, dropoff)))
                 .andExpect(status().isOk())
                 .andReturn();
+        lastCheckoutToken = result.getResponse().getHeader("X-Checkout-Session-Token");
         return ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.id")).longValue();
     }
 
@@ -221,6 +224,6 @@ class CheckoutOwnershipAndExpiryTest {
     }
 
     private String payBody(String paymentMethodId) {
-        return "{\"paymentMethodId\": \"" + paymentMethodId + "\"}";
+        return "{\"paymentMethodId\":\"" + paymentMethodId + "\",\"checkoutSessionToken\":\"" + lastCheckoutToken + "\"}";
     }
 }

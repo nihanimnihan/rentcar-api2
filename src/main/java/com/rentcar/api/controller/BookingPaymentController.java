@@ -39,7 +39,8 @@ public class BookingPaymentController {
     public BookingResponse processPayment(@PathVariable Long id,
                                           @RequestBody(required = false) ProcessPaymentRequest request) {
         String paymentMethodId = request != null ? request.paymentMethodId() : null;
-        return bookingMapper.toResponse(bookingPaymentService.completePayment(id, paymentMethodId));
+        String checkoutSessionToken = request != null ? request.checkoutSessionToken() : null;
+        return bookingMapper.toResponse(bookingPaymentService.completePayment(id, paymentMethodId, checkoutSessionToken));
     }
 
     /**

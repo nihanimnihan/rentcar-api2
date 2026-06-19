@@ -308,7 +308,7 @@ class PaymentLifecycleTest {
 
     private String payBody(String paymentMethodId) {
         return """
-                {"paymentMethodId": "%s"}
-                """.formatted(paymentMethodId);
+                {"paymentMethodId": "%s", "checkoutSessionToken": "%s"}
+                """.formatted(paymentMethodId, lastCheckoutToken);
     }
 }

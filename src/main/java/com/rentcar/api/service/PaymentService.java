@@ -1,6 +1,7 @@
 package com.rentcar.api.service;
 
 import com.rentcar.api.domain.booking.Booking;
+import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentChannel;
 import com.rentcar.api.domain.payment.PaymentMethod;
@@ -58,23 +59,25 @@ public class PaymentService {
         Payment payment = getLatestPaymentForBooking(booking);
 
         if (payment.getStatus() == PaymentStatus.PAID) {
-            // Money was collected — issue a full refund before cancelling.
-            //
-            // TODO (async): with real Stripe, call stripe.refunds.create() here and set
-            //   payment.setStatus(PaymentStatus.REFUND_PENDING) instead of REFUNDED.
-            //   A PaymentWebhookHandler will then advance REFUND_PENDING → REFUNDED
-            //   when Stripe sends the 'charge.refunded' event.
-            //   FakePaymentProvider skips REFUND_PENDING and returns successful immediately.
+            // Money was collected — issue a full provider refund before cancelling.
             PaymentResult result = paymentProvider.refund(payment);
-            if (!result.successful()) {
+            if (result.successful()) {
+                payment.setProviderReference(result.providerReference());
+                payment.setStatus(PaymentStatus.REFUNDED);
+                log.info("Payment refunded: paymentId={} bookingId={} providerRef={}",
+                        payment.getId(), booking.getId(), result.providerReference());
+            } else if (isPendingRefundStatus(result.providerStatus())) {
+                payment.setStatus(PaymentStatus.REFUND_PENDING);
+                payment.setProviderReference(result.providerReference());
+                log.info("Payment refund pending: paymentId={} bookingId={} providerRef={} providerStatus={}",
+                        payment.getId(), booking.getId(), result.providerReference(), result.providerStatus());
+            } else {
                 log.warn("Refund failed for paymentId={} bookingId={} — manual intervention required",
                         payment.getId(), booking.getId());
                 // Throw so the transaction rolls back: booking stays un-cancelled
                 // until the refund issue is resolved manually.
                 throw new RefundFailedException(payment.getId());
             }
-            payment.setStatus(PaymentStatus.REFUNDED);
-            log.info("Payment refunded: paymentId={} bookingId={}", payment.getId(), booking.getId());
         } else {
             // PENDING or FAILED — no money was collected, just void the record.
             payment.setStatus(PaymentStatus.CANCELLED);
@@ -100,15 +103,14 @@ public class PaymentService {
         payment.setProviderReference(result.providerReference());
 
         if (result.successful()) {
-            // TODO (async): with real Stripe, the synchronous charge call returns 'requires_action'
-            //   or 'processing' for many payment methods (3DS, SEPA, etc.).
-            //   A real implementation should set PENDING here and advance to PAID only when
-            //   Stripe sends the 'payment_intent.succeeded' webhook event.
-            //   FakePaymentProvider resolves synchronously — PAID immediately.
             payment.setStatus(PaymentStatus.PAID);
             payment.setPaidAt(appClock.nowUtc());
             log.info("Payment succeeded: paymentId={} bookingId={} ref={}",
                     payment.getId(), booking.getId(), result.providerReference());
+        } else if (isPendingPaymentIntentStatus(result.providerStatus())) {
+            payment.setStatus(PaymentStatus.PENDING);
+            log.info("Payment still pending: paymentId={} bookingId={} providerStatus={}",
+                    payment.getId(), booking.getId(), result.providerStatus());
         } else {
             payment.setStatus(PaymentStatus.FAILED);
             log.warn("Payment failed: paymentId={} bookingId={}", payment.getId(), booking.getId());
@@ -142,22 +144,76 @@ public class PaymentService {
         }
 
         switch (intentStatus) {
-            case "succeeded" -> {
-                payment.setStatus(PaymentStatus.PAID);
-                payment.setPaidAt(appClock.nowUtc());
-                log.info("Payment intent succeeded: paymentId={} bookingId={} intentStatus={}", payment.getId(), booking.getId(), intentStatus);
-            }
-            case "requires_payment_method", "canceled", "failed" -> {
-                payment.setStatus(PaymentStatus.FAILED);
-                log.info("Payment intent failed: paymentId={} bookingId={} intentStatus={}", payment.getId(), booking.getId(), intentStatus);
-            }
-            default -> {
-                // processing, requires_action, requires_confirmation, requires_capture, etc.
-                log.info("Payment intent pending: paymentId={} bookingId={} intentStatus={}", payment.getId(), booking.getId(), intentStatus);
-            }
+            case "succeeded" -> markPaymentPaid(payment, intentStatus);
+            case "requires_payment_method", "canceled", "failed" -> markPaymentFailed(payment, intentStatus);
+            default -> markPaymentPending(payment, intentStatus);
         }
 
         return paymentRepository.save(payment);
+    }
+
+    /**
+     * Applies a Stripe PaymentIntent webhook update to the local payment and booking.
+     * Idempotent: replaying the same Stripe event leaves the same final state.
+     */
+    @Transactional
+    public Optional<Payment> applyStripePaymentIntentStatus(
+            String stripePaymentIntentId,
+            String providerStatus,
+            String providerReference) {
+
+        return paymentRepository.findByStripePaymentIntentId(stripePaymentIntentId)
+                .map(payment -> {
+                    if (providerReference != null && !providerReference.isBlank()) {
+                        payment.setProviderReference(providerReference);
+                    }
+                    switch (providerStatus) {
+                        case "succeeded" -> {
+                            markPaymentPaid(payment, providerStatus);
+                            confirmBookingIfOpen(payment.getBooking());
+                        }
+                        case "requires_payment_method", "canceled", "failed" -> {
+                            markPaymentFailed(payment, providerStatus);
+                            failBookingIfOpen(payment.getBooking());
+                        }
+                        default -> {
+                            markPaymentPending(payment, providerStatus);
+                            keepBookingPendingIfOpen(payment.getBooking());
+                        }
+                    }
+                    return paymentRepository.save(payment);
+                });
+    }
+
+    /**
+     * Applies Stripe refund webhook updates. A successful refund is final; pending
+     * states are preserved for operations visibility instead of being treated as a failure.
+     */
+    @Transactional
+    public Optional<Payment> applyStripeRefundStatus(
+            String stripePaymentIntentId,
+            String refundId,
+            String refundStatus) {
+
+        return paymentRepository.findByStripePaymentIntentId(stripePaymentIntentId)
+                .map(payment -> {
+                    if (refundId != null && !refundId.isBlank()) {
+                        payment.setProviderReference(refundId);
+                    }
+                    if ("succeeded".equals(refundStatus)) {
+                        payment.setStatus(PaymentStatus.REFUNDED);
+                        log.info("Stripe refund succeeded: paymentId={} bookingId={} refundId={}",
+                                payment.getId(), payment.getBooking().getId(), refundId);
+                    } else if (isPendingRefundStatus(refundStatus)) {
+                        payment.setStatus(PaymentStatus.REFUND_PENDING);
+                        log.info("Stripe refund pending: paymentId={} bookingId={} refundId={} status={}",
+                                payment.getId(), payment.getBooking().getId(), refundId, refundStatus);
+                    } else {
+                        log.warn("Stripe refund status needs manual review: paymentId={} bookingId={} refundId={} status={}",
+                                payment.getId(), payment.getBooking().getId(), refundId, refundStatus);
+                    }
+                    return paymentRepository.save(payment);
+                });
     }
 
     public Optional<Payment> findLatestPayment(Booking booking) {
@@ -199,5 +255,60 @@ public class PaymentService {
                 .channel(PaymentChannel.ONLINE)
                 .status(PaymentStatus.PENDING)
                 .build();
+    }
+
+    private void markPaymentPaid(Payment payment, String providerStatus) {
+        payment.setStatus(PaymentStatus.PAID);
+        if (payment.getPaidAt() == null) {
+            payment.setPaidAt(appClock.nowUtc());
+        }
+        log.info("Payment intent succeeded: paymentId={} bookingId={} providerStatus={}",
+                payment.getId(), payment.getBooking().getId(), providerStatus);
+    }
+
+    private void markPaymentFailed(Payment payment, String providerStatus) {
+        payment.setStatus(PaymentStatus.FAILED);
+        log.info("Payment intent failed: paymentId={} bookingId={} providerStatus={}",
+                payment.getId(), payment.getBooking().getId(), providerStatus);
+    }
+
+    private void markPaymentPending(Payment payment, String providerStatus) {
+        payment.setStatus(PaymentStatus.PENDING);
+        log.info("Payment intent pending: paymentId={} bookingId={} providerStatus={}",
+                payment.getId(), payment.getBooking().getId(), providerStatus);
+    }
+
+    private void confirmBookingIfOpen(Booking booking) {
+        if (booking.getStatus() == BookingStatus.PENDING || booking.getStatus() == BookingStatus.FAILED) {
+            booking.setStatus(BookingStatus.CONFIRMED);
+            booking.setExpiresAt(null);
+            booking.setCheckoutSessionToken(null);
+        }
+    }
+
+    private void failBookingIfOpen(Booking booking) {
+        if (booking.getStatus() == BookingStatus.PENDING || booking.getStatus() == BookingStatus.FAILED) {
+            booking.setStatus(BookingStatus.FAILED);
+        }
+    }
+
+    private void keepBookingPendingIfOpen(Booking booking) {
+        if (booking.getStatus() == BookingStatus.FAILED) {
+            booking.setStatus(BookingStatus.PENDING);
+        }
+    }
+
+    private boolean isPendingPaymentIntentStatus(String providerStatus) {
+        return switch (providerStatus == null ? "" : providerStatus) {
+            case "processing", "requires_action", "requires_confirmation", "requires_capture" -> true;
+            default -> false;
+        };
+    }
+
+    private boolean isPendingRefundStatus(String providerStatus) {
+        return switch (providerStatus == null ? "" : providerStatus) {
+            case "pending", "requires_action" -> true;
+            default -> false;
+        };
     }
 }

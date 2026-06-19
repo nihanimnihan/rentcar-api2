@@ -2,20 +2,27 @@ package com.rentcar.api.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -38,6 +45,7 @@ public class SecurityConfig {
                 // Allow HttpSession for OAuth2 login flows; other APIs remain usable with or without sessions.
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .httpBasic(Customizer.withDefaults())
 
                 .authorizeHttpRequests(auth -> auth
                         // ── Static frontend resources ──────────────────────────────────────
@@ -61,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/bookings/*/payments/intent").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/bookings/*/payments/process").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/checkout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/payments/stripe/webhook").permitAll()
                         // Manage booking lookup — public, requires reference + lastName (no auth).
                         // Must come BEFORE the admin GET /api/bookings/** rule below.
                         .requestMatchers(HttpMethod.GET, "/api/bookings/manage").permitAll()
@@ -164,6 +173,24 @@ public class SecurityConfig {
         http.addFilterBefore(sessionAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public UserDetailsService adminUserDetailsService(
+            @Value("${rentcar.admin.username:admin}") String username,
+            @Value("${rentcar.admin.password:change-me}") String password,
+            PasswordEncoder passwordEncoder) {
+        return new InMemoryUserDetailsManager(
+                User.withUsername(username)
+                        .password(passwordEncoder.encode(password))
+                        .roles("ADMIN")
+                        .build()
+        );
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     /**

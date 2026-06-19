@@ -27,6 +27,7 @@ spring:
 stripe:
   api-key: ${STRIPE_API_KEY:}
   publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
 
 # Default admin credentials — overridden by each profile-specific yaml.
 # Prod profile replaces these with ${ADMIN_USERNAME} / ${ADMIN_PASSWORD} env vars.

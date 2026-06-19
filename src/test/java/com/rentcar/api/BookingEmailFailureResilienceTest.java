@@ -67,11 +67,12 @@ class BookingEmailFailureResilienceTest {
                 .andReturn();
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
+        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
 
         // Process payment — email will throw, but booking must still be CONFIRMED
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\":\"pm_test_valid\"}"))
+                        .content(payBody("pm_test_valid", checkoutToken)))
                 .andExpect(status().isOk())
                 // Response must indicate CONFIRMED despite email failure
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
@@ -116,5 +117,11 @@ class BookingEmailFailureResilienceTest {
                   "dropoffLocation": "City Centre"
                 }
                 """.formatted(carId, name, email, pickup, dropoff);
+    }
+
+    private String payBody(String paymentMethodId, String checkoutToken) {
+        return """
+                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
+                """.formatted(paymentMethodId, checkoutToken);
     }
 }

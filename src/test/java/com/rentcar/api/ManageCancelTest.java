@@ -151,7 +151,7 @@ class ManageCancelTest {
         BookingInfo b = createPendingBooking(pickupOffset, dropoffOffset, name, email);
         mockMvc.perform(post("/api/bookings/" + b.id() + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\":\"pm_test_valid\"}"))
+                        .content(payBody("pm_test_valid", b.checkoutToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
         return b;
@@ -167,7 +167,8 @@ class ManageCancelTest {
                 .andReturn();
         long id  = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
         String ref = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
-        return new BookingInfo(id, ref);
+        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
+        return new BookingInfo(id, ref, checkoutToken);
     }
 
     private long anyAvailableCarId(int pickupOffset, int dropoffOffset) throws Exception {
@@ -211,5 +212,11 @@ class ManageCancelTest {
                 """.formatted(carId, name, email, pickup, dropoff);
     }
 
-    private record BookingInfo(long id, String reference) {}
+    private String payBody(String paymentMethodId, String checkoutToken) {
+        return """
+                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
+                """.formatted(paymentMethodId, checkoutToken);
+    }
+
+    private record BookingInfo(long id, String reference, String checkoutToken) {}
 }

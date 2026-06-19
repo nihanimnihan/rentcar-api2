@@ -24,4 +24,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
      * <p>Same dual-sort as {@link #findTopByBookingOrderByCreatedAtDescIdDesc} for determinism.
      */
     List<Payment> findAllByBookingOrderByCreatedAtDescIdDesc(Booking booking);
+
+    Optional<Payment> findByStripePaymentIntentId(String stripePaymentIntentId);
 }

@@ -48,6 +48,8 @@ class MockPaymentFlowTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private String lastCheckoutToken;
+
     // ── 1. Happy path ─────────────────────────────────────────────────────────
 
     @Test
@@ -147,6 +149,7 @@ class MockPaymentFlowTest {
                         .content(bookingBody(carId, pickup, dropoff)))
                 .andExpect(status().isOk())
                 .andReturn();
+        lastCheckoutToken = result.getResponse().getHeader("X-Checkout-Session-Token");
         return ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.id")).longValue();
     }
 
@@ -174,7 +177,7 @@ class MockPaymentFlowTest {
 
     private String payBody(String paymentMethodId) {
         return """
-                {"paymentMethodId": "%s"}
-                """.formatted(paymentMethodId);
+                {"paymentMethodId": "%s", "checkoutSessionToken": "%s"}
+                """.formatted(paymentMethodId, lastCheckoutToken);
     }
 }

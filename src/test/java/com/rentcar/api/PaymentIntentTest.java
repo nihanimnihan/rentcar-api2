@@ -130,7 +130,7 @@ class PaymentIntentTest {
         // Force a payment failure
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\": \"" + FakePaymentProvider.FORCE_FAIL_METHOD_ID + "\"}"))
+                        .content(payBody(FakePaymentProvider.FORCE_FAIL_METHOD_ID)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("FAILED"));
 
@@ -178,7 +178,7 @@ class PaymentIntentTest {
 
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\": \"pm_valid\"}"))
+                        .content(payBody("pm_valid")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
 
@@ -261,6 +261,12 @@ class PaymentIntentTest {
             return String.format("{\"checkoutSessionToken\": \"%s\"}", lastCheckoutToken);
         }
         return "{}";
+    }
+
+    private String payBody(String paymentMethodId) {
+        return """
+                {"paymentMethodId": "%s", "checkoutSessionToken": "%s"}
+                """.formatted(paymentMethodId, lastCheckoutToken);
     }
 
     private String daysFromNow(int days) {

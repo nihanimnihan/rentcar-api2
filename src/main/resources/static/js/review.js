@@ -602,13 +602,10 @@ async function createPaymentIntent(bookingId) {
 /**
  * Returns the payment method ID to send to the backend.
  *
- * MVP: always returns the mock valid token.  The radio buttons on the review
- * page are wired to `initPaymentOptions()` and update the UI selection, but
- * there is no real Stripe integration yet.  When Stripe Elements are added,
- * replace the return value here with the generated PaymentMethod ID.
+ * Fake/dev fallback uses a deterministic token. In the Stripe PaymentIntent
+ * flow the backend verifies the intent status by id, so this value is ignored.
  */
 function getSelectedPaymentMethodId() {
-  // Future: read from Stripe Elements / selected radio and map to real PM id.
   return "pm_test_valid";
 }
 
@@ -622,10 +619,14 @@ function getSelectedPaymentMethodId() {
  */
 async function processBookingPayment(bookingId, firstName) {
   try {
+    const token = sessionStorage.getItem('rentcarCheckoutSessionToken');
     const res = await fetch(`/api/bookings/${bookingId}/payments/process`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentMethodId: getSelectedPaymentMethodId() })
+      body: JSON.stringify({
+        paymentMethodId: getSelectedPaymentMethodId(),
+        checkoutSessionToken: token || null
+      })
     });
 
     // Try to parse body regardless of status — backend may include a message.

@@ -189,11 +189,12 @@ class ManageBookingTest {
 
         long bookingId   = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
         String reference = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
+        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
 
         // Process payment → CONFIRMED
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"paymentMethodId\":\"pm_test_valid\"}"))
+                        .content(payBody("pm_test_valid", checkoutToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CONFIRMED"));
 
@@ -233,5 +234,11 @@ class ManageBookingTest {
                   "dropoffLocation": "City Centre"
                 }
                 """.formatted(carId, customerName, email, pickup, dropoff);
+    }
+
+    private String payBody(String paymentMethodId, String checkoutToken) {
+        return """
+                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
+                """.formatted(paymentMethodId, checkoutToken);
     }
 }
