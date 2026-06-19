@@ -23,6 +23,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final AppUserRepository userRepository;
     private final CustomerNumberGenerator numberGenerator;
+    private final com.rentcar.api.security.RoleAssignmentService roleAssignmentService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -60,6 +61,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 existing.setProfileComplete(profileComplete);
                 changed = true;
             }
+
+            // Role resolution from env-based lists: update role if priority requires
+            try {
+                com.rentcar.api.domain.user.AppRole resolved = roleAssignmentService.resolveRoleForEmail(email);
+                if (resolved != null && resolved != existing.getRole()) {
+                    existing.setRole(resolved);
+                    changed = true;
+                    log.info("Updated role for existing user {} -> {}", email, resolved);
+                }
+            } catch (Exception ex) {
+                log.warn("RoleAssignmentService failed for {}: {}", email, ex.getMessage());
+            }
+
             if (changed) {
                 existing.setUpdatedAt(Instant.now());
                 userRepository.save(existing);
@@ -71,20 +85,27 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         // New user
+        com.rentcar.api.domain.user.AppRole assigned = com.rentcar.api.domain.user.AppRole.CUSTOMER;
+        try {
+            assigned = roleAssignmentService.resolveRoleForEmail(email);
+        } catch (Exception ex) {
+            log.warn("RoleAssignmentService failed for {}: {}", email, ex.getMessage());
+        }
+
         AppUser u = AppUser.builder()
                 .email(email)
                 .firstName(first)
                 .lastName(last)
                 .country(null)
                 .provider(AuthProvider.GOOGLE)
-                .role(AppRole.CUSTOMER)
+                .role(assigned)
                 .customerNumber(numberGenerator.nextCustomerNumber())
                 .profileComplete(false)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
         userRepository.save(u);
-        log.info("Created new Google user: {}", email);
+        log.info("Created new Google user: {} role={}", email, assigned);
         return u;
     }
 }

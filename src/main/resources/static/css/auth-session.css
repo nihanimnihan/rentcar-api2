@@ -213,3 +213,46 @@ header .rc-user-menu__dropdown button:hover {
     display: none !important;
   }
 }
+
+/* Header dropdowns: language + user same visual */
+header .langMenu__content,
+header .rc-user-menu__dropdown,
+.langMenu__content,
+.rc-user-menu__dropdown {
+  width: 220px !important;
+  min-width: 220px !important;
+  padding: 10px !important;
+  border-radius: 16px !important;
+  background: rgba(5, 5, 5, 0.96) !important;
+  border: 1px solid rgba(248, 212, 72, 0.22) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* User menu rows same as lang menu rows */
+.rc-user-menu__dropdown a,
+.rc-user-menu__dropdown button,
+.langMenu__item {
+  height: 44px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  color: rgba(255,255,255,.86) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  background: transparent !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.rc-user-menu__dropdown a:hover,
+.rc-user-menu__dropdown button:hover,
+.langMenu__item:hover,
+.langMenu__item.is-active {
+  background: rgba(248,212,72,.14) !important;
+  color: #F8D448 !important;
+}
+
+/* Desktop user dropdown position */
+.rc-user-menu__dropdown {
+  right: 0 !important;
+  top: calc(100% + 12px) !important;
+}

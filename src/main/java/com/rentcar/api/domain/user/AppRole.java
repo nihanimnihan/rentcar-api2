@@ -1,5 +1,8 @@
 package com.rentcar.api.domain.user;
 
 public enum AppRole {
-    CUSTOMER, ADMIN
+    CUSTOMER,
+    STAFF,
+    ADMIN,
+    SUPER_ADMIN
 }

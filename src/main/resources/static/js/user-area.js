@@ -49,23 +49,40 @@
       <button data-ua-logout class="rc-logout">Logout</button>
     `;
 
-    // Bind logout
-    const logoutBtn = dropdown.querySelector('[data-ua-logout]');
-    if(logoutBtn){
-      logoutBtn.addEventListener('click', async function(){
-        try{ await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); }catch(e){}
-        localStorage.removeItem('rentcarUser');
-        // dark overlay to avoid white flash
-        try{
-          var overlay = document.getElementById('rc-dark-overlay');
-          if(!overlay){ overlay = document.createElement('div'); overlay.id='rc-dark-overlay'; overlay.style.position='fixed'; overlay.style.top='0'; overlay.style.left='0'; overlay.style.right='0'; overlay.style.bottom='0'; overlay.style.background='#191B1E'; overlay.style.zIndex='2147483647'; overlay.style.pointerEvents='none'; document.documentElement.appendChild(overlay); }
-        }catch(e){}
-        window.location.href = '/index.html';
-      });
+  // If user is admin or super admin, ensure admin link is visible in header (UX only)
+  try{
+    if (backendUser && (backendUser.role === 'ADMIN' || backendUser.role === 'SUPER_ADMIN')){
+      // Find a stable container near header auth links
+      var signupLink = document.querySelector('.rc-header-auth-link');
+      if (signupLink) {
+        var adminA = document.createElement('a');
+        adminA.href = '/admin/bookings.html';
+        adminA.className = 'rc-header-admin-link';
+        adminA.textContent = 'Admin';
+        adminA.style.marginLeft = '12px';
+        adminA.style.color = 'var(--rc-amber)';
+        signupLink.parentNode.insertBefore(adminA, signupLink.nextSibling);
+      }
     }
+  }catch(e){/* ignore UI enhancement errors */}
 
-    const btn = menu.querySelector('.rc-user-menu__button');
-    if(btn){ btn.addEventListener('click', ()=> menu.classList.toggle('is-open')); }
+  // Bind logout
+  const logoutBtn = dropdown.querySelector('[data-ua-logout]');
+  if(logoutBtn){
+    logoutBtn.addEventListener('click', async function(){
+      try{ await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }); }catch(e){}
+      localStorage.removeItem('rentcarUser');
+      // dark overlay to avoid white flash
+      try{
+        var overlay = document.getElementById('rc-dark-overlay');
+        if(!overlay){ overlay = document.createElement('div'); overlay.id='rc-dark-overlay'; overlay.style.position='fixed'; overlay.style.top='0'; overlay.style.left='0'; overlay.style.right='0'; overlay.style.bottom='0'; overlay.style.background='#191B1E'; overlay.style.zIndex='2147483647'; overlay.style.pointerEvents='none'; document.documentElement.appendChild(overlay); }
+      }catch(e){}
+      window.location.href = '/index.html';
+    });
+  }
+
+  const btn = menu.querySelector('.rc-user-menu__button');
+  if(btn){ btn.addEventListener('click', ()=> menu.classList.toggle('is-open')); }
   }
 
   // Run guard and populate

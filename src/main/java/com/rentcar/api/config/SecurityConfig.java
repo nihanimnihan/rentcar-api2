@@ -1,5 +1,6 @@
 package com.rentcar.api.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
@@ -15,12 +16,6 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -28,27 +23,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @ConfigurationPropertiesScan
 public class SecurityConfig {
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * Single in-memory admin user. The plain-text password from properties is
-     * BCrypt-encoded once at startup — it is never stored hashed in source code.
-     */
-    @Bean
-    public UserDetailsService userDetailsService(AdminProperties props, PasswordEncoder encoder) {
-        UserDetails admin = User.builder()
-                .username(props.username())
-                .password(encoder.encode(props.password()))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
-    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, com.rentcar.api.security.OAuth2LoginSuccessHandler successHandler, com.rentcar.api.security.CustomOAuth2UserService oauth2UserService, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, com.rentcar.api.security.OAuth2LoginSuccessHandler successHandler, com.rentcar.api.security.CustomOAuth2UserService oauth2UserService, ClientRegistrationRepository clientRegistrationRepository, com.rentcar.api.security.SessionAuthenticationFilter sessionAuthenticationFilter) throws Exception {
         http
                 /*
                  * CSRF disabled: keep disabled for now to avoid breaking existing JS fetch()
@@ -64,8 +41,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // ── Static frontend resources ──────────────────────────────────────
+                        .requestMatchers("/admin.html", "/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/", "/*.html").permitAll()
-                        .requestMatchers("/admin/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/fonts/**", "/partials/**").permitAll()
                         // H2 console (dev profile only — harmless to permit in prod since
                         // h2-console is disabled there via application-prod.yaml)
@@ -101,8 +78,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/transfer/bookings").permitAll()
 
                         // ── Admin (DEMO: open for presentation — TODO before production: restore hasRole("ADMIN")) ──
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // TODO BEFORE PRODUCTION: ensure ADMIN auth and tighten access
-                        .requestMatchers("/api/payments/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN","SUPER_ADMIN") // ADMIN+SUPER_ADMIN allowed
+                        .requestMatchers("/api/payments/**").hasAnyRole("ADMIN","SUPER_ADMIN")
 
                         // ── Public auth endpoints
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
@@ -116,35 +93,37 @@ public class SecurityConfig {
                         // Booking reads and cancellation are admin-only.
                         // The public POST /api/bookings and POST /api/bookings/*/payments/process
                         // rules above already match before reaching this line.
-                        .requestMatchers(HttpMethod.POST, "/api/bookings/*/cancel").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/bookings/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/customers/**").hasRole("ADMIN")
-                        .requestMatchers("/api/addons/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/cars/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/cars/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/cars/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/cars/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/*/cancel").hasAnyRole("ADMIN","SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/customers/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                        .requestMatchers("/api/addons/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/cars/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/cars/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/cars/**").hasAnyRole("ADMIN","SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cars/**").hasAnyRole("ADMIN","SUPER_ADMIN")
 
                         .anyRequest().authenticated()
                 )
 
-                // HTTP Basic with a JSON 401 — no Spring redirect to a login page.
-                .httpBasic(basic -> basic
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.getWriter().write(
-                                    "{\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}");
-                        })
-                )
-
-                // JSON 403 for authenticated users without the ADMIN role.
+                // JSON 403 for authenticated users without the ADMIN role and JSON 401 for API requests
                 .exceptionHandling(ex -> ex
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.getWriter().write(
                                     "{\"error\":\"Forbidden\",\"message\":\"Access denied\"}");
+                        })
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // For API endpoints prefer JSON 401; for browser requests redirect to signup
+                            String path = request instanceof HttpServletRequest ? ((HttpServletRequest) request).getRequestURI() : null;
+                            if (path != null && path.startsWith("/api/")) {
+                                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Authentication required\"}");
+                            } else {
+                                // Non-API: redirect to signup/login page
+                                response.sendRedirect("/signup.html");
+                            }
                         })
                 )
 
@@ -180,6 +159,9 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
                         .successHandler(successHandler)
                 );
+
+        // Register SessionAuthenticationFilter before the security context is used
+        http.addFilterBefore(sessionAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
