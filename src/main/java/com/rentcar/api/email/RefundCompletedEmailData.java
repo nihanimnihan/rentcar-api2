@@ -8,5 +8,7 @@ public record RefundCompletedEmailData(
         String customerEmail,
         String customerName,
         String refundReference,
-        String bankProcessingMessage
+        String bankProcessingMessage,
+        /** Optional manage-booking deep-link. Null if base URL not configured. */
+        String managementUrl
 ) {}

@@ -1,8 +1,8 @@
 /* ──────────────────────────────────────────────────────────────────────────
  * manage-booking.js
  * Handles the Manage Booking lookup form:
- *   1. User enters bookingReference + lastName
- *   2. GET /api/bookings/manage?bookingReference=...&lastName=...
+ *   1. User opens a tokenized email link, or enters bookingReference + lastName
+ *   2. GET /api/bookings/manage/token?token=... or /api/bookings/manage?bookingReference=...&lastName=...
  *   3. Renders a booking details card on success, or a .rc-alert--error
  *      panel (css/components/alerts.css) on failure
  * ─────────────────────────────────────────────────────────────────────────*/
@@ -14,6 +14,7 @@
 // re-prompting the user and without exposing the numeric booking id.
 let _currentRef      = null;
 let _currentLastName = null;
+let _currentManageToken = null;
 let _currentBooking  = null;
 let _currentPolicy   = null;
 
@@ -39,6 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     refreshCancelConfirmationText();
   });
+
+  const manageToken = new URLSearchParams(window.location.search).get('token');
+  if (manageToken && manageToken.trim()) {
+    lookupBookingByToken(manageToken.trim());
+  }
 });
 
 async function lookupBooking() {
@@ -89,6 +95,7 @@ async function lookupBooking() {
     // Store for the cancel flow — no numeric id, just the reference + lastName.
     _currentRef      = bookingReference;
     _currentLastName = lastName;
+    _currentManageToken = null;
 
     // Fetch cancellation policy for this booking. Runs after the main lookup so
     // a policy failure never prevents the booking card from rendering.
@@ -105,6 +112,77 @@ async function lookupBooking() {
     showError('', trans('manage.networkError'));
   } finally {
     setLoading(submitBtn, false);
+  }
+}
+
+async function lookupBookingByToken(token) {
+  const submitBtn = document.getElementById('mfSubmitBtn');
+
+  hideError();
+  hideResult();
+  setLoading(submitBtn, true);
+
+  try {
+    const resp = await fetch(`/api/bookings/manage/token?token=${encodeURIComponent(token)}`);
+
+    if (resp.status === 404) {
+      let msg = trans('manage.secureLinkInvalid');
+      try {
+        const body = await resp.json();
+        if (body?.message) msg = localizeBackendMessage(body.message, msg);
+      } catch (_) { /* ignore parse errors */ }
+      _currentManageToken = null;
+      showError(trans('manage.secureLinkInvalidTitle'), msg);
+      return;
+    }
+
+    if (!resp.ok) {
+      let msg = trans('manage.networkError');
+      try {
+        const body = await resp.json();
+        if (body?.message) msg = localizeBackendMessage(body.message, msg);
+      } catch (_) { /* ignore parse errors */ }
+      _currentManageToken = null;
+      showError('', msg);
+      return;
+    }
+
+    const booking = await resp.json();
+    const bookingReference = booking.bookingReference ?? '';
+
+    _currentRef = bookingReference;
+    _currentLastName = null;
+    _currentManageToken = token;
+
+    const refInput = document.getElementById('mfReference');
+    if (refInput && bookingReference) refInput.value = bookingReference;
+
+    const policy = await fetchPolicyForCurrentLookup();
+
+    renderResult(booking, policy);
+    collapseForm(bookingReference);
+  } catch (_err) {
+    _currentManageToken = null;
+    showError('', trans('manage.networkError'));
+  } finally {
+    setLoading(submitBtn, false);
+  }
+}
+
+async function fetchPolicyForCurrentLookup() {
+  try {
+    let policyUrl = null;
+    if (_currentManageToken) {
+      policyUrl = `/api/bookings/manage/cancellation-policy/token?token=${encodeURIComponent(_currentManageToken)}`;
+    } else if (_currentRef && _currentLastName) {
+      policyUrl = `/api/bookings/manage/cancellation-policy?bookingReference=${encodeURIComponent(_currentRef)}&lastName=${encodeURIComponent(_currentLastName)}`;
+    }
+    if (!policyUrl) return null;
+
+    const policyResp = await fetch(policyUrl);
+    return policyResp.ok ? await policyResp.json() : null;
+  } catch (_) {
+    return null;
   }
 }
 
@@ -242,32 +320,31 @@ function cancellationPolicySectionHtml(policy) {
  * Authentication is by bookingReference + lastName stored at lookup time.
  */
 async function confirmAndCancelBooking() {
-  if (!_currentRef || !_currentLastName) return;
+  if (!_currentManageToken && (!_currentRef || !_currentLastName)) return;
 
-  const confirmed = await showCancelConfirmation(_currentRef);
+  const bookingReference = _currentRef || _currentBooking?.bookingReference || '';
+  const confirmed = await showCancelConfirmation(bookingReference);
   if (!confirmed) return;
 
   const btn = document.querySelector('.manage-booking-cancel-btn--active');
   if (btn) { btn.disabled = true; btn.textContent = trans('manage.cancelling'); }
 
   try {
+    const requestBody = _currentManageToken
+      ? { token: _currentManageToken }
+      : { bookingReference: _currentRef, lastName: _currentLastName };
+
     const resp = await fetch('/api/bookings/manage/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookingReference: _currentRef, lastName: _currentLastName }),
+      body: JSON.stringify(requestBody),
     });
 
     if (resp.ok) {
       const updated = await resp.json();
       // Re-render the card with the updated booking (status=CANCELLED).
       // Fetch a fresh policy (now not cancellable) to update the cancellation section.
-      let freshPolicy = null;
-      try {
-        const pr = await fetch(
-          `/api/bookings/manage/cancellation-policy?bookingReference=${encodeURIComponent(_currentRef)}&lastName=${encodeURIComponent(_currentLastName)}`
-        );
-        if (pr.ok) freshPolicy = await pr.json();
-      } catch (_) { /* ignore */ }
+      const freshPolicy = await fetchPolicyForCurrentLookup();
 
       renderResult(updated, freshPolicy);
 
@@ -277,7 +354,7 @@ async function confirmAndCancelBooking() {
         const banner = document.createElement('div');
         banner.innerHTML = buildErrorPanel(
           trans('manage.cancelSuccessTitle'),
-          trans('manage.cancelSuccessMessage', { reference: _currentRef }),
+          trans('manage.cancelSuccessMessage', { reference: bookingReference }),
           'success'
         );
         section.prepend(banner);
@@ -656,6 +733,7 @@ function localizeBackendMessage(message, fallback) {
 
   const keyByMessage = {
     "We couldn't find a booking with these details. Please check your reference and last name.": 'manage.notFound',
+    'This secure booking link is invalid or expired. Please look up your booking with your reference and last name.': 'manage.secureLinkInvalid',
     'Booking not found': 'manage.notFoundTitle',
     'Booking cannot be cancelled': 'manage.cancelError',
   };

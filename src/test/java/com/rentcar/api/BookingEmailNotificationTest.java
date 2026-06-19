@@ -122,8 +122,7 @@ class BookingEmailNotificationTest {
         assertThat(email.dropoffLocation()).isNotBlank();
         assertThat(email.selectedService()).isNotBlank();
         assertThat(email.totalPrice()).isPositive();
-        assertThat(email.managementUrl())
-                .isEqualTo("http://localhost:8091/manage-booking.html?bookingReference=" + bookingRef);
+        assertTokenizedManageUrl(email.managementUrl());
     }
 
     // ── 3. Payment failure → no email sent ────────────────────────────────────
@@ -193,6 +192,7 @@ class BookingEmailNotificationTest {
         assertThat(email.refundStatus()).isEqualTo(PaymentStatus.REFUNDED);
         assertThat(email.refundStatusLabel()).isEqualTo("Refund completed");
         assertThat(email.bankProcessingMessage()).contains("few business days");
+        assertTokenizedManageUrl(email.managementUrl());
     }
 
     // ── 5. Stripe async payment success sends confirmation once ─────────────
@@ -276,6 +276,7 @@ class BookingEmailNotificationTest {
         assertThat(emails.get(0).customerEmail()).isEqualTo("refund.webhook@example.com");
         assertThat(emails.get(0).refundReference()).isEqualTo("re_test_123");
         assertThat(emails.get(0).bankProcessingMessage()).contains("few business days");
+        assertTokenizedManageUrl(emails.get(0).managementUrl());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -335,5 +336,13 @@ class BookingEmailNotificationTest {
                   "cancellationReason": "%s"
                 }
                 """.formatted(bookingReference, lastName, cancellationReason);
+    }
+
+    private void assertTokenizedManageUrl(String managementUrl) {
+        assertThat(managementUrl)
+                .startsWith("http://localhost:8091/manage-booking.html?token=")
+                .doesNotContain("bookingReference=");
+        assertThat(managementUrl.substring(managementUrl.indexOf("token=") + "token=".length()))
+                .isNotBlank();
     }
 }

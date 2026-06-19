@@ -1,15 +1,16 @@
 package com.rentcar.api.dto.booking;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import jakarta.validation.constraints.NotBlank;
 
 /**
  * Customer-facing cancellation request.
- * Authenticated by bookingReference + lastName — no numeric id exposed.
+ * Authenticated by either a manage token or bookingReference + lastName.
+ * No numeric id is exposed.
  */
 public record ManageCancelRequest(
-        @NotBlank String bookingReference,
-        @NotBlank String lastName,
-        @JsonAlias("reason") String cancellationReason
+        String bookingReference,
+        String lastName,
+        @JsonAlias("reason") String cancellationReason,
+        @JsonAlias({"token", "manageBookingToken"}) String manageToken
 ) {
 }

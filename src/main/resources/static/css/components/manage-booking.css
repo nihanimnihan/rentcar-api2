@@ -29,10 +29,23 @@ body.manage-booking-page main {
 
 body.manage-booking-page main > section.layout-pt-xl {
   flex: 1 0 auto;
+  padding-top: 44px;
 }
 
 body.manage-booking-page #minimal-footer-placeholder {
   flex: 0 0 auto;
+}
+
+@media (max-width: 767px) {
+  body.manage-booking-page main > section.layout-pt-xl {
+    padding-top: 34px;
+  }
+}
+
+@media (max-width: 575px) {
+  body.manage-booking-page main > section.layout-pt-xl {
+    padding-top: 28px;
+  }
 }
 
 /* ── Collapsed form header (shown after successful lookup) ───────────────── */

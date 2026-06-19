@@ -36,10 +36,16 @@ import java.util.List;
 @Entity
 @Table(
         name = "bookings",
-        indexes = @Index(
-                name = "idx_bookings_availability",
-                columnList = "car_id, status, pickup_date_time, dropoff_date_time"
-        ),
+        indexes = {
+                @Index(
+                        name = "idx_bookings_availability",
+                        columnList = "car_id, status, pickup_date_time, dropoff_date_time"
+                ),
+                @Index(
+                        name = "idx_bookings_manage_token_hash",
+                        columnList = "manage_token_hash"
+                )
+        },
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_bookings_reference",
                 columnNames = "booking_reference"
@@ -153,6 +159,15 @@ public class Booking {
 
     @Column(name = "checkout_session_token", length = 255)
     private String checkoutSessionToken;
+
+    @Column(name = "manage_token_hash", length = 64)
+    private String manageTokenHash;
+
+    @Column(name = "manage_token_expires_at")
+    private Instant manageTokenExpiresAt;
+
+    @Column(name = "manage_token_revoked_at")
+    private Instant manageTokenRevokedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

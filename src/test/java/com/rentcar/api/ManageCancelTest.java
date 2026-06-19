@@ -3,6 +3,7 @@ package com.rentcar.api;
 import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.service.ManageBookingTokenService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *  5. Booking with past pickup cannot be cancelled → 409
  *
  * Uses date windows starting at 1200 days to avoid conflicts with all existing
- * tests (CancellationPolicyTest occupies 1100–1152, ManageBookingTest 950–994,
+ * tests (CancellationPolicyTest occupies 1100–1152, ManageBookingTest 950–1006,
  * MockPaymentFlowTest 900–922, TransferBookingControllerTest 800–870).
  */
 @SpringBootTest
@@ -48,6 +49,7 @@ class ManageCancelTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private BookingRepository bookingRepository;
+    @Autowired private ManageBookingTokenService manageBookingTokenService;
 
     // ── 1. Cancel PENDING booking by reference + lastName ────────────────────
 
@@ -144,6 +146,21 @@ class ManageCancelTest {
         }
     }
 
+    @Test
+    void cancel_validManageToken_returnsCancelled() throws Exception {
+        BookingInfo b = createConfirmedBooking(1250, 1252, "Frank Token", "frank.token@test.com");
+        Booking booking = bookingRepository.findById(b.id()).orElseThrow();
+        String token = manageBookingTokenService.issueToken(booking);
+
+        mockMvc.perform(post("/api/bookings/manage/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cancelTokenBody(token, "Token cancellation")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingReference").value(b.reference()))
+                .andExpect(jsonPath("$.status").value("CANCELLED"))
+                .andExpect(jsonPath("$.cancellationReason").value("Token cancellation"));
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private BookingInfo createConfirmedBooking(int pickupOffset, int dropoffOffset,
@@ -194,6 +211,12 @@ class ManageCancelTest {
         return """
                 {"bookingReference": "%s", "lastName": "%s"}
                 """.formatted(bookingReference, lastName);
+    }
+
+    private String cancelTokenBody(String token, String cancellationReason) {
+        return """
+                {"token": "%s", "cancellationReason": "%s"}
+                """.formatted(token, cancellationReason);
     }
 
     private String bookingBody(long carId, String pickup, String dropoff,

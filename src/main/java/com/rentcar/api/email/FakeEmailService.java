@@ -89,15 +89,20 @@ public class FakeEmailService implements EmailService {
     public void sendRefundCompleted(RefundCompletedEmailData data) {
         sentRefundCompletedEmails.add(data);
 
+        String manageLink = (data.managementUrl() != null && !data.managementUrl().isBlank())
+                ? "\n  Manage booking : " + data.managementUrl()
+                : "";
+
         log.info("""
                 [FAKE EMAIL] Refund completed
                   To            : {} <{}>
                   Reference     : {}
-                  Refund ref    : {}
+                  Refund ref    : {}{}
                 """,
                 data.customerName(), data.customerEmail(),
                 data.bookingReference(),
-                data.refundReference());
+                data.refundReference(),
+                manageLink);
     }
 
     /** Returns an unmodifiable snapshot of all confirmation emails sent since the last {@link #clearSentEmails()}. */

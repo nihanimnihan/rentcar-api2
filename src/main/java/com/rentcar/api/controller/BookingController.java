@@ -51,6 +51,12 @@ public class BookingController {
         return enrichWithPayment(bookingMapper.toResponse(booking), booking);
     }
 
+    @GetMapping("/manage/token")
+    public BookingResponse manageBookingByToken(@RequestParam String token) {
+        Booking booking = bookingService.findBookingByManageToken(token);
+        return enrichWithPayment(bookingMapper.toResponse(booking), booking);
+    }
+
     /** Enriches a mapper-produced response with the latest payment status and method. */
     private BookingResponse enrichWithPayment(BookingResponse base, Booking booking) {
         return paymentService.findLatestPayment(booking)

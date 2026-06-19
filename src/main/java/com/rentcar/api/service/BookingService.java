@@ -52,6 +52,7 @@ public class BookingService {
     private final BusinessTimezone businessTimezone;
     private final BookingReferenceGenerator referenceGenerator;
     private final AppClock appClock;
+    private final ManageBookingTokenService manageBookingTokenService;
 
     private static final String MANAGE_NOT_FOUND_MSG =
             "We couldn't find a booking with these details. Please check your reference and last name.";
@@ -217,6 +218,10 @@ public class BookingService {
             throw new BookingNotFoundException(MANAGE_NOT_FOUND_MSG);
         }
         return booking;
+    }
+
+    public Booking findBookingByManageToken(String token) {
+        return manageBookingTokenService.findBookingByToken(token);
     }
 
     private String generateUniqueReference() {

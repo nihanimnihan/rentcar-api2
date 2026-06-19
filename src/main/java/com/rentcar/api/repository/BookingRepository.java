@@ -59,6 +59,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     boolean existsByCheckoutSessionToken(String checkoutSessionToken);
 
+    boolean existsByManageTokenHash(String manageTokenHash);
+
+    @Query("SELECT b FROM Booking b " +
+           "JOIN FETCH b.customer " +
+           "JOIN FETCH b.car " +
+           "LEFT JOIN FETCH b.rentalDetails " +
+           "LEFT JOIN FETCH b.transferDetails " +
+           "WHERE b.manageTokenHash = :hash")
+    Optional<Booking> findByManageTokenHashEager(@Param("hash") String hash);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT b FROM Booking b WHERE b.id = :id AND b.checkoutSessionToken = :token")
     Optional<Booking> findByIdAndCheckoutSessionTokenForUpdate(@Param("id") Long id, @Param("token") String token);

@@ -16,11 +16,27 @@ Cancellation emails include the booking reference, cancellation reason when prov
 status, and the message that refunds may take a few business days to appear in the customer's
 bank account.
 
+Manage-booking links in customer emails use secure random tokens, stored only as SHA-256 hashes
+on the booking row. Existing reference + surname lookup remains available as a fallback when a
+token is invalid, expired, or superseded by a newer lifecycle email.
+
+Known launch trade-off: RentCar keeps one active manage-booking token per booking. Sending a
+new lifecycle email, such as cancellation or refund-completed, rotates the token and replaces
+the previous email link. Customers who open an older email link see a friendly fallback message
+and can still access the booking with reference + surname. Revisit multi-token support after
+launch if support volume shows customers often use older lifecycle emails.
+
 ## Required production environment variables
 
 Core public URL:
 
 - `APP_PUBLIC_BASE_URL` - public application origin used for manage-booking links.
+- `RENTCAR_MANAGE_BOOKING_TOKEN_TTL_DAYS` - optional, defaults to `30`.
+
+Database migration required before production deploy:
+
+- Apply `docs/database/2026-06-20-manage-booking-tokens.sql` so manage-booking
+  email tokens can be stored as hashes with expiry and revocation metadata.
 
 SMTP:
 

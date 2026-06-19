@@ -27,6 +27,7 @@ public class BookingEmailNotificationService {
             "The refund is completed on our side, but it may still take a few business days to appear in your bank account.";
 
     private final EmailService emailService;
+    private final ManageBookingTokenService manageBookingTokenService;
 
     @Value("${app.public-base-url:}")
     private String publicBaseUrl;
@@ -92,7 +93,8 @@ public class BookingEmailNotificationService {
                 booking.getCustomer().getEmail(),
                 booking.getCustomer().getFullName(),
                 payment.getProviderReference(),
-                REFUND_COMPLETED_BANK_PROCESSING_MESSAGE
+                REFUND_COMPLETED_BANK_PROCESSING_MESSAGE,
+                manageBookingUrl(booking)
         );
     }
 
@@ -101,9 +103,10 @@ public class BookingEmailNotificationService {
             return null;
         }
         String normalizedBaseUrl = publicBaseUrl.trim().replaceAll("/+$", "");
+        String token = manageBookingTokenService.issueToken(booking);
         return UriComponentsBuilder.fromUriString(normalizedBaseUrl)
                 .path("/manage-booking.html")
-                .queryParam("bookingReference", booking.getBookingReference())
+                .queryParam("token", token)
                 .toUriString();
     }
 

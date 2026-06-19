@@ -146,13 +146,15 @@ public class SmtpEmailService implements EmailService {
 
                 Refund reference: %s
                 %s
+                Manage booking: %s
 
                 RentCar
                 """.formatted(
                 data.customerName(),
                 data.bookingReference(),
                 optional(data.refundReference(), "Not available"),
-                data.bankProcessingMessage());
+                data.bankProcessingMessage(),
+                optional(data.managementUrl(), "Not available"));
     }
 
     private String optional(String value, String fallback) {

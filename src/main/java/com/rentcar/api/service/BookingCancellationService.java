@@ -28,6 +28,7 @@ public class BookingCancellationService {
     private final PaymentService paymentService;
     private final BusinessTimezone businessTimezone;
     private final BookingEmailNotificationService bookingEmailNotificationService;
+    private final ManageBookingTokenService manageBookingTokenService;
 
     @Transactional
     public Booking cancelBooking(Long id) {
@@ -79,6 +80,16 @@ public class BookingCancellationService {
     public Booking cancelBookingByReference(String bookingReference, String lastName, String cancellationReason) {
         // Step 1: Verify identity and check policy (non-locked read).
         Booking booking = bookingService.findBookingByReferenceAndLastName(bookingReference, lastName);
+        return cancelVerifiedCustomerBooking(booking, cancellationReason, null);
+    }
+
+    @Transactional
+    public Booking cancelBookingByManageToken(String manageToken, String cancellationReason) {
+        Booking booking = manageBookingTokenService.findBookingByToken(manageToken);
+        return cancelVerifiedCustomerBooking(booking, cancellationReason, manageToken);
+    }
+
+    private Booking cancelVerifiedCustomerBooking(Booking booking, String cancellationReason, String manageToken) {
         LocalDateTime now = businessTimezone.nowBusinessLocal();
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
@@ -96,6 +107,10 @@ public class BookingCancellationService {
         // cancel + completePayment requests are serialised.
         Booking locked = bookingRepository.findByIdForUpdate(booking.getId())
                 .orElseThrow(() -> new BookingNotFoundException(booking.getId()));
+
+        if (manageToken != null && !manageToken.isBlank()) {
+            manageBookingTokenService.validateTokenForBooking(locked, manageToken);
+        }
 
         // Re-check status under lock in case another request won the race.
         if (locked.getStatus() == BookingStatus.CANCELLED) {
@@ -117,7 +132,7 @@ public class BookingCancellationService {
                 .ifPresent(payment -> bookingEmailNotificationService
                         .sendBookingCancellation(saved, payment.getStatus()));
         log.info("Booking cancelled by customer: bookingId={} reference={} status={} cancelledByType={} cancelledChannel={}",
-                saved.getId(), bookingReference, saved.getStatus(),
+                saved.getId(), saved.getBookingReference(), saved.getStatus(),
                 saved.getCancelledByType(), saved.getCancelledChannel());
         return saved;
     }
@@ -140,6 +155,15 @@ public class BookingCancellationService {
      */
     public CancellationPolicyResponse getCancellationPolicy(String bookingReference, String lastName) {
         Booking booking = bookingService.findBookingByReferenceAndLastName(bookingReference, lastName);
+        return cancellationPolicyFor(booking);
+    }
+
+    public CancellationPolicyResponse getCancellationPolicyByManageToken(String manageToken) {
+        Booking booking = manageBookingTokenService.findBookingByToken(manageToken);
+        return cancellationPolicyFor(booking);
+    }
+
+    private CancellationPolicyResponse cancellationPolicyFor(Booking booking) {
         LocalDateTime now = businessTimezone.nowBusinessLocal();
 
         // Rule 1 — already cancelled

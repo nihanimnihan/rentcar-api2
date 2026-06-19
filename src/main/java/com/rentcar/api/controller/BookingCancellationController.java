@@ -26,6 +26,11 @@ public class BookingCancellationController {
         return bookingCancellationService.getCancellationPolicy(bookingReference, lastName);
     }
 
+    @GetMapping("/manage/cancellation-policy/token")
+    public CancellationPolicyResponse cancellationPolicyByToken(@RequestParam String token) {
+        return bookingCancellationService.getCancellationPolicyByManageToken(token);
+    }
+
     /**
      * Customer-facing cancellation. Identity verified by bookingReference + lastName.
      * Evaluates cancellation policy and returns CANCELLED booking on success.
@@ -33,8 +38,11 @@ public class BookingCancellationController {
      */
     @PostMapping("/manage/cancel")
     public BookingResponse cancelByReference(@Valid @RequestBody ManageCancelRequest request) {
-        Booking booking = bookingCancellationService.cancelBookingByReference(
-                request.bookingReference(), request.lastName(), request.cancellationReason());
+        Booking booking = hasText(request.manageToken())
+                ? bookingCancellationService.cancelBookingByManageToken(
+                        request.manageToken(), request.cancellationReason())
+                : bookingCancellationService.cancelBookingByReference(
+                        request.bookingReference(), request.lastName(), request.cancellationReason());
         return enrichWithPayment(bookingMapper.toResponse(booking), booking);
     }
 
@@ -48,5 +56,9 @@ public class BookingCancellationController {
         return paymentService.findLatestPayment(booking)
                 .map(p -> base.withPayment(p.getStatus(), p.getMethod()))
                 .orElse(base);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

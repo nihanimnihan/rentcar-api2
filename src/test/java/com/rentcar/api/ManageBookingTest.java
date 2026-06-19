@@ -1,6 +1,9 @@
 package com.rentcar.api;
 
 import com.jayway.jsonpath.JsonPath;
+import com.rentcar.api.domain.booking.Booking;
+import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.service.ManageBookingTokenService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -41,6 +45,12 @@ class ManageBookingTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private ManageBookingTokenService manageBookingTokenService;
 
     // ── 1. Valid reference + correct lastName → 200 ────────────────────────────
 
@@ -162,6 +172,42 @@ class ManageBookingTest {
                 .andExpect(jsonPath("$.bookingReference").value(ref));
     }
 
+    @Test
+    void manage_validToken_returnsBookingDirectly() throws Exception {
+        String ref = createConfirmedBookingAndGetReference(1000, 1002, "Token Direct", "token.direct@test.com");
+        String token = issueManageToken(ref);
+
+        mockMvc.perform(get("/api/bookings/manage/token")
+                        .param("token", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingReference").value(ref))
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    }
+
+    @Test
+    void manage_invalidToken_returnsFriendlyFallbackMessage() throws Exception {
+        mockMvc.perform(get("/api/bookings/manage/token")
+                        .param("token", "not-a-real-token"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.message").value(ManageBookingTokenService.INVALID_OR_EXPIRED_MESSAGE));
+    }
+
+    @Test
+    void manage_expiredToken_returnsFriendlyFallbackMessage() throws Exception {
+        String ref = createConfirmedBookingAndGetReference(1004, 1006, "Token Expired", "token.expired@test.com");
+        String token = issueManageToken(ref);
+        Booking booking = bookingRepository.findByBookingReferenceEager(ref).orElseThrow();
+        booking.setManageTokenExpiresAt(Instant.now().minusSeconds(60));
+        bookingRepository.saveAndFlush(booking);
+
+        mockMvc.perform(get("/api/bookings/manage/token")
+                        .param("token", token))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Not found"))
+                .andExpect(jsonPath("$.message").value(ManageBookingTokenService.INVALID_OR_EXPIRED_MESSAGE));
+    }
+
 
 
     /**
@@ -172,6 +218,11 @@ class ManageBookingTest {
             int pickupOffset, int dropoffOffset, String customerName) throws Exception {
         String email = customerName.toLowerCase().replace(" ", ".") + "@test.com";
         return createConfirmedBookingAndGetReference(pickupOffset, dropoffOffset, customerName, email);
+    }
+
+    private String issueManageToken(String bookingReference) {
+        Booking booking = bookingRepository.findByBookingReferenceEager(bookingReference).orElseThrow();
+        return manageBookingTokenService.issueToken(booking);
     }
 
     private String createConfirmedBookingAndGetReference(
