@@ -40,8 +40,9 @@ public class CustomerService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Customer getOrCreateCustomer(String name, String email, String phone, String language) {
+        String normalizedEmail = email == null ? null : email.trim().toLowerCase(java.util.Locale.ROOT);
         String preferredLanguage = LanguageNormalizer.normalizeOrDefault(language);
-        return customerRepository.findByEmail(email)
+        return customerRepository.findByEmail(normalizedEmail)
                 .map(c -> {
                     if (c.getPreferredLanguage() == null || c.getPreferredLanguage().isBlank()) {
                         c.setPreferredLanguage(preferredLanguage);
@@ -54,7 +55,7 @@ public class CustomerService {
                         Customer created = customerRepository.saveAndFlush(
                                 Customer.builder()
                                         .fullName(name)
-                                        .email(email)
+                                        .email(normalizedEmail)
                                         .phone(phone)
                                         .preferredLanguage(preferredLanguage)
                                         .build()
@@ -65,9 +66,9 @@ public class CustomerService {
                         // Another thread inserted the same email between our SELECT and INSERT.
                         // The UNIQUE constraint caught it — re-select to get the existing row.
                         log.warn("Concurrent customer insert detected — re-selecting existing record");
-                        Customer existing = customerRepository.findByEmail(email)
+                        Customer existing = customerRepository.findByEmail(normalizedEmail)
                                 .orElseThrow(() -> new IllegalStateException(
-                                        "Customer not found after duplicate key for email: " + email, e));
+                                        "Customer not found after duplicate key for email: " + normalizedEmail, e));
                         if (existing.getPreferredLanguage() == null || existing.getPreferredLanguage().isBlank()) {
                             existing.setPreferredLanguage(preferredLanguage);
                         }

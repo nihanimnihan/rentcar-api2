@@ -1,6 +1,7 @@
 (function () {
   const state = {
-    email: ""
+    email: "",
+    profileToken: ""
   };
 
   function showStep(name) {
@@ -13,7 +14,7 @@
     return document.getElementById("email").value.trim();
   }
 
-  function goVerify() {
+  async function goVerify() {
     const email = getEmail();
     const invalid = !isValidEmail(email);
 
@@ -22,9 +23,17 @@
     if (invalid) return;
 
     state.email = email;
-    document.getElementById("verifyEmailText").textContent = email;
-    showStep("verify");
-    focusFirstCodeInput();
+    try {
+      await requestCode();
+      document.getElementById("verifyEmailText").textContent = email;
+      clearCodeInputs();
+      clearFormMessage("loginMessage");
+      clearFormMessage("verifyMessage");
+      showStep("verify");
+      focusFirstCodeInput();
+    } catch (e) {
+      showFormMessage("loginMessage", message("auth.codeRequestFailed", "Unable to send the code. Please try again."), "error");
+    }
   }
 
 function getReturnTo() {
@@ -89,26 +98,31 @@ function goProfileFromGoogle() {
       const email = document.getElementById("profileEmail").value.trim();
       const firstName = document.getElementById("firstName").value.trim();
       const lastName = document.getElementById("lastName").value.trim();
-      const country = document.getElementById("country").value;
+      const phoneCountryCode = document.getElementById("phoneCountryCode").value;
+      const phoneNumber = document.getElementById("phoneNumber").value.trim();
 
       const emailInvalid = !isValidEmail(email);
       const firstNameInvalid = !firstName;
       const lastNameInvalid = !lastName;
-      const countryInvalid = !country;
+      const phoneCountryCodeInvalid = !phoneCountryCode;
+      const phoneNumberInvalid = !isValidPhoneNumber(phoneNumber);
 
       markError("profileEmail", emailInvalid);
       markError("firstName", firstNameInvalid);
       markError("lastName", lastNameInvalid);
-      markError("country", countryInvalid);
+      markError("phoneCountryCode", phoneCountryCodeInvalid);
+      markError("phoneNumber", phoneNumberInvalid);
 
-      if (emailInvalid || firstNameInvalid || lastNameInvalid || countryInvalid) {
+      if (emailInvalid || firstNameInvalid || lastNameInvalid || phoneCountryCodeInvalid || phoneNumberInvalid) {
         return;
       }
 
-      const payload = { firstName, lastName, country };
+      const payload = { firstName, lastName, phoneCountryCode, phoneNumber };
+      const endpoint = state.profileToken ? '/api/auth/email/complete-profile' : '/api/auth/profile';
+      if (state.profileToken) payload.profileToken = state.profileToken;
 
       try {
-        const res = await fetch('/api/auth/profile', {
+        const res = await fetch(endpoint, {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
@@ -131,29 +145,78 @@ function goProfileFromGoogle() {
           try { errText = await res.text(); } catch (_) { errText = '' }
         }
         console.error('Profile save failed', res.status, errText);
-        alert('Unable to save profile: ' + (errText || res.status));
+        showFormMessage("profileMessage", message("auth.profileSaveFailed", "Unable to save profile. Please check the fields and try again."), "error");
         return;
       } catch (e) {
         console.error('Profile save request failed', e);
-        alert('Unable to save profile due to a network error');
+        showFormMessage("profileMessage", message("auth.networkError", "Unable to continue due to a network error."), "error");
         return;
       }
     }
 
-  function verifyCode() {
+  async function requestCode() {
+    const res = await fetch('/api/auth/email/request-code', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: state.email })
+    });
+    if (!res.ok) throw new Error('request-code failed');
+  }
+
+  async function verifyCode() {
     const code = Array.from(document.querySelectorAll(".rc-code-row input"))
       .map(input => input.value)
       .join("");
 
     if (code.length !== 6) {
-      alert("Please enter the 6-digit code.");
+      showFormMessage("verifyMessage", message("auth.requiredCode", "Please enter the 6-digit code."), "error");
       return;
     }
 
-    const profileEmail = document.getElementById("profileEmail");
-    if (profileEmail) profileEmail.value = state.email;
+    try {
+      clearFormMessage("verifyMessage");
+      const res = await fetch('/api/auth/email/verify-code', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: state.email, code })
+      });
+      if (!res.ok) {
+        showFormMessage("verifyMessage", message("auth.invalidCode", "The code is invalid or has expired. Please request a new code."), "error");
+        return;
+      }
+      const data = await res.json();
+      if (data.status === 'LOGGED_IN') {
+        window.location.href = getReturnTo();
+        return;
+      }
+      if (data.status === 'PROFILE_REQUIRED' && data.profileToken) {
+        state.profileToken = data.profileToken;
+        const profileEmail = document.getElementById("profileEmail");
+        if (profileEmail) profileEmail.value = state.email;
+        clearFormMessage("profileMessage");
+        showStep("profile");
+        return;
+      }
+      showFormMessage("verifyMessage", message("auth.unexpectedResponse", "Unable to continue. Please try again."), "error");
+    } catch (e) {
+      showFormMessage("verifyMessage", message("auth.networkError", "Unable to continue due to a network error."), "error");
+    }
+  }
 
-    showStep("profile");
+  async function resendCode() {
+    if (!state.email) state.email = getEmail();
+    if (!isValidEmail(state.email)) return showStep("login");
+    try {
+      await requestCode();
+      clearCodeInputs();
+      clearFormMessage("verifyMessage");
+      focusFirstCodeInput();
+      showFormMessage("verifyMessage", message("auth.codeResent", "A new code has been sent."), "success");
+    } catch (e) {
+      showFormMessage("verifyMessage", message("auth.codeRequestFailed", "Unable to send the code. Please try again."), "error");
+    }
   }
 
 
@@ -162,12 +225,32 @@ function goProfileFromGoogle() {
     if (first) setTimeout(() => first.focus(), 100);
   }
 
+  function clearCodeInputs() {
+    document.querySelectorAll(".rc-code-row input").forEach(input => input.value = "");
+  }
+
+  function showFormMessage(id, text, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove("is-error", "is-success");
+    el.classList.add("is-visible", type === "success" ? "is-success" : "is-error");
+  }
+
+  function clearFormMessage(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = "";
+    el.classList.remove("is-visible", "is-error", "is-success");
+  }
+
   function bindCodeInputs() {
     const inputs = Array.from(document.querySelectorAll(".rc-code-row input"));
 
     inputs.forEach((input, index) => {
       input.addEventListener("input", () => {
         input.value = input.value.replace(/\D/g, "").slice(0, 1);
+        clearFormMessage("verifyMessage");
         if (input.value && inputs[index + 1]) {
           inputs[index + 1].focus();
         }
@@ -186,6 +269,7 @@ function bindEvents() {
     document.getElementById("continueEmailBtn")?.addEventListener("click", goVerify);
     document.getElementById("googleBtn")?.addEventListener("click", goProfileFromGoogle);
     document.getElementById("verifyCodeBtn")?.addEventListener("click", verifyCode);
+    document.getElementById("resendCodeBtn")?.addEventListener("click", resendCode);
     document.getElementById("saveProfileBtn")?.addEventListener("click", saveProfile);
 
     document.querySelectorAll("[data-back]").forEach(btn => {
@@ -209,6 +293,14 @@ function bindEvents() {
 
   function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function isValidPhoneNumber(phone) {
+    return /^[0-9\s]{4,24}$/.test(phone || "") && phone.replace(/\s+/g, "").length >= 4;
+  }
+
+  function message(key, fallback) {
+    return typeof window.t === "function" ? window.t(key) : fallback;
   }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -236,8 +328,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const lastNameEl = document.getElementById("lastName");
         if (lastNameEl && data.lastName) lastNameEl.value = data.lastName;
 
-        const countryEl = document.getElementById("country");
-        if (countryEl && data.country) countryEl.value = data.country;
+        const phoneCountryCodeEl = document.getElementById("phoneCountryCode");
+        if (phoneCountryCodeEl && data.phoneCountryCode) phoneCountryCodeEl.value = data.phoneCountryCode;
+
+        const phoneNumberEl = document.getElementById("phoneNumber");
+        if (phoneNumberEl && data.phoneNumber) phoneNumberEl.value = data.phoneNumber;
       }
     }
   } catch (e) {}

@@ -18,6 +18,14 @@ public record CreateSupportRequestRequest(
         String email,
 
         @NotBlank
+        @Size(max = 8)
+        String phoneCountryCode,
+
+        @NotBlank
+        @Size(max = 24)
+        String phoneNumber,
+
+        @NotBlank
         @Size(max = 500)
         String message
 ) {

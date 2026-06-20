@@ -1,20 +1,19 @@
-package com.rentcar.api.dto.support;
+package com.rentcar.api.dto.admin;
 
 import com.rentcar.api.domain.support.SupportRequestStatus;
 import com.rentcar.api.domain.support.SupportRequestTopic;
 
 import java.time.Instant;
 
-public record SupportRequestResponse(
+public record AdminSupportRequestListItem(
         Long id,
         SupportRequestTopic topic,
-        String bookingReference,
         String email,
         String phoneCountryCode,
         String phoneNumber,
-        String message,
+        String fullPhone,
+        String bookingReference,
         SupportRequestStatus status,
-        Instant createdAt,
-        Instant updatedAt
+        Instant createdAt
 ) {
 }

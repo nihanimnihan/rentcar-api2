@@ -38,6 +38,8 @@ public class FakeEmailService implements EmailService {
             Collections.synchronizedList(new ArrayList<>());
     private final List<RefundCompletedEmailData> sentRefundCompletedEmails =
             Collections.synchronizedList(new ArrayList<>());
+    private final List<LoginOtpEmailData> sentLoginOtpEmails =
+            Collections.synchronizedList(new ArrayList<>());
 
     public FakeEmailService(EmailLocalizationService emailLocalizationService) {
         this.emailLocalizationService = emailLocalizationService;
@@ -120,6 +122,23 @@ public class FakeEmailService implements EmailService {
                 manageLink);
     }
 
+    @Override
+    public void sendLoginOtp(LoginOtpEmailData data) {
+        sentLoginOtpEmails.add(data);
+        LocalizedEmail localized = emailLocalizationService.loginOtp(data);
+        log.info("""
+                [FAKE EMAIL] Login code
+                  To            : {}
+                  Subject       : {}
+                  Code          : {}
+                  Expires       : {} minutes
+                """,
+                data.customerEmail(),
+                localized.subject(),
+                data.code(),
+                data.expiresInMinutes());
+    }
+
     /** Returns an unmodifiable snapshot of all confirmation emails sent since the last {@link #clearSentEmails()}. */
     public List<ConfirmationEmailData> getSentEmails() {
         return getSentConfirmationEmails();
@@ -143,10 +162,17 @@ public class FakeEmailService implements EmailService {
         }
     }
 
+    public List<LoginOtpEmailData> getSentLoginOtpEmails() {
+        synchronized (sentLoginOtpEmails) {
+            return List.copyOf(sentLoginOtpEmails);
+        }
+    }
+
     /** Clears the captured email list. Call in {@code @BeforeEach} when sharing a Spring context. */
     public void clearSentEmails() {
         sentConfirmationEmails.clear();
         sentCancellationEmails.clear();
         sentRefundCompletedEmails.clear();
+        sentLoginOtpEmails.clear();
     }
 }

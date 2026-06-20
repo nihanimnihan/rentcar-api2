@@ -160,6 +160,37 @@
   color: #111;
 }
 
+.rc-auth-resend {
+  margin-top: 12px;
+}
+
+.rc-auth-message {
+  display: none;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.rc-auth-message.is-visible {
+  display: block;
+}
+
+.rc-auth-message.is-error {
+  color: #7a1d18;
+  background: #fff1ec;
+  border-color: rgba(227, 52, 47, 0.28);
+}
+
+.rc-auth-message.is-success {
+  color: #265a26;
+  background: #f0fff0;
+  border-color: rgba(42, 122, 42, 0.24);
+}
+
 .rc-auth-social {
   background: #fff;
   border: 1.5px solid #191B1E;
@@ -261,4 +292,17 @@
   border-color: rgba(248, 212, 72, 0.45);
   color: #191B1E;
   cursor: default;
+}
+
+.rc-phone-grid {
+  display: grid;
+  grid-template-columns: minmax(130px, 170px) 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 575px) {
+  .rc-phone-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
 }

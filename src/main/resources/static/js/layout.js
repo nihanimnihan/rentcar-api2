@@ -34,12 +34,14 @@ function initSupportRequestModal() {
   var topic = document.getElementById("supportRequestTopic");
   var bookingReference = document.getElementById("supportRequestBookingReference");
   var email = document.getElementById("supportRequestEmail");
+  var phoneCountryCode = document.getElementById("supportRequestPhoneCountryCode");
+  var phoneNumber = document.getElementById("supportRequestPhoneNumber");
   var message = document.getElementById("supportRequestMessage");
   var counter = document.getElementById("supportRequestMessageCount");
   var status = document.getElementById("supportRequestStatus");
   var submitButton = document.getElementById("supportRequestSubmit");
 
-  if (!openButton || !form || !success || !topic || !bookingReference || !email || !message || !counter || !status || !submitButton) {
+  if (!openButton || !form || !success || !topic || !bookingReference || !email || !phoneCountryCode || !phoneNumber || !message || !counter || !status || !submitButton) {
     return;
   }
 
@@ -106,6 +108,8 @@ function initSupportRequestModal() {
     var isValid = true;
     var bookingReferenceValue = bookingReference.value.trim();
     var emailValue = email.value.trim();
+    var phoneCountryCodeValue = phoneCountryCode.value.trim();
+    var phoneNumberValue = phoneNumber.value.trim();
     var messageValue = message.value.trim();
 
     if (!topic.value) {
@@ -126,6 +130,16 @@ function initSupportRequestModal() {
       isValid = false;
     }
 
+    if (!phoneCountryCodeValue) {
+      setFieldError("phoneCountryCode", tr("support.error.phoneCountryCodeRequired", "Please select a country code."));
+      isValid = false;
+    }
+
+    if (!phoneNumberValue) {
+      setFieldError("phoneNumber", tr("support.error.phoneNumberRequired", "Please enter your phone number."));
+      isValid = false;
+    }
+
     if (!messageValue) {
       setFieldError("message", tr("support.error.messageRequired", "Please enter a message."));
       isValid = false;
@@ -143,6 +157,8 @@ function initSupportRequestModal() {
       topic: topic.value,
       bookingReference: bookingReferenceValue || null,
       email: emailValue,
+      phoneCountryCode: phoneCountryCodeValue,
+      phoneNumber: phoneNumberValue,
       message: messageValue
     };
   }

@@ -51,6 +51,140 @@ input, select{padding:10px;border-radius:6px;width:100%;border:1px solid #e6e6e6
 
 @media (max-width:900px){.rc-grid{grid-template-columns:1fr}.rc-tabs{overflow:auto}.rc-user-menu__dropdown{right:10px}}
 
+/* Profile page */
+.rc-profile-page {
+  max-width: 1080px;
+}
+
+.rc-profile-card {
+  padding: 36px 28px 40px;
+}
+
+.rc-profile-inner {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.rc-profile-inner h1 {
+  margin: 0 0 22px;
+  color: #191B1E;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.rc-profile-form {
+  max-width: 820px;
+}
+
+.rc-profile-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px 18px;
+}
+
+.rc-field--full {
+  grid-column: 1 / -1;
+}
+
+.rc-profile-form input,
+.rc-profile-form select {
+  height: 48px;
+  border-color: rgba(25, 27, 30, 0.14);
+  background: #fff;
+}
+
+.rc-profile-form input[readonly] {
+  background: #f8f6f0;
+  border-color: rgba(25, 27, 30, 0.10);
+  color: rgba(25, 27, 30, 0.72);
+}
+
+.rc-profile-form input:focus,
+.rc-profile-form select:focus {
+  outline: none;
+  border-color: var(--rc-amber);
+  box-shadow: 0 0 0 3px rgba(248, 212, 72, 0.20);
+}
+
+.rc-profile-form .rc-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+
+.rc-profile-section {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(25, 27, 30, 0.10);
+}
+
+.rc-profile-section h3 {
+  margin: 0;
+  color: #191B1E;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.rc-membership-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.rc-membership-label {
+  background: #f8f6f0;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  color: #111;
+}
+
+.rc-membership-number {
+  font-family: monospace;
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: #333;
+}
+
+.rc-profile-message {
+  min-height: 24px;
+  margin-top: 14px;
+  font-weight: 700;
+}
+
+.rc-profile-section-actions {
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .rc-profile-card {
+    padding: 26px 20px 30px;
+  }
+
+  .rc-profile-inner h1 {
+    font-size: 26px;
+  }
+
+  .rc-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rc-field--full {
+    grid-column: auto;
+  }
+
+  .rc-profile-form .rc-actions {
+    justify-content: stretch;
+  }
+
+  .rc-profile-form .rc-save {
+    width: 100%;
+  }
+}
+
 /* =========================================================
    MY BOOKINGS — premium customer dashboard
    ========================================================= */
@@ -423,4 +557,3 @@ body {
     text-align: left;
   }
 }
-

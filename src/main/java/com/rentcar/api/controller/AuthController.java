@@ -3,7 +3,13 @@ package com.rentcar.api.controller;
 import com.rentcar.api.domain.user.AppUser;
 import com.rentcar.api.dto.AuthUserResponse;
 import com.rentcar.api.dto.UpdateProfileRequest;
+import com.rentcar.api.dto.auth.CompleteEmailProfileRequest;
+import com.rentcar.api.dto.auth.EmailAuthResponse;
+import com.rentcar.api.dto.auth.EmailCodeRequest;
+import com.rentcar.api.dto.auth.VerifyEmailCodeRequest;
 import com.rentcar.api.repository.AppUserRepository;
+import com.rentcar.api.service.CustomerService;
+import com.rentcar.api.service.EmailOtpAuthService;
 import com.rentcar.api.service.CustomerNumberGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +35,8 @@ public class AuthController {
 
     private final AppUserRepository userRepository;
     private final CustomerNumberGenerator customerNumberGenerator;
+    private final EmailOtpAuthService emailOtpAuthService;
+    private final CustomerService customerService;
 
     private boolean isSafeReturnTo(String returnTo) {
         if (returnTo == null || returnTo.isBlank()) return false;
@@ -62,8 +70,34 @@ public class AuthController {
             userRepository.save(u);
             log.info("Generated customerNumber for user {}: {}", u.getEmail(), generated);
         }
-        AuthUserResponse resp = new AuthUserResponse(u.getEmail(), u.getFirstName(), u.getLastName(), u.getCountry(), u.isProfileComplete(), u.getRole().name(), u.getCustomerNumber());
+        AuthUserResponse resp = responseFor(u);
         return ResponseEntity.ok().body(resp);
+    }
+
+    @PostMapping("/api/auth/email/request-code")
+    public ResponseEntity<?> requestEmailCode(@RequestBody EmailCodeRequest req, HttpServletRequest request) {
+        String language = request.getHeader("Accept-Language");
+        emailOtpAuthService.requestCode(req.email(), language);
+        return ResponseEntity.ok(EmailAuthResponse.codeSent());
+    }
+
+    @PostMapping("/api/auth/email/verify-code")
+    public ResponseEntity<?> verifyEmailCode(@RequestBody VerifyEmailCodeRequest req, HttpServletRequest request) {
+        var result = emailOtpAuthService.verifyCode(req.email(), req.code());
+        if ("LOGGED_IN".equals(result.status())) {
+            request.getSession(true).setAttribute("APP_USER_EMAIL", result.user().getEmail());
+            request.getSession(true).setAttribute("EMAIL_VERIFIED", Boolean.TRUE);
+            return ResponseEntity.ok(EmailAuthResponse.loggedIn());
+        }
+        return ResponseEntity.ok(EmailAuthResponse.profileRequired(result.profileToken()));
+    }
+
+    @PostMapping("/api/auth/email/complete-profile")
+    public ResponseEntity<?> completeEmailProfile(@RequestBody CompleteEmailProfileRequest req, HttpServletRequest request) {
+        AppUser user = emailOtpAuthService.completeProfile(req);
+        request.getSession(true).setAttribute("APP_USER_EMAIL", user.getEmail());
+        request.getSession(true).setAttribute("EMAIL_VERIFIED", Boolean.TRUE);
+        return ResponseEntity.ok(EmailAuthResponse.loggedIn());
     }
 
     @GetMapping("/oauth2/authorize")
@@ -118,7 +152,8 @@ public class AuthController {
         java.util.List<String> missing = new java.util.ArrayList<>();
         if (req.getFirstName() == null || req.getFirstName().isBlank()) missing.add("firstName");
         if (req.getLastName() == null || req.getLastName().isBlank()) missing.add("lastName");
-        if (req.getCountry() == null || req.getCountry().isBlank()) missing.add("country");
+        if (req.getPhoneCountryCode() == null || req.getPhoneCountryCode().isBlank()) missing.add("phoneCountryCode");
+        if (req.getPhoneNumber() == null || req.getPhoneNumber().isBlank()) missing.add("phoneNumber");
         if (!missing.isEmpty()) {
             log.warn("Profile update bad request email={} missingFields={}", email, missing);
             return ResponseEntity.badRequest().body(java.util.Map.of(
@@ -128,13 +163,36 @@ public class AuthController {
             ));
         }
 
+        String phoneCountryCode = emailOtpAuthService.normalizePhoneCountryCode(req.getPhoneCountryCode());
+        String phoneNumber = emailOtpAuthService.normalizePhoneNumber(req.getPhoneNumber());
         user.setFirstName(req.getFirstName().trim());
         user.setLastName(req.getLastName().trim());
-        user.setCountry(req.getCountry().trim());
+        if (req.getCountry() != null && !req.getCountry().isBlank()) {
+            user.setCountry(req.getCountry().trim());
+        }
+        user.setPhoneCountryCode(phoneCountryCode);
+        user.setPhoneNumber(phoneNumber);
         user.setProfileComplete(true);
         userRepository.save(user);
+        customerService.getOrCreateCustomer(
+                user.getFirstName() + " " + user.getLastName(),
+                user.getEmail(),
+                phoneCountryCode + phoneNumber);
         log.info("Profile updated for email={}, sessionId={}", email, request.getSession(false) != null ? request.getSession(false).getId() : "-");
 
-        return ResponseEntity.ok().body(new AuthUserResponse(user.getEmail(), user.getFirstName(), user.getLastName(), user.getCountry(), user.isProfileComplete(), user.getRole().name(), user.getCustomerNumber()));
+        return ResponseEntity.ok().body(responseFor(user));
+    }
+
+    private AuthUserResponse responseFor(AppUser user) {
+        return new AuthUserResponse(
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getCountry(),
+                user.getPhoneCountryCode(),
+                user.getPhoneNumber(),
+                user.isProfileComplete(),
+                user.getRole().name(),
+                user.getCustomerNumber());
     }
 }

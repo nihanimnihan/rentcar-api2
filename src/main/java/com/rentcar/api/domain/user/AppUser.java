@@ -24,6 +24,8 @@ public class AppUser {
     private String firstName;
     private String lastName;
     private String country;
+    private String phoneCountryCode;
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

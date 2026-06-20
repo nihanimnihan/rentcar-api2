@@ -1832,6 +1832,12 @@ section.bg-dark-2 {
   gap: 16px;
 }
 
+.rc-support-phone-grid {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.45fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
 .rc-support-field label {
   display: block;
   margin-bottom: 8px;
@@ -1970,6 +1976,10 @@ section.bg-dark-2 {
 
   .rc-support-modal__title {
     font-size: 24px;
+  }
+
+  .rc-support-phone-grid {
+    grid-template-columns: 1fr;
   }
 }
 

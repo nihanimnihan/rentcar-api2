@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS support_requests (
     topic VARCHAR(32) NOT NULL,
     booking_reference VARCHAR(50),
     email VARCHAR(254) NOT NULL,
+    phone_country_code VARCHAR(8),
+    phone_number VARCHAR(24),
     message VARCHAR(500) NOT NULL,
     status VARCHAR(16) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,

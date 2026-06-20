@@ -52,11 +52,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 existing.setLastName(last);
                 changed = true;
             }
-            // Do not set country from Google (not reliable). Only keep existing country if set.
             // Recompute profileComplete only if all required fields are present
             boolean profileComplete = (existing.getFirstName() != null && !existing.getFirstName().isBlank())
                     && (existing.getLastName() != null && !existing.getLastName().isBlank())
-                    && (existing.getCountry() != null && !existing.getCountry().isBlank());
+                    && (existing.getPhoneCountryCode() != null && !existing.getPhoneCountryCode().isBlank())
+                    && (existing.getPhoneNumber() != null && !existing.getPhoneNumber().isBlank());
             if (existing.isProfileComplete() != profileComplete) {
                 existing.setProfileComplete(profileComplete);
                 changed = true;

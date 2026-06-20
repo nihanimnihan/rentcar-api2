@@ -32,4 +32,11 @@ public interface EmailService {
      * @param data all content required to render the refund-completed email
      */
     void sendRefundCompleted(RefundCompletedEmailData data);
+
+    /**
+     * Sends (or simulates sending) a passwordless login code.
+     *
+     * @param data all content required to render the login code email
+     */
+    void sendLoginOtp(LoginOtpEmailData data);
 }

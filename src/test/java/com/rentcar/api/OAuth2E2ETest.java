@@ -82,6 +82,8 @@ public class OAuth2E2ETest {
                 .firstName("Alice")
                 .lastName("Smith")
                 .country("TR")
+                .phoneCountryCode("+90")
+                .phoneNumber("5550000000")
                 .role(AppRole.CUSTOMER)
                 .provider(com.rentcar.api.domain.user.AuthProvider.LOCAL)
                 .customerNumber("EXIST-1")
@@ -118,6 +120,8 @@ public class OAuth2E2ETest {
         assertThat(u.getFirstName()).isEqualTo("Alice");
         assertThat(u.getLastName()).isEqualTo("Smith");
         assertThat(u.getCountry()).isEqualTo("TR");
+        assertThat(u.getPhoneCountryCode()).isEqualTo("+90");
+        assertThat(u.getPhoneNumber()).isEqualTo("5550000000");
         assertThat(u.isProfileComplete()).isTrue();
     }
 }

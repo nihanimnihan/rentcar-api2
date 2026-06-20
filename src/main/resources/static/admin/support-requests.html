@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin – Bookings | RentCar</title>
+  <title>Admin - Support Requests | RentCar</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,10 +16,8 @@
 </head>
 <body class="admin-db-body">
 
-  <!-- ── Top header ─────────────────────────────────────────────────────── -->
   <header class="admin-db-header">
     <div class="admin-db-header__left">
-      <!-- Mobile sidebar toggle -->
       <button class="admin-db-hamburger js-admin-sidebar-toggle" aria-label="Toggle sidebar">
         <span></span><span></span><span></span>
       </button>
@@ -35,10 +33,7 @@
     </div>
   </header>
 
-  <!-- ── Dashboard shell ────────────────────────────────────────────────── -->
   <div class="admin-db js-admin-db" id="adminDashboard">
-
-    <!-- Sidebar -->
     <aside class="admin-db__sidebar">
       <nav class="admin-db__nav">
         <ul>
@@ -49,7 +44,7 @@
             </a>
           </li>
           <li class="admin-db__nav-item">
-            <a href="bookings.html" class="admin-db__nav-link -is-active">
+            <a href="bookings.html" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-car text-16"></span>
               <span data-i18n="admin.bookings">Bookings</span>
             </a>
@@ -66,8 +61,8 @@
               <span data-i18n="admin.vehicles">Vehicles</span>
             </a>
           </li>
-          <li class="admin-db__nav-item">
-            <a href="support-requests.html" class="admin-db__nav-link">
+          <li class="admin-db__nav-item -is-active">
+            <a href="support-requests.html" class="admin-db__nav-link -is-active">
               <span class="admin-db__nav-icon icon-info text-16"></span>
               <span data-i18n="admin.supportRequests">Support Requests</span>
             </a>
@@ -99,69 +94,71 @@
       </nav>
     </aside>
 
-    <!-- Sidebar backdrop (mobile) -->
     <div class="admin-db__backdrop js-admin-sidebar-toggle"></div>
 
-    <!-- Main content -->
     <main class="admin-db__main">
       <div class="admin-db__content">
-
-        <!-- Page heading -->
         <div class="admin-db__page-header">
           <div>
-            <h1 class="admin-db__page-title" data-i18n="admin.bookings">Bookings</h1>
-            <p class="admin-db__page-sub" data-i18n="admin.bookings.subtitle">All rental reservations - newest first</p>
+            <h1 class="admin-db__page-title" data-i18n="admin.supportRequests">Support Requests</h1>
+            <p class="admin-db__page-sub" data-i18n="admin.support.subtitle">Customer support requests - newest first</p>
           </div>
-          <!-- TODO: search/filter bar (bookingReference, status, email) -->
+          <div class="admin-filter-tabs" role="group" aria-label="Support request status">
+            <button type="button" class="-active" data-support-filter="ALL" data-i18n="admin.support.filter.all">All</button>
+            <button type="button" data-support-filter="OPEN" data-i18n="admin.support.filter.open">Open</button>
+            <button type="button" data-support-filter="RESOLVED" data-i18n="admin.support.filter.resolved">Resolved</button>
+          </div>
         </div>
 
         <div id="auth-error" class="admin-alert admin-alert--error" hidden>
-          <span data-i18n="admin.bookings.authError">Could not load bookings. Please check your connection or reload the page.</span>
+          <span data-i18n="admin.support.authError">Could not load support requests. Please check your connection or reload the page.</span>
         </div>
         <div id="load-error" class="admin-alert admin-alert--error" hidden></div>
+        <div id="resolve-error" class="admin-alert admin-alert--error" hidden></div>
 
-        <!-- Loading / empty states -->
-        <div id="loading" class="admin-loading" data-i18n="admin.bookings.loading">Loading bookings...</div>
-        <div id="empty" class="admin-empty" hidden data-i18n="admin.bookings.empty">No bookings yet.</div>
+        <div id="loading" class="admin-loading" data-i18n="admin.support.loading">Loading support requests...</div>
+        <div id="empty" class="admin-empty" hidden data-i18n="admin.support.empty">No support requests yet.</div>
 
-        <!-- Bookings table card -->
         <div id="table-container" class="bg-white shadow-3 rounded-4 overflow-x-scroll" hidden>
           <table class="admin-table table-2 w-full">
             <thead>
               <tr class="admin-table__head-row">
-                <th data-i18n="admin.bookings.reference">Reference</th>
-                <th data-i18n="admin.bookings.status">Status</th>
-                <th data-i18n="admin.bookings.payment">Payment</th>
-                <th data-i18n="admin.bookings.customer">Customer</th>
-                <th data-i18n="admin.bookings.email">Email</th>
-                <th data-i18n="admin.bookings.car">Car</th>
-                <th data-i18n="admin.bookings.pickup">Pickup</th>
-                <th data-i18n="admin.bookings.dropoff">Dropoff</th>
-                <th data-i18n="admin.bookings.total">Total</th>
-                <th data-i18n="admin.bookings.actions">Actions</th>
+                <th data-i18n="admin.support.topic">Topic</th>
+                <th data-i18n="admin.support.email">Email</th>
+                <th data-i18n="admin.support.fullPhone">Phone</th>
+                <th data-i18n="admin.support.bookingReference">Booking reference</th>
+                <th data-i18n="admin.support.status">Status</th>
+                <th data-i18n="admin.support.createdAt">Created</th>
+                <th data-i18n="admin.support.actions">Actions</th>
               </tr>
             </thead>
-            <tbody id="bookings-tbody"></tbody>
+            <tbody id="support-requests-tbody"></tbody>
           </table>
         </div>
 
+        <div id="support-pagination" class="admin-pagination" hidden>
+          <button type="button" class="admin-btn admin-btn--ghost" id="support-prev-page" data-i18n="admin.support.pagination.previous">Previous</button>
+          <span id="support-page-info" class="admin-pagination__info"></span>
+          <button type="button" class="admin-btn admin-btn--ghost" id="support-next-page" data-i18n="admin.support.pagination.next">Next</button>
+        </div>
       </div>
     </main>
   </div>
 
-  <div class="admin-modal-overlay" id="booking-detail-overlay" hidden>
-    <div class="admin-modal admin-modal--detail" role="dialog" aria-modal="true" aria-labelledby="booking-detail-title">
+  <div class="admin-modal-overlay" id="support-detail-overlay" hidden>
+    <div class="admin-modal admin-modal--detail" role="dialog" aria-modal="true" aria-labelledby="support-detail-title">
       <div class="admin-modal__header">
-        <h2 class="admin-modal__title" id="booking-detail-title" data-i18n="admin.detail.title">Booking details</h2>
-        <button class="admin-modal__close" id="booking-detail-close" aria-label="Close" data-i18n-aria-label="admin.detail.close">&times;</button>
+        <h2 class="admin-modal__title" id="support-detail-title" data-i18n="admin.support.detailTitle">Support request details</h2>
+        <button class="admin-modal__close" id="support-detail-close" aria-label="Close" data-i18n-aria-label="admin.support.close">&times;</button>
       </div>
       <div class="admin-modal__body">
-        <div id="booking-detail-loading" class="admin-loading admin-loading--compact" data-i18n="admin.detail.loading">Loading booking details...</div>
-        <div id="booking-detail-error" class="admin-alert admin-alert--error" hidden></div>
-        <div id="booking-detail-body"></div>
+        <div id="support-detail-loading" class="admin-loading admin-loading--compact" data-i18n="admin.support.detailLoading">Loading support request details...</div>
+        <div id="support-detail-error" class="admin-alert admin-alert--error" hidden></div>
+        <div id="support-detail-body"></div>
       </div>
       <div class="admin-modal__footer">
-        <button class="admin-btn admin-btn--ghost" id="booking-detail-footer-close" data-i18n="admin.detail.close">Close</button>
+        <button class="admin-btn admin-btn--ghost" id="support-detail-footer-close" data-i18n="admin.support.close">Close</button>
+        <button class="admin-btn admin-btn--primary" id="support-detail-resolve" data-i18n="admin.support.resolve">Mark as resolved</button>
       </div>
     </div>
   </div>
@@ -171,10 +168,9 @@
   <script src="../js/i18n/tr.js"></script>
   <script src="../js/admin-i18n.js"></script>
   <script src="../js/i18n/i18n.js"></script>
-  <script src="../js/admin-bookings.js"></script>
+  <script src="../js/admin-support-requests.js"></script>
   <script src="../js/admin-session.js"></script>
   <script>
-    // Mobile sidebar toggle
     document.querySelectorAll('.js-admin-sidebar-toggle').forEach(function(el) {
       el.addEventListener('click', function() {
         document.getElementById('adminDashboard').classList.toggle('-sidebar-open');

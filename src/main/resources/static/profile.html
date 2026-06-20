@@ -30,51 +30,60 @@
     <a id="tab-bookings" href="/bookings.html" class="rc-tab">My bookings</a>
   </nav>
 
-  <main class="rc-container">
-    <div class="rc-card">
-      <h1>Booking profile</h1>
-      <form id="profileForm">
-        <div class="rc-grid">
+  <main class="rc-container rc-profile-page">
+    <div class="rc-card rc-profile-card">
+      <div class="rc-profile-inner">
+      <h1 data-i18n="profile.title">Booking profile</h1>
+      <form id="profileForm" class="rc-profile-form">
+        <div class="rc-grid rc-profile-grid">
           <div class="rc-field">
-            <label>First name</label>
+            <label data-i18n="profile.firstName">First name</label>
             <input readonly data-ua-firstName id="firstName" />
           </div>
           <div class="rc-field">
-            <label>Last name</label>
+            <label data-i18n="profile.lastName">Last name</label>
             <input readonly data-ua-lastName id="lastName" />
           </div>
-          <div class="rc-field" style="grid-column:1/-1">
-            <label>Email</label>
+          <div class="rc-field rc-field--full">
+            <label data-i18n="profile.email">Email</label>
             <input readonly data-ua-email id="email" />
           </div>
-          <div class="rc-field" style="grid-column:1/-1">
-            <label>Country</label>
-            <select data-ua-country id="country">
-              <option value="">Select country</option>
-              <option value="ES">Spain</option>
-              <option value="TR">Turkey</option>
-              <option value="FR">France</option>
-              <option value="DE">Germany</option>
-              <option value="IT">Italy</option>
-              <option value="GB">United Kingdom</option>
+          <div class="rc-field">
+            <label data-i18n="profile.phoneCountryCode">Country code</label>
+            <select data-ua-phone-country-code id="phoneCountryCode">
+              <option value="">Code</option>
+              <option value="+34">Spain +34</option>
+              <option value="+90">Turkey +90</option>
+              <option value="+44">United Kingdom +44</option>
+              <option value="+33">France +33</option>
+              <option value="+49">Germany +49</option>
+              <option value="+39">Italy +39</option>
+              <option value="+31">Netherlands +31</option>
+              <option value="+351">Portugal +351</option>
+              <option value="+1">United States +1</option>
             </select>
+          </div>
+          <div class="rc-field">
+            <label data-i18n="profile.phoneNumber">Phone number</label>
+            <input data-ua-phone-number id="phoneNumber" maxlength="24" />
           </div>
         </div>
 
         <div class="rc-actions">
-          <button type="button" id="saveProfile" class="rc-save">Save</button>
+          <button type="button" id="saveProfile" class="rc-save" data-i18n="profile.save">Save</button>
         </div>
       </form>
 
-      <div style="margin-top:20px">
-        <h3>RentCar membership</h3>
-        <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
-          <div style="background:#f8f6f0;padding:8px 12px;border-radius:8px;font-weight:700;color:#111">Member number</div>
-          <div style="font-family:monospace;letter-spacing:2px;font-weight:700;color:#333" data-ua-customerNumber id="memberNumber">—</div>
+      <div class="rc-profile-section">
+        <h3 data-i18n="membership.title">RentCar membership</h3>
+        <div class="rc-membership-row">
+          <div class="rc-membership-label" data-i18n="membership.memberNumber">Member number</div>
+          <div class="rc-membership-number" data-ua-customerNumber id="memberNumber">—</div>
         </div>
       </div>
 
-      <div id="profileMessage" style="margin-top:12px;min-height:24px"></div>
+      <div id="profileMessage" class="rc-profile-message"></div>
+      </div>
     </div>
   </main>
  
@@ -98,11 +107,12 @@
    }
 
    document.getElementById('saveProfile').addEventListener('click', async function(){
-     const country = document.getElementById('country').value;
+     const phoneCountryCode = document.getElementById('phoneCountryCode').value;
+     const phoneNumber = document.getElementById('phoneNumber').value;
      const firstName = document.getElementById('firstName').value;
      const lastName = document.getElementById('lastName').value;
      try{
-       const res = await fetch('/api/auth/profile',{method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify({firstName, lastName, country})});
+       const res = await fetch('/api/auth/profile',{method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body: JSON.stringify({firstName, lastName, phoneCountryCode, phoneNumber})});
        if (res.ok) {
          const data = await res.json();
          showProfileMessage('Profile updated successfully.', false);
@@ -127,14 +137,15 @@
      var card = document.querySelector('.rc-card');
      if (card) {
        var container = document.createElement('div');
-       container.style.marginTop = '18px';
+       container.className = 'rc-profile-section rc-profile-section--danger';
        container.innerHTML = `
          <h3 data-i18n="profile.deleteAccount">Delete account</h3>
-         <div style="margin-top:8px">
+         <div class="rc-profile-section-actions">
            <button id="deleteAccountBtn" class="rc-outline-danger" data-i18n="profile.deleteAccount">Delete Account</button>
          </div>
        `;
-       card.appendChild(container);
+       var inner = document.querySelector('.rc-profile-inner') || card;
+       inner.appendChild(container);
        // Ensure newly injected nodes get translated immediately
        if (window.applyTranslations) window.applyTranslations(container);
        var btn = document.getElementById('deleteAccountBtn');

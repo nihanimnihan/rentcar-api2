@@ -30,6 +30,17 @@
         try{ el.value = user.country || ''; }catch(e){}
       }
     });
+    const phoneCountryCodes = document.querySelectorAll('[data-ua-phone-country-code]');
+    phoneCountryCodes.forEach(el => {
+      if(el.tagName==='SELECT' || el.tagName==='INPUT'){
+        try{ el.value = user.phoneCountryCode || ''; }catch(e){}
+      }
+    });
+    const phoneNumbers = document.querySelectorAll('[data-ua-phone-number]');
+    phoneNumbers.forEach(el => {
+      if(el.tagName==='INPUT') el.value = user.phoneNumber || '';
+      else el.textContent = user.phoneNumber || '';
+    });
     const custEls = document.querySelectorAll('[data-ua-customerNumber]');
     custEls.forEach(el => { el.textContent = user.customerNumber || '—'; });
 

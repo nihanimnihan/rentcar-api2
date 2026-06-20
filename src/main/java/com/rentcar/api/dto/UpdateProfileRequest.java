@@ -7,4 +7,6 @@ public class UpdateProfileRequest {
     private String firstName;
     private String lastName;
     private String country;
+    private String phoneCountryCode;
+    private String phoneNumber;
 }

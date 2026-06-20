@@ -54,6 +54,40 @@ public class EmailLocalizationService {
         );
     }
 
+    public LocalizedEmail loginOtp(LoginOtpEmailData data) {
+        String language = normalizeLanguage(data.language());
+        return new LocalizedEmail(
+                switch (language) {
+                    case "tr" -> "Paradise Deluxe giriş kodunuz";
+                    case "es" -> "Tu código de acceso de Paradise Deluxe";
+                    default -> "Your Paradise Deluxe sign-in code";
+                },
+                switch (language) {
+                    case "tr" -> """
+                            Paradise Deluxe giriş kodunuz: %s
+
+                            Bu kod %d dakika içinde sona erer.
+
+                            Bu kodu siz istemediyseniz bu e-postayı yok sayabilirsiniz.
+                            """.formatted(data.code(), data.expiresInMinutes());
+                    case "es" -> """
+                            Tu código de acceso de Paradise Deluxe es: %s
+
+                            Este código caduca en %d minutos.
+
+                            Si no solicitaste este código, ignora este correo.
+                            """.formatted(data.code(), data.expiresInMinutes());
+                    default -> """
+                            Your Paradise Deluxe sign-in code is: %s
+
+                            This code expires in %d minutes.
+
+                            If you did not request this code, you can ignore this email.
+                            """.formatted(data.code(), data.expiresInMinutes());
+                }
+        );
+    }
+
     public String refundStatusLabel(PaymentStatus status, String language) {
         String normalized = normalizeLanguage(language);
         if (status == null) {

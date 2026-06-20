@@ -41,6 +41,12 @@ public class SupportRequest {
     @Column(nullable = false, length = 254)
     private String email;
 
+    @Column(length = 8)
+    private String phoneCountryCode;
+
+    @Column(length = 24)
+    private String phoneNumber;
+
     @Column(nullable = false, length = 500)
     private String message;
 

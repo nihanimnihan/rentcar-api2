@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.format.DateTimeParseException;
@@ -103,6 +104,15 @@ public class GlobalExceptionHandler {
         log.warn("Invalid datetime parameter: {}", ex.getMessage());
         return error(HttpStatus.BAD_REQUEST, "Bad Request",
                 "Invalid datetime format. Expected: YYYY-MM-DDTHH:mm (e.g. 2026-05-29T10:00)");
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<?> handleResponseStatusException(ResponseStatusException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return error(status, status.getReasonPhrase(), ex.getReason());
     }
 
     // ── 409 Conflict ──────────────────────────────────────────────────────────

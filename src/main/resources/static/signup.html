@@ -36,8 +36,9 @@
                     Sign in to manage your bookings, rental history and saved details.
                 </p>
 
-                <label class="rc-auth-label" for="email">Email address</label>
+                <label class="rc-auth-label" for="email" data-i18n="auth.email">Email address</label>
                 <input class="rc-auth-input" id="email" type="email" placeholder="name@mail.com" autocomplete="email">
+                <div class="rc-auth-message" id="loginMessage" role="status" aria-live="polite"></div>
 
                 <button class="rc-auth-primary" id="continueEmailBtn" type="button" data-i18n="auth.continueEmail">
                     Continue with email
@@ -62,12 +63,13 @@
             <div class="rc-auth-step" data-step="verify">
                 <button class="rc-auth-back" type="button" data-back="login">‹</button>
 
-                <h1>Check your inbox</h1>
+                <h1 data-i18n="auth.checkInbox">Check your inbox</h1>
                 <p class="rc-auth-subtitle">
-                    Enter the 6-digit code sent to <strong id="verifyEmailText"></strong>.
+                    <span data-i18n="auth.codeSentPrefix">Enter the 6-digit code sent to</span>
+                    <strong id="verifyEmailText"></strong>.
                 </p>
 
-                <label class="rc-auth-label">Your 6-digit code</label>
+                <label class="rc-auth-label" data-i18n="auth.codeInput">Your 6-digit code</label>
                 <div class="rc-code-row">
                     <input maxlength="1" inputmode="numeric">
                     <input maxlength="1" inputmode="numeric">
@@ -76,13 +78,13 @@
                     <input maxlength="1" inputmode="numeric">
                     <input maxlength="1" inputmode="numeric">
                 </div>
+                <div class="rc-auth-message" id="verifyMessage" role="status" aria-live="polite"></div>
 
-                <p class="rc-auth-hint">
-                    Demo code: <strong>123456</strong>
-                </p>
-
-                <button class="rc-auth-primary" id="verifyCodeBtn" type="button">
+                <button class="rc-auth-primary" id="verifyCodeBtn" type="button" data-i18n="auth.verifyCode">
                     Verify and continue
+                </button>
+                <button class="rc-auth-secondary rc-auth-resend" id="resendCodeBtn" type="button" data-i18n="auth.resendCode">
+                    Resend code
                 </button>
             </div>
 
@@ -120,19 +122,37 @@
                     Please enter your last name.
                 </div>
 
-                <label class="rc-auth-label" for="country" data-i18n="auth.country">Country of residence</label>
-                <select class="rc-auth-input" id="country">
-                    <option value="" data-i18n="auth.selectCountry">Select country</option>
-                    <option value="ES">🇪🇸 Spain — suggested</option>
-                    <option value="TR">🇹🇷 Turkey</option>
-                    <option value="FR">🇫🇷 France</option>
-                    <option value="DE">🇩🇪 Germany</option>
-                    <option value="IT">🇮🇹 Italy</option>
-                    <option value="GB">🇬🇧 United Kingdom</option>
-                </select>
-                <div class="rc-auth-error" id="countryError" data-i18n="auth.requiredCountry">
-                    Please select your country.
+                <div class="rc-phone-grid">
+                    <div>
+                        <label class="rc-auth-label" for="phoneCountryCode" data-i18n="auth.phoneCountryCode">Country code</label>
+                        <select class="rc-auth-input" id="phoneCountryCode">
+                            <option value="" data-i18n="auth.selectPhoneCountryCode">Code</option>
+                            <option value="+34">Spain +34</option>
+                            <option value="+90">Turkey +90</option>
+                            <option value="+44">United Kingdom +44</option>
+                            <option value="+33">France +33</option>
+                            <option value="+49">Germany +49</option>
+                            <option value="+39">Italy +39</option>
+                            <option value="+31">Netherlands +31</option>
+                            <option value="+351">Portugal +351</option>
+                            <option value="+1">United States +1</option>
+                        </select>
+                        <div class="rc-auth-error" id="phoneCountryCodeError" data-i18n="auth.requiredPhoneCountryCode">
+                            Please select a country code.
+                        </div>
+                    </div>
+                    <div>
+                        <label class="rc-auth-label" for="phoneNumber" data-i18n="auth.phoneNumber">Phone number</label>
+                        <input class="rc-auth-input" id="phoneNumber" type="tel" maxlength="24"
+                               placeholder="600 000 000"
+                               data-i18n-placeholder="auth.phoneNumberPlaceholder">
+                        <div class="rc-auth-error" id="phoneNumberError" data-i18n="auth.requiredPhoneNumber">
+                            Please enter a valid phone number.
+                        </div>
+                    </div>
                 </div>
+
+                <div class="rc-auth-message" id="profileMessage" role="status" aria-live="polite"></div>
 
                 <button class="rc-auth-primary" id="saveProfileBtn" type="button" data-i18n="auth.createAccount">
                     Create account

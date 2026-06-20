@@ -68,6 +68,12 @@ public class SmtpEmailService implements EmailService {
                 data.bookingReference());
     }
 
+    @Override
+    public void sendLoginOtp(LoginOtpEmailData data) {
+        LocalizedEmail email = emailLocalizationService.loginOtp(data);
+        send(data.customerEmail(), email.subject(), email.body(), "email-otp");
+    }
+
     private void send(String to, String subject, String body, String bookingReference) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

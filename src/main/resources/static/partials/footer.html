@@ -58,6 +58,30 @@
                 <div class="rc-support-error" data-support-error-for="email"></div>
             </div>
 
+            <div class="rc-support-phone-grid">
+                <div class="rc-support-field">
+                    <label for="supportRequestPhoneCountryCode" data-i18n="support.phoneCountryCode">Country code</label>
+                    <select id="supportRequestPhoneCountryCode" name="phoneCountryCode" required>
+                        <option value="" data-i18n="support.selectPhoneCountryCode">Code</option>
+                        <option value="+34">Spain +34</option>
+                        <option value="+90">Turkey +90</option>
+                        <option value="+44">United Kingdom +44</option>
+                        <option value="+33">France +33</option>
+                        <option value="+49">Germany +49</option>
+                        <option value="+39">Italy +39</option>
+                        <option value="+31">Netherlands +31</option>
+                        <option value="+351">Portugal +351</option>
+                        <option value="+1">United States +1</option>
+                    </select>
+                    <div class="rc-support-error" data-support-error-for="phoneCountryCode"></div>
+                </div>
+                <div class="rc-support-field">
+                    <label for="supportRequestPhoneNumber" data-i18n="support.phoneNumber">Phone number</label>
+                    <input id="supportRequestPhoneNumber" name="phoneNumber" type="tel" required maxlength="24" data-i18n-placeholder="support.phoneNumberPlaceholder" placeholder="600 000 000" autocomplete="tel-national">
+                    <div class="rc-support-error" data-support-error-for="phoneNumber"></div>
+                </div>
+            </div>
+
             <div class="rc-support-field">
                 <label for="supportRequestMessage" data-i18n="support.message">Message</label>
                 <textarea id="supportRequestMessage" name="message" required maxlength="500" rows="5" data-i18n-placeholder="support.messagePlaceholder" placeholder="How can we help?"></textarea>

@@ -422,6 +422,48 @@
   color: #c0392b;
 }
 
+.admin-filter-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.admin-filter-tabs button {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 34px;
+  padding: 7px 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-filter-tabs button:hover,
+.admin-filter-tabs button.-active {
+  background: var(--adm-mustard);
+  color: var(--adm-charcoal);
+}
+
+@media (max-width: 640px) {
+  .admin-filter-tabs {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .admin-filter-tabs button {
+    flex: 1;
+  }
+}
+
 /* ── States ──────────────────────────────────────────────── */
 
 .admin-loading,
@@ -528,6 +570,46 @@
 
 .admin-link--danger {
   color: #dc2626;
+}
+
+.admin-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-pagination__info {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-pagination .admin-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .admin-pagination {
+    justify-content: stretch;
+  }
+
+  .admin-pagination .admin-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .admin-pagination__info {
+    text-align: center;
+  }
 }
 
 .admin-action-sep {
@@ -846,6 +928,19 @@
 .admin-detail-item--strong dd {
   font-size: 16px;
   font-weight: 700;
+}
+
+.admin-detail-message {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid #eef0f3;
+  border-radius: 8px;
+  background: #fafafa;
+  color: var(--adm-text);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 @media (max-width: 640px) {

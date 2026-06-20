@@ -39,6 +39,8 @@ class SupportRequestControllerTest {
                                   "topic": "BOOKING",
                                   "bookingReference": "PD-1234",
                                   "email": "customer@example.com",
+                                  "phoneCountryCode": "+34",
+                                  "phoneNumber": "600 000 000",
                                   "message": "Can you confirm my pickup details?"
                                 }
                                 """))
@@ -47,6 +49,8 @@ class SupportRequestControllerTest {
                 .andExpect(jsonPath("$.topic").value("BOOKING"))
                 .andExpect(jsonPath("$.bookingReference").value("PD-1234"))
                 .andExpect(jsonPath("$.email").value("customer@example.com"))
+                .andExpect(jsonPath("$.phoneCountryCode").value("+34"))
+                .andExpect(jsonPath("$.phoneNumber").value("600 000 000"))
                 .andExpect(jsonPath("$.message").value("Can you confirm my pickup details?"))
                 .andExpect(jsonPath("$.status").value("OPEN"))
                 .andExpect(jsonPath("$.createdAt").exists())
@@ -57,6 +61,8 @@ class SupportRequestControllerTest {
         assertThat(saved.getTopic()).isEqualTo(SupportRequestTopic.BOOKING);
         assertThat(saved.getBookingReference()).isEqualTo("PD-1234");
         assertThat(saved.getEmail()).isEqualTo("customer@example.com");
+        assertThat(saved.getPhoneCountryCode()).isEqualTo("+34");
+        assertThat(saved.getPhoneNumber()).isEqualTo("600 000 000");
         assertThat(saved.getMessage()).isEqualTo("Can you confirm my pickup details?");
         assertThat(saved.getStatus()).isEqualTo(SupportRequestStatus.OPEN);
         assertThat(saved.getCreatedAt()).isNotNull();
@@ -72,7 +78,45 @@ class SupportRequestControllerTest {
                 .andExpect(jsonPath("$.error").value("Validation error"))
                 .andExpect(jsonPath("$.message", containsString("topic")))
                 .andExpect(jsonPath("$.message", containsString("email")))
+                .andExpect(jsonPath("$.message", containsString("phoneCountryCode")))
+                .andExpect(jsonPath("$.message", containsString("phoneNumber")))
                 .andExpect(jsonPath("$.message", containsString("message")));
+    }
+
+    @Test
+    void createSupportRequest_missingPhoneCountryCode_returns400() throws Exception {
+        mockMvc.perform(post("/api/support-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "topic": "BOOKING",
+                                  "bookingReference": "PD-NO-CC",
+                                  "email": "customer@example.com",
+                                  "phoneNumber": "600 000 000",
+                                  "message": "Can you confirm my pickup details?"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation error"))
+                .andExpect(jsonPath("$.message", containsString("phoneCountryCode")));
+    }
+
+    @Test
+    void createSupportRequest_missingPhoneNumber_returns400() throws Exception {
+        mockMvc.perform(post("/api/support-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "topic": "BOOKING",
+                                  "bookingReference": "PD-NO-PHONE",
+                                  "email": "customer@example.com",
+                                  "phoneCountryCode": "+34",
+                                  "message": "Can you confirm my pickup details?"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Validation error"))
+                .andExpect(jsonPath("$.message", containsString("phoneNumber")));
     }
 
     @Test
@@ -87,6 +131,8 @@ class SupportRequestControllerTest {
                                   "topic": "PAYMENT",
                                   "bookingReference": "%s",
                                   "email": "not-an-email",
+                                  "phoneCountryCode": "+34",
+                                  "phoneNumber": "600 000 000",
                                   "message": "%s"
                                 }
                                 """.formatted(longReference, longMessage)))

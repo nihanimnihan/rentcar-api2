@@ -10,6 +10,8 @@ public class AuthUserResponse {
     private String firstName;
     private String lastName;
     private String country;
+    private String phoneCountryCode;
+    private String phoneNumber;
     private boolean profileComplete;
     private String role;
     private String customerNumber;

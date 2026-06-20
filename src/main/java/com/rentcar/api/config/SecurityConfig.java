@@ -101,7 +101,10 @@ public class SecurityConfig {
 
                         // ── Public auth endpoints
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/profile").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/profile").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/email/request-code").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/email/verify-code").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/email/complete-profile").permitAll()
                         // Allow logout to be called even if the session is expired so clients can always POST it.
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 
