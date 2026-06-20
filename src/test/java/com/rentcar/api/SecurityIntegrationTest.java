@@ -9,6 +9,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -98,10 +100,41 @@ class SecurityIntegrationTest {
     }
 
     @Test
-    void adminPage_withoutAuth_returnsBasicChallenge() throws Exception {
+    void adminPage_withoutAuth_redirectsToAdminLogin() throws Exception {
         mockMvc.perform(get("/admin/bookings.html"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().string("WWW-Authenticate", "Basic realm=\"RentCar Admin\""));
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "/admin-login.html"));
+    }
+
+    @Test
+    void adminLoginPage_isPublic() throws Exception {
+        mockMvc.perform(get("/admin-login.html"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void adminFormLogin_withValidCredentials_redirectsToDashboard() throws Exception {
+        mockMvc.perform(formLogin("/admin-login")
+                        .user("username", ADMIN_USER)
+                        .password("password", ADMIN_PASS))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "/admin/bookings.html"));
+    }
+
+    @Test
+    void adminFormLogin_withInvalidCredentials_redirectsToFriendlyError() throws Exception {
+        mockMvc.perform(formLogin("/admin-login")
+                        .user("username", ADMIN_USER)
+                        .password("password", WRONG_PASS))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "/admin-login.html?error=true"));
+    }
+
+    @Test
+    void adminPage_withAdminRole_isAccessible() throws Exception {
+        mockMvc.perform(get("/admin/bookings.html")
+                        .with(user(ADMIN_USER).roles("ADMIN")))
+                .andExpect(status().isOk());
     }
 
     @Test

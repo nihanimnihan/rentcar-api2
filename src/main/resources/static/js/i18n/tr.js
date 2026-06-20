@@ -177,6 +177,7 @@ window.i18nTranslations['tr'] = {
   'review.flightNumber': 'Uçuş numaranız nedir?',
   'review.flightNumberLabel': 'Uçuş numarası',
   'review.noFlight': 'Uçuş numaram yok.',
+  'review.noFlightNumber': 'Uçuş numaram yok.',
   'review.totalLabel': 'Toplam',
   'review.deposit': '🔒 Teslim alma sırasında iade edilebilir depozito gerekebilir.',
   'review.iAccept': 'Kabul ediyorum:',

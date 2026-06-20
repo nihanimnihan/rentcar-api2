@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -24,6 +25,8 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -49,6 +52,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // ── Static frontend resources ──────────────────────────────────────
+                        .requestMatchers("/admin-login.html").permitAll()
                         .requestMatchers("/admin.html", "/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/", "/*.html").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/fonts/**", "/partials/**").permitAll()
@@ -88,7 +92,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/transfer/offers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/transfer/bookings").permitAll()
 
-                        // ── Admin (DEMO: open for presentation — TODO before production: restore hasRole("ADMIN")) ──
+                        // ── Admin ─────────────────────────────────────────────────────────
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN","SUPER_ADMIN") // ADMIN+SUPER_ADMIN allowed
                         .requestMatchers("/api/payments/**").hasAnyRole("ADMIN","SUPER_ADMIN")
 
@@ -119,6 +123,11 @@ public class SecurityConfig {
                 // JSON 403 for authenticated users without the ADMIN role and JSON 401 for API requests
                 .exceptionHandling(ex -> ex
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            String path = request instanceof HttpServletRequest ? ((HttpServletRequest) request).getRequestURI() : null;
+                            if (path != null && path.startsWith("/admin")) {
+                                response.sendRedirect("/admin-login.html?error=forbidden");
+                                return;
+                            }
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.getWriter().write(
@@ -128,8 +137,7 @@ public class SecurityConfig {
                             // For API endpoints prefer JSON 401; for browser requests redirect to signup
                             String path = request instanceof HttpServletRequest ? ((HttpServletRequest) request).getRequestURI() : null;
                             if (path != null && path.startsWith("/admin")) {
-                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                                response.setHeader("WWW-Authenticate", "Basic realm=\"RentCar Admin\"");
+                                response.sendRedirect("/admin-login.html");
                             } else if (path != null && path.startsWith("/api/")) {
                                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -164,6 +172,17 @@ public class SecurityConfig {
                         })
                 )
 
+                // Browser admin login. HTTP Basic remains enabled above for API clients/tests.
+                .formLogin(form -> form
+                        .loginPage("/admin-login.html")
+                        .loginProcessingUrl("/admin-login")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .defaultSuccessUrl("/admin/bookings.html", true)
+                        .failureUrl("/admin-login.html?error=true")
+                        .permitAll()
+                )
+
                 // OAuth2 login (Google)
                 .oauth2Login(oauth -> oauth
                         .loginPage("/signup.html")
@@ -184,13 +203,28 @@ public class SecurityConfig {
     public UserDetailsService adminUserDetailsService(
             @Value("${rentcar.admin.username:admin}") String username,
             @Value("${rentcar.admin.password:change-me}") String password,
+            Environment environment,
             PasswordEncoder passwordEncoder) {
+        validateAdminCredentials(username, password, environment);
         return new InMemoryUserDetailsManager(
                 User.withUsername(username)
                         .password(passwordEncoder.encode(password))
                         .roles("ADMIN")
                         .build()
         );
+    }
+
+    private void validateAdminCredentials(String username, String password, Environment environment) {
+        boolean prod = Arrays.asList(environment.getActiveProfiles()).contains("prod");
+        if (!prod) {
+            return;
+        }
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new IllegalStateException("ADMIN_USERNAME and ADMIN_PASSWORD must be set for the prod profile.");
+        }
+        if ("change-me".equals(password) || "admin".equals(password)) {
+            throw new IllegalStateException("ADMIN_PASSWORD must be rotated from the local/test default before production startup.");
+        }
     }
 
     @Bean

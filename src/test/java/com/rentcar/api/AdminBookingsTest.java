@@ -1,7 +1,6 @@
 package com.rentcar.api;
 
 import com.jayway.jsonpath.JsonPath;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,9 +15,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,9 +44,6 @@ class AdminBookingsTest {
 
     // ── Security ──────────────────────────────────────────────────────────────
 
-    // TODO before production: restore hasRole("ADMIN") in SecurityConfig, then re-enable these tests.
-
-    @Disabled("Demo mode: /api/admin/** is temporarily permitAll — re-enable when auth is restored")
     @Test
     void listBookings_withoutAuth_returns401() throws Exception {
         mockMvc.perform(get("/api/admin/bookings"))
@@ -52,7 +51,6 @@ class AdminBookingsTest {
                 .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
 
-    @Disabled("Demo mode: /api/admin/** is temporarily permitAll — re-enable when auth is restored")
     @Test
     void listBookings_withWrongCredentials_returns401() throws Exception {
         mockMvc.perform(get("/api/admin/bookings")
@@ -66,6 +64,22 @@ class AdminBookingsTest {
                         .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void bookingsFrontend_usesDetailModalInsteadOfRawApiLink() throws Exception {
+        mockMvc.perform(get("/admin/bookings.html")
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("booking-detail-overlay")))
+                .andExpect(content().string(containsString("admin-bookings.js")));
+
+        mockMvc.perform(get("/js/admin-bookings.js")
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-booking-detail-id")))
+                .andExpect(content().string(not(containsString("href=\"/api/admin/bookings/"))))
+                .andExpect(content().string(not(containsString("target=\"_blank\""))));
     }
 
     // ── Response shape ────────────────────────────────────────────────────────

@@ -59,6 +59,9 @@
     root.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
       el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
     });
+    root.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) {
+      el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label')));
+    });
     root.querySelectorAll('[data-i18n-html]').forEach(function (el) {
       el.innerHTML = t(el.getAttribute('data-i18n-html'));
     });
@@ -140,10 +143,10 @@
         m.addedNodes.forEach(function (node) {
           try {
             if (node.nodeType !== 1) return; // only element nodes
-            if (node.querySelector && node.querySelector('[data-i18n], [data-i18n-placeholder], [data-i18n-html]')) {
+            if (node.querySelector && node.querySelector('[data-i18n], [data-i18n-placeholder], [data-i18n-aria-label], [data-i18n-html]')) {
               applyTranslations(node);
             }
-            if (node.hasAttribute && (node.hasAttribute('data-i18n') || node.hasAttribute('data-i18n-placeholder') || node.hasAttribute('data-i18n-html'))) {
+            if (node.hasAttribute && (node.hasAttribute('data-i18n') || node.hasAttribute('data-i18n-placeholder') || node.hasAttribute('data-i18n-aria-label') || node.hasAttribute('data-i18n-html'))) {
               applyTranslations(node);
             }
           } catch (e) {

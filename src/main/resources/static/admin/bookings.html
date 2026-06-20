@@ -26,7 +26,12 @@
       <span class="admin-db-header__brand">RentCar <span class="admin-db-header__badge">Admin</span></span>
     </div>
     <div class="admin-db-header__right">
-      <span class="admin-db-header__user">Administrator</span>
+      <div class="admin-lang-switcher" aria-label="Language" data-i18n-aria-label="admin.language">
+        <button type="button" data-admin-lang="en">EN</button>
+        <button type="button" data-admin-lang="es">ES</button>
+        <button type="button" data-admin-lang="tr">TR</button>
+      </div>
+      <span class="admin-db-header__user" data-i18n="admin.administrator">Administrator</span>
     </div>
   </header>
 
@@ -40,37 +45,37 @@
           <li class="admin-db__nav-item">
             <a href="#" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-home-1 text-16"></span>
-              <span>Dashboard</span>
+              <span data-i18n="admin.dashboard">Dashboard</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="bookings.html" class="admin-db__nav-link -is-active">
               <span class="admin-db__nav-icon icon-car text-16"></span>
-              <span>Bookings</span>
+              <span data-i18n="admin.bookings">Bookings</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="addons.html" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-star text-16"></span>
-              <span>Add-ons</span>
+              <span data-i18n="admin.addons">Add-ons</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="cars.html" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-price-tag text-16"></span>
-              <span>Vehicles</span>
+              <span data-i18n="admin.vehicles">Vehicles</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="#" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-price-tag text-16"></span>
-              <span>Pricing</span>
+              <span data-i18n="admin.pricing">Pricing</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="#" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-plane text-16"></span>
-              <span>Transfers</span>
+              <span data-i18n="admin.transfers">Transfers</span>
             </a>
           </li>
         </ul>
@@ -81,7 +86,7 @@
           <li class="admin-db__nav-item">
             <a href="../index.html" class="admin-db__nav-link admin-db__nav-link--logout">
               <span class="admin-db__nav-icon icon-power text-16"></span>
-              <span>Logout</span>
+              <span data-i18n="admin.logout">Logout</span>
             </a>
           </li>
         </ul>
@@ -98,37 +103,36 @@
         <!-- Page heading -->
         <div class="admin-db__page-header">
           <div>
-            <h1 class="admin-db__page-title">Bookings</h1>
-            <p class="admin-db__page-sub">All rental reservations — newest first</p>
+            <h1 class="admin-db__page-title" data-i18n="admin.bookings">Bookings</h1>
+            <p class="admin-db__page-sub" data-i18n="admin.bookings.subtitle">All rental reservations - newest first</p>
           </div>
           <!-- TODO: search/filter bar (bookingReference, status, email) -->
         </div>
 
-        <!-- TODO before production: restore ADMIN auth — this message should only appear if credentials are wrong -->
         <div id="auth-error" class="admin-alert admin-alert--error" hidden>
-          Could not load bookings. Please check your connection or reload the page.
+          <span data-i18n="admin.bookings.authError">Could not load bookings. Please check your connection or reload the page.</span>
         </div>
         <div id="load-error" class="admin-alert admin-alert--error" hidden></div>
 
         <!-- Loading / empty states -->
-        <div id="loading" class="admin-loading">Loading bookings…</div>
-        <div id="empty" class="admin-empty" hidden>No bookings yet.</div>
+        <div id="loading" class="admin-loading" data-i18n="admin.bookings.loading">Loading bookings...</div>
+        <div id="empty" class="admin-empty" hidden data-i18n="admin.bookings.empty">No bookings yet.</div>
 
         <!-- Bookings table card -->
         <div id="table-container" class="bg-white shadow-3 rounded-4 overflow-x-scroll" hidden>
           <table class="admin-table table-2 w-full">
             <thead>
               <tr class="admin-table__head-row">
-                <th>Reference</th>
-                <th>Status</th>
-                <th>Payment</th>
-                <th>Customer</th>
-                <th>Email</th>
-                <th>Car</th>
-                <th>Pickup</th>
-                <th>Dropoff</th>
-                <th>Total</th>
-                <th>Actions</th>
+                <th data-i18n="admin.bookings.reference">Reference</th>
+                <th data-i18n="admin.bookings.status">Status</th>
+                <th data-i18n="admin.bookings.payment">Payment</th>
+                <th data-i18n="admin.bookings.customer">Customer</th>
+                <th data-i18n="admin.bookings.email">Email</th>
+                <th data-i18n="admin.bookings.car">Car</th>
+                <th data-i18n="admin.bookings.pickup">Pickup</th>
+                <th data-i18n="admin.bookings.dropoff">Dropoff</th>
+                <th data-i18n="admin.bookings.total">Total</th>
+                <th data-i18n="admin.bookings.actions">Actions</th>
               </tr>
             </thead>
             <tbody id="bookings-tbody"></tbody>
@@ -139,7 +143,30 @@
     </main>
   </div>
 
+  <div class="admin-modal-overlay" id="booking-detail-overlay" hidden>
+    <div class="admin-modal admin-modal--detail" role="dialog" aria-modal="true" aria-labelledby="booking-detail-title">
+      <div class="admin-modal__header">
+        <h2 class="admin-modal__title" id="booking-detail-title" data-i18n="admin.detail.title">Booking details</h2>
+        <button class="admin-modal__close" id="booking-detail-close" aria-label="Close" data-i18n-aria-label="admin.detail.close">&times;</button>
+      </div>
+      <div class="admin-modal__body">
+        <div id="booking-detail-loading" class="admin-loading admin-loading--compact" data-i18n="admin.detail.loading">Loading booking details...</div>
+        <div id="booking-detail-error" class="admin-alert admin-alert--error" hidden></div>
+        <div id="booking-detail-body"></div>
+      </div>
+      <div class="admin-modal__footer">
+        <button class="admin-btn admin-btn--ghost" id="booking-detail-footer-close" data-i18n="admin.detail.close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/i18n/en.js"></script>
+  <script src="../js/i18n/es.js"></script>
+  <script src="../js/i18n/tr.js"></script>
+  <script src="../js/admin-i18n.js"></script>
+  <script src="../js/i18n/i18n.js"></script>
   <script src="../js/admin-bookings.js"></script>
+  <script src="../js/admin-session.js"></script>
   <script>
     // Mobile sidebar toggle
     document.querySelectorAll('.js-admin-sidebar-toggle').forEach(function(el) {

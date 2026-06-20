@@ -16,8 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for /api/admin/cars.
  *
- * NOTE: /api/admin/** is currently permitAll (demo mode).
- * TODO before production: restore hasRole("ADMIN") and add auth assertions.
+ * Admin endpoints require ADMIN credentials.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

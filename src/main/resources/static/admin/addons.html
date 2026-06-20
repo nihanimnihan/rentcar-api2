@@ -25,7 +25,12 @@
       <span class="admin-db-header__brand">RentCar <span class="admin-db-header__badge">Admin</span></span>
     </div>
     <div class="admin-db-header__right">
-      <span class="admin-db-header__user">Administrator</span>
+      <div class="admin-lang-switcher" aria-label="Language" data-i18n-aria-label="admin.language">
+        <button type="button" data-admin-lang="en">EN</button>
+        <button type="button" data-admin-lang="es">ES</button>
+        <button type="button" data-admin-lang="tr">TR</button>
+      </div>
+      <span class="admin-db-header__user" data-i18n="admin.administrator">Administrator</span>
     </div>
   </header>
 
@@ -39,37 +44,37 @@
           <li class="admin-db__nav-item">
             <a href="#" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-home-1 text-16"></span>
-              <span>Dashboard</span>
+              <span data-i18n="admin.dashboard">Dashboard</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="bookings.html" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-car text-16"></span>
-              <span>Bookings</span>
+              <span data-i18n="admin.bookings">Bookings</span>
             </a>
           </li>
           <li class="admin-db__nav-item -is-active">
             <a href="addons.html" class="admin-db__nav-link -is-active">
               <span class="admin-db__nav-icon icon-star text-16"></span>
-              <span>Add-ons</span>
+              <span data-i18n="admin.addons">Add-ons</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="cars.html" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-price-tag text-16"></span>
-              <span>Vehicles</span>
+              <span data-i18n="admin.vehicles">Vehicles</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="#" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-price-tag text-16"></span>
-              <span>Pricing</span>
+              <span data-i18n="admin.pricing">Pricing</span>
             </a>
           </li>
           <li class="admin-db__nav-item">
             <a href="#" class="admin-db__nav-link">
               <span class="admin-db__nav-icon icon-plane text-16"></span>
-              <span>Transfers</span>
+              <span data-i18n="admin.transfers">Transfers</span>
             </a>
           </li>
         </ul>
@@ -80,7 +85,7 @@
           <li class="admin-db__nav-item">
             <a href="../index.html" class="admin-db__nav-link admin-db__nav-link--logout">
               <span class="admin-db__nav-icon icon-power text-16"></span>
-              <span>Logout</span>
+              <span data-i18n="admin.logout">Logout</span>
             </a>
           </li>
         </ul>
@@ -97,31 +102,31 @@
         <!-- Page heading -->
         <div class="admin-db__page-header">
           <div>
-            <h1 class="admin-db__page-title">Add-ons</h1>
-            <p class="admin-db__page-sub">Manage rental add-on products</p>
+            <h1 class="admin-db__page-title" data-i18n="admin.addons">Add-ons</h1>
+            <p class="admin-db__page-sub" data-i18n="admin.addons.subtitle">Manage rental add-on products</p>
           </div>
-          <button class="admin-btn admin-btn--primary" id="btn-new-addon">+ New Add-on</button>
+          <button class="admin-btn admin-btn--primary" id="btn-new-addon">+ <span data-i18n="admin.addons.new">New Add-on</span></button>
         </div>
 
         <!-- Alerts -->
         <div id="load-error" class="admin-alert admin-alert--error" hidden></div>
 
         <!-- Loading / empty states -->
-        <div id="loading" class="admin-loading">Loading add-ons…</div>
-        <div id="empty" class="admin-empty" hidden>No add-ons yet. Create one above.</div>
+        <div id="loading" class="admin-loading" data-i18n="admin.addons.loading">Loading add-ons...</div>
+        <div id="empty" class="admin-empty" hidden data-i18n="admin.addons.empty">No add-ons yet. Create one above.</div>
 
         <!-- Add-ons table card -->
         <div id="table-container" class="bg-white shadow-3 rounded-4 overflow-x-scroll" hidden>
           <table class="admin-table table-2 w-full">
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Pricing Type</th>
-                <th>Recommended</th>
-                <th>Active</th>
-                <th>Actions</th>
+                <th data-i18n="admin.addons.code">Code</th>
+                <th data-i18n="admin.addons.name">Name</th>
+                <th data-i18n="admin.addons.price">Price</th>
+                <th data-i18n="admin.addons.pricingType">Pricing Type</th>
+                <th data-i18n="admin.addons.recommended">Recommended</th>
+                <th data-i18n="admin.addons.active">Active</th>
+                <th data-i18n="admin.addons.actions">Actions</th>
               </tr>
             </thead>
             <tbody id="addons-tbody"></tbody>
@@ -203,7 +208,13 @@
     </div>
   </div>
 
+  <script src="../js/i18n/en.js"></script>
+  <script src="../js/i18n/es.js"></script>
+  <script src="../js/i18n/tr.js"></script>
+  <script src="../js/admin-i18n.js"></script>
+  <script src="../js/i18n/i18n.js"></script>
   <script src="../js/admin-addons.js"></script>
+  <script src="../js/admin-session.js"></script>
   <script>
     document.querySelectorAll('.js-admin-sidebar-toggle').forEach(function(el) {
       el.addEventListener('click', function() {

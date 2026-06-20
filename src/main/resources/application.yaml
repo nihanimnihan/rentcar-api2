@@ -29,7 +29,7 @@ stripe:
   publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
 
-# Default admin credentials — overridden by each profile-specific yaml.
+# Local fallback admin credentials — overridden by prod with required env vars.
 # Prod profile replaces these with ${ADMIN_USERNAME} / ${ADMIN_PASSWORD} env vars.
 rentcar:
   admin:
