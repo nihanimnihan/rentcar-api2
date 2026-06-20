@@ -8,25 +8,78 @@
                     </div>
 
                     <div class="col-auto">
-                        <div class="text-white" data-i18n="footer.newsletter">Sign up and we'll send the best deals to you</div>
+                        <div class="text-white" data-i18n="support.footerText">Rezervasyon, iptal veya araç teslimiyle ilgili sorularınız için bize ulaşın.</div>
                     </div>
                 </div>
             </div>
 
             <div class="col-auto">
-                <div class="single-field -w-410 d-flex x-gap-10 y-gap-20">
-                    <div>
-                        <input class="bg-white h-60" type="text" data-i18n-placeholder="footer.emailPlaceholder" placeholder="Your Email">
-                    </div>
-
-                    <div>
-                        <button class="button -md h-60 bg-blue-1 text-white" data-i18n="footer.subscribe">Subscribe</button>
-                    </div>
-                </div>
+                <button id="supportRequestOpen" type="button" class="button -md h-60 bg-blue-1 text-white rc-support-cta" data-i18n="support.footerButton">Destek talebi oluştur</button>
             </div>
         </div>
     </div>
 </section>
+
+<div id="supportRequestModal" class="rc-support-modal" hidden>
+    <div class="rc-support-modal__backdrop" data-support-close></div>
+
+    <div class="rc-support-modal__card" role="dialog" aria-modal="true" aria-labelledby="supportRequestTitle">
+        <button type="button" class="rc-support-modal__close" data-support-close data-i18n-aria-label="support.close" aria-label="Close">
+            <i class="icon-close"></i>
+        </button>
+
+        <div class="rc-support-modal__eyebrow" data-i18n="support.brandEyebrow">Paradise Deluxe Rent A Car</div>
+        <h2 id="supportRequestTitle" class="rc-support-modal__title" data-i18n="support.modalTitle">Create a support request</h2>
+        <p class="rc-support-modal__intro" data-i18n="support.modalIntro">Tell us what you need help with and our team will contact you.</p>
+
+        <form id="supportRequestForm" class="rc-support-form" novalidate>
+            <div class="rc-support-field">
+                <label for="supportRequestTopic" data-i18n="support.topic">Topic</label>
+                <select id="supportRequestTopic" name="topic" required>
+                    <option value="" data-i18n="support.topicPlaceholder">Select a topic</option>
+                    <option value="BOOKING" data-i18n="support.topic.BOOKING">Reservation</option>
+                    <option value="CANCELLATION_REFUND" data-i18n="support.topic.CANCELLATION_REFUND">Cancellation / Refund</option>
+                    <option value="PICKUP_RETURN" data-i18n="support.topic.PICKUP_RETURN">Pickup / Return</option>
+                    <option value="PAYMENT" data-i18n="support.topic.PAYMENT">Payment</option>
+                    <option value="OTHER" data-i18n="support.topic.OTHER">Other</option>
+                </select>
+                <div class="rc-support-error" data-support-error-for="topic"></div>
+            </div>
+
+            <div class="rc-support-field">
+                <label for="supportRequestBookingReference" data-i18n="support.bookingReference">Booking reference</label>
+                <input id="supportRequestBookingReference" name="bookingReference" type="text" maxlength="50" data-i18n-placeholder="support.bookingReferencePlaceholder" placeholder="PD-XXXX">
+                <div class="rc-support-error" data-support-error-for="bookingReference"></div>
+            </div>
+
+            <div class="rc-support-field">
+                <label for="supportRequestEmail" data-i18n="support.email">Email address</label>
+                <input id="supportRequestEmail" name="email" type="email" required data-i18n-placeholder="support.emailPlaceholder" placeholder="customer@example.com" autocomplete="email">
+                <div class="rc-support-error" data-support-error-for="email"></div>
+            </div>
+
+            <div class="rc-support-field">
+                <label for="supportRequestMessage" data-i18n="support.message">Message</label>
+                <textarea id="supportRequestMessage" name="message" required maxlength="500" rows="5" data-i18n-placeholder="support.messagePlaceholder" placeholder="How can we help?"></textarea>
+                <div class="rc-support-field__meta">
+                    <div class="rc-support-error" data-support-error-for="message"></div>
+                    <div id="supportRequestMessageCount" class="rc-support-counter">0 / 500</div>
+                </div>
+            </div>
+
+            <div id="supportRequestStatus" class="rc-support-status" hidden></div>
+
+            <button id="supportRequestSubmit" type="submit" class="rc-support-submit" data-i18n="support.submit">Submit request</button>
+        </form>
+
+        <div id="supportRequestSuccess" class="rc-support-success" hidden>
+            <div class="rc-support-success__icon">✓</div>
+            <p data-i18n="support.success">Your support request has been received. We will contact you as soon as possible.</p>
+            <button type="button" class="rc-support-submit" data-support-close data-i18n="support.done">Done</button>
+        </div>
+    </div>
+</div>
+
 <footer class="footer -type-3 text-white bg-dark-1">
     <div class="container">
         <div class="pt-60 pb-60">
@@ -35,39 +88,34 @@
                     <h5 class="text-16 fw-500 mb-30" data-i18n="footer.contactUs">Contact Us</h5>
 
                     <div class="mt-30">
-                        <div class="text-14 mt-30" data-i18n="footer.tollFree">Toll Free Customer Care</div>
-                        <a href="#" class="text-18 fw-500 mt-5">+(34) 111 1111 11</a>
+                        <div class="text-14 mt-30" data-i18n="footer.tollFree">Customer Care</div>
+                        <a href="tel:+34XXXXXXXXX" class="text-18 fw-500 mt-5">+34 XXX XXX XXX</a>
                     </div>
 
                     <div class="mt-35">
                         <div class="text-14 mt-30" data-i18n="footer.liveSupport">Need live support?</div>
-                        <a href="#" class="text-18 fw-500 mt-5">hi@gmail.com</a>
+                        <a href="mailto:support@rentcarparadise.com" class="text-18 fw-500 mt-5">support@rentcarparadise.com</a>
                     </div>
                 </div>
 
                 <div class="col-xl-2 col-lg-4 col-sm-6">
                     <h5 class="text-16 fw-500 mb-30" data-i18n="footer.company">Company</h5>
                     <div class="d-flex y-gap-10 flex-column">
-                        <a href="#" data-i18n="footer.aboutUs">About Us</a>
+                        <a href="index.html" data-i18n="footer.carRental">Car Rental</a>
+                        <a href="contact.html" data-i18n="footer.contact">Contact</a>
                     </div>
                 </div>
 
                 <div class="col-xl-2 col-lg-4 col-sm-6">
                     <h5 class="text-16 fw-500 mb-30" data-i18n="footer.support">Support</h5>
                     <div class="d-flex y-gap-10 flex-column">
-                        <a href="#" data-i18n="footer.contact">Contact</a>
-                        <a href="#" data-i18n="footer.privacy">Privacy Policy</a>
-                        <a href="#" data-i18n="footer.terms">Terms and Conditions</a>
+                        <a href="terms-and-conditions.html" data-i18n="footer.terms">Terms and Conditions</a>
+                        <a href="privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
+                        <a href="cancellation-refund-policy.html" data-i18n="footer.cancellationRefund">Cancellation and Refund Policy</a>
+                        <a href="cancellation-refund-policy.html" data-i18n="footer.rentalInfo">Rental information</a>
+                        <a href="contact.html" data-i18n="footer.contact">Contact</a>
                     </div>
                 </div>
-
-                <div class="col-xl-2 col-lg-4 col-sm-6">
-                    <h5 class="text-16 fw-500 mb-30" data-i18n="footer.otherServices">Other Services</h5>
-                    <div class="d-flex y-gap-10 flex-column">
-                        <a href="#" data-i18n="footer.something">Something</a>
-                    </div>
-                </div>
-
             </div>
         </div>
 

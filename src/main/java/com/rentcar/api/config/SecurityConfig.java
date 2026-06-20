@@ -92,6 +92,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/transfer/offers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/transfer/bookings").permitAll()
 
+                        // ── Public API — support requests ───────────────────────────────
+                        .requestMatchers(HttpMethod.POST, "/api/support-requests").permitAll()
+
                         // ── Admin ─────────────────────────────────────────────────────────
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN","SUPER_ADMIN") // ADMIN+SUPER_ADMIN allowed
                         .requestMatchers("/api/payments/**").hasAnyRole("ADMIN","SUPER_ADMIN")

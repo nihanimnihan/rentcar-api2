@@ -1736,6 +1736,244 @@ section.bg-dark-2 {
 }
 
 /* =========================================================
+   FOOTER SUPPORT REQUEST MODAL
+   ========================================================= */
+
+.rc-support-cta {
+  min-width: 220px;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.rc-support-modal[hidden] {
+  display: none !important;
+}
+
+.rc-support-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.rc-support-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(25, 27, 30, 0.62);
+  backdrop-filter: blur(6px);
+}
+
+.rc-support-modal__card {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 34px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(248, 212, 72, 0.18), transparent 34%),
+    linear-gradient(180deg, #fffdf7 0%, #ffffff 64%, #fffaf0 100%);
+  border: 1px solid rgba(248, 212, 72, 0.38);
+  box-shadow: 0 30px 90px rgba(25, 27, 30, 0.30);
+  color: #191B1E;
+}
+
+.rc-support-modal__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(25, 27, 30, 0.06);
+  color: #191B1E;
+  cursor: pointer;
+}
+
+.rc-support-modal__close:hover {
+  background: rgba(25, 27, 30, 0.10);
+}
+
+.rc-support-modal__eyebrow {
+  margin-bottom: 8px;
+  color: rgba(25, 27, 30, 0.62);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rc-support-modal__title {
+  margin: 0;
+  padding-right: 44px;
+  color: #191B1E;
+  font-size: 28px;
+  line-height: 1.16;
+  font-weight: 800;
+}
+
+.rc-support-modal__intro {
+  margin: 10px 0 24px;
+  color: rgba(25, 27, 30, 0.66);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.rc-support-form {
+  display: grid;
+  gap: 16px;
+}
+
+.rc-support-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #191B1E;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.rc-support-field input,
+.rc-support-field select,
+.rc-support-field textarea {
+  width: 100%;
+  min-height: 54px;
+  border: 1.5px solid #cfd6e4;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 15px;
+  color: #191B1E;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rc-support-field textarea {
+  min-height: 132px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  resize: vertical;
+}
+
+.rc-support-field input:focus,
+.rc-support-field select:focus,
+.rc-support-field textarea:focus {
+  outline: none;
+  border-color: #F8D448;
+  box-shadow: 0 0 0 4px rgba(248, 212, 72, 0.24);
+}
+
+.rc-support-field__meta {
+  min-height: 22px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 7px;
+}
+
+.rc-support-error {
+  min-height: 18px;
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.rc-support-counter {
+  flex-shrink: 0;
+  color: rgba(25, 27, 30, 0.56);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rc-support-status {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.rc-support-submit {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #FFD84A 0%, #F4BE22 100%);
+  color: #111;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(248, 212, 72, 0.24);
+}
+
+.rc-support-submit:hover {
+  background: linear-gradient(180deg, #FFE16A 0%, #E9B516 100%);
+}
+
+.rc-support-submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.rc-support-success {
+  padding: 10px 0 0;
+  text-align: center;
+}
+
+.rc-support-success__icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #DDF7DF;
+  color: #087333;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.rc-support-success p {
+  margin: 0 0 24px;
+  color: rgba(25, 27, 30, 0.72);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+@media (max-width: 575px) {
+  .rc-support-cta {
+    width: 100%;
+  }
+
+  .rc-support-modal {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .rc-support-modal__card {
+    max-height: calc(100vh - 24px);
+    padding: 30px 22px 22px;
+    border-radius: 18px;
+  }
+
+  .rc-support-modal__title {
+    font-size: 24px;
+  }
+}
+
+/* =========================================================
    HOME LOCATION PICKER — Sixt-like warm luxury panel
    ========================================================= */
 
