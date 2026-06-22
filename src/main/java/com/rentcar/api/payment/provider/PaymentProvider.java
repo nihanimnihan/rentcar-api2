@@ -2,6 +2,7 @@ package com.rentcar.api.payment.provider;
 
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.payment.model.PaymentIntentResult;
+import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.model.PaymentResult;
 
 public interface PaymentProvider {
@@ -15,10 +16,8 @@ public interface PaymentProvider {
      *
      * <p>The returned {@link PaymentIntentResult#clientSecret()} is forwarded to the
      * frontend, which uses it to confirm the payment (e.g. {@code stripe.confirmCardPayment()}).
-     * {@link FakePaymentProvider} returns a synthetic secret for dev/test flows.
-     *
-     * <p>TODO (Stripe): implement via {@code stripe.paymentIntents().create()} using
-     *   {@code amount}, {@code currency}, and {@code metadata.bookingReference}.
+     * Public checkout callers must receive a real Stripe client secret; fake/dev
+     * synthetic secrets are rejected before they reach this interface.
      */
     PaymentIntentResult createIntent(Payment payment);
 
@@ -36,5 +35,13 @@ public interface PaymentProvider {
     default String fetchPaymentIntentStatus(com.rentcar.api.domain.payment.Payment payment) {
         throw new UnsupportedOperationException("fetchPaymentIntentStatus not supported by provider");
     }
-}
 
+    /**
+     * Fetch provider-side PaymentIntent details for reconciliation before a public
+     * booking is marked paid. Providers that can confirm public checkout payments
+     * must override this.
+     */
+    default PaymentIntentVerification fetchPaymentIntent(com.rentcar.api.domain.payment.Payment payment) {
+        throw new UnsupportedOperationException("fetchPaymentIntent not supported by provider");
+    }
+}

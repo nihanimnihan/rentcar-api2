@@ -4,6 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.repository.BookingRepository;
 import com.rentcar.api.service.ManageBookingTokenService;
+import com.rentcar.api.service.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class ManageBookingTest {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -51,6 +52,9 @@ class ManageBookingTest {
 
     @Autowired
     private ManageBookingTokenService manageBookingTokenService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     // ── 1. Valid reference + correct lastName → 200 ────────────────────────────
 
@@ -240,14 +244,7 @@ class ManageBookingTest {
 
         long bookingId   = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
         String reference = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
-        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
-
-        // Process payment → CONFIRMED
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", checkoutToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         return reference;
     }
@@ -287,9 +284,4 @@ class ManageBookingTest {
                 """.formatted(carId, customerName, email, pickup, dropoff);
     }
 
-    private String payBody(String paymentMethodId, String checkoutToken) {
-        return """
-                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
-                """.formatted(paymentMethodId, checkoutToken);
-    }
 }

@@ -1,6 +1,7 @@
 package com.rentcar.api.email;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,8 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@Profile({"dev & !prod & !local-smtp", "local-postgres & !prod & !local-smtp"})
+@Profile({"dev", "test"})
+@ConditionalOnExpression("'${spring.mail.host:}' == ''")
 public class FakeEmailService implements EmailService {
 
     private static final DateTimeFormatter DISPLAY_FMT =
@@ -37,6 +39,8 @@ public class FakeEmailService implements EmailService {
     private final List<CancellationEmailData> sentCancellationEmails =
             Collections.synchronizedList(new ArrayList<>());
     private final List<RefundCompletedEmailData> sentRefundCompletedEmails =
+            Collections.synchronizedList(new ArrayList<>());
+    private final List<NoShowEmailData> sentNoShowEmails =
             Collections.synchronizedList(new ArrayList<>());
     private final List<LoginOtpEmailData> sentLoginOtpEmails =
             Collections.synchronizedList(new ArrayList<>());
@@ -123,6 +127,27 @@ public class FakeEmailService implements EmailService {
     }
 
     @Override
+    public void sendNoShowRecorded(NoShowEmailData data) {
+        sentNoShowEmails.add(data);
+        LocalizedEmail localized = emailLocalizationService.noShowRecorded(data);
+
+        String manageLink = (data.managementUrl() != null && !data.managementUrl().isBlank())
+                ? "\n  Manage booking : " + data.managementUrl()
+                : "";
+
+        log.info("""
+                [FAKE EMAIL] No-show recorded
+                  To            : {} <{}>
+                  Subject       : {}
+                  Reference     : {}{}
+                """,
+                data.customerName(), data.customerEmail(),
+                localized.subject(),
+                data.bookingReference(),
+                manageLink);
+    }
+
+    @Override
     public void sendLoginOtp(LoginOtpEmailData data) {
         sentLoginOtpEmails.add(data);
         LocalizedEmail localized = emailLocalizationService.loginOtp(data);
@@ -162,6 +187,12 @@ public class FakeEmailService implements EmailService {
         }
     }
 
+    public List<NoShowEmailData> getSentNoShowEmails() {
+        synchronized (sentNoShowEmails) {
+            return List.copyOf(sentNoShowEmails);
+        }
+    }
+
     public List<LoginOtpEmailData> getSentLoginOtpEmails() {
         synchronized (sentLoginOtpEmails) {
             return List.copyOf(sentLoginOtpEmails);
@@ -173,6 +204,7 @@ public class FakeEmailService implements EmailService {
         sentConfirmationEmails.clear();
         sentCancellationEmails.clear();
         sentRefundCompletedEmails.clear();
+        sentNoShowEmails.clear();
         sentLoginOtpEmails.clear();
     }
 }

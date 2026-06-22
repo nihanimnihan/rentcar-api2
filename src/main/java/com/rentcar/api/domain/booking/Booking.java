@@ -81,12 +81,24 @@ public class Booking {
     @Column(length = 255)
     private String pickupLocation;
 
+    @Column(name = "pickup_address", length = 500)
+    private String pickupAddress;
+
+    @Column(name = "pickup_place_id", length = 255)
+    private String pickupPlaceId;
+
     @Column(nullable = false)
     private LocalDateTime dropoffDateTime;
 
     /** Customer-entered dropoff location name. Nullable for legacy rows. */
     @Column(length = 255)
     private String dropoffLocation;
+
+    @Column(name = "dropoff_address", length = 500)
+    private String dropoffAddress;
+
+    @Column(name = "dropoff_place_id", length = 255)
+    private String dropoffPlaceId;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

@@ -1,13 +1,17 @@
 package com.rentcar.api;
 
 import com.jayway.jsonpath.JsonPath;
-import com.rentcar.api.payment.provider.FakePaymentProvider;
+import com.rentcar.api.payment.provider.PaymentProvider;
+import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.service.PaymentService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -28,8 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for POST /api/bookings/{id}/payments/intent.
  *
  * <p>Tests the Stripe-ready intent contract: no charging happens, only a payment intent
- * record is prepared and a clientSecret returned. FakePaymentProvider returns deterministic
- * synthetic values so all assertions are exact.
+ * record is prepared and a clientSecret returned. A mocked Stripe provider returns
+ * deterministic intent ids so all assertions are exact without touching the network.
  *
  * <p>Date windows start at 1600+ days to avoid conflicts with other test classes.
  *
@@ -44,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class PaymentIntentTest {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -53,6 +57,20 @@ class PaymentIntentTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private PaymentService paymentService;
+
+    @MockitoBean
+    private PaymentProvider paymentProvider;
+
+    @BeforeEach
+    void configureStripeProvider() {
+        TestPaymentFixtures.configureStripeIntentProvider(paymentProvider);
+    }
 
     // ── 1. Happy path: PENDING booking returns intent with server-side amount ──
 
@@ -68,8 +86,8 @@ class PaymentIntentTest {
                 .andExpect(jsonPath("$.bookingReference").value(matchesPattern("RC-\\d{6}-[A-Z0-9]{4}")))
                 .andExpect(jsonPath("$.amount").isNumber())
                 .andExpect(jsonPath("$.currency").value("EUR"))
-                .andExpect(jsonPath("$.provider").value("FAKE"))
-                .andExpect(jsonPath("$.clientSecret").value(startsWith("fake_client_secret_")))
+                .andExpect(jsonPath("$.provider").value("STRIPE"))
+                .andExpect(jsonPath("$.clientSecret").value(startsWith("pi_test_secret_")))
                 .andExpect(jsonPath("$.paymentReference").value(matchesPattern("PAY-[0-9A-F]{8}")))
                 .andReturn();
 
@@ -88,7 +106,7 @@ class PaymentIntentTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(intentRequestBody()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.provider").value("FAKE"))
+                .andExpect(jsonPath("$.provider").value("STRIPE"))
                 .andExpect(jsonPath("$.paymentReference").value(matchesPattern("PAY-[0-9A-F]{8}")));
     }
 
@@ -127,12 +145,7 @@ class PaymentIntentTest {
     void createIntent_failedBooking_createsFreshPaymentRecord() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1620, 1622), daysFromNow(1620), daysFromNow(1622));
 
-        // Force a payment failure
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody(FakePaymentProvider.FORCE_FAIL_METHOD_ID)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("FAILED"));
+        TestPaymentFixtures.failByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         // Now request an intent on the FAILED booking — should succeed with a new payment record
         MvcResult intentResult = mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
@@ -141,7 +154,7 @@ class PaymentIntentTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(bookingId))
                 .andExpect(jsonPath("$.paymentReference").value(matchesPattern("PAY-[0-9A-F]{8}")))
-                .andExpect(jsonPath("$.provider").value("FAKE"))
+                .andExpect(jsonPath("$.provider").value("STRIPE"))
                 .andReturn();
 
         // Booking is back to PENDING — a second intent call should also succeed (idempotent)
@@ -176,11 +189,7 @@ class PaymentIntentTest {
     void createIntent_confirmedBooking_returns409() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1630, 1632), daysFromNow(1630), daysFromNow(1632));
 
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_valid")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -223,7 +232,7 @@ class PaymentIntentTest {
                         .content(bodyWithMethod))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.amount").isNumber())
-                .andExpect(jsonPath("$.provider").value("FAKE")) // provider unchanged
+                .andExpect(jsonPath("$.provider").value("STRIPE"))
                 .andReturn();
 
         double amount = JsonPath.read(result.getResponse().getContentAsString(), "$.amount");
@@ -261,12 +270,6 @@ class PaymentIntentTest {
             return String.format("{\"checkoutSessionToken\": \"%s\"}", lastCheckoutToken);
         }
         return "{}";
-    }
-
-    private String payBody(String paymentMethodId) {
-        return """
-                {"paymentMethodId": "%s", "checkoutSessionToken": "%s"}
-                """.formatted(paymentMethodId, lastCheckoutToken);
     }
 
     private String daysFromNow(int days) {

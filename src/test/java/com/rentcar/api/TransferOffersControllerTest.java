@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class TransferOffersControllerTest {
 
     // yyyy-MM-dd'T'HH:mm — matches the controller's PICKUP_DT_FMT

@@ -6,10 +6,12 @@ import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentChannel;
 import com.rentcar.api.domain.payment.PaymentMethod;
 import com.rentcar.api.domain.payment.PaymentStatus;
+import com.rentcar.api.dto.admin.AdminPaymentSource;
 import com.rentcar.api.exception.InvalidBookingStateException;
 import com.rentcar.api.exception.PaymentNotFoundException;
 import com.rentcar.api.exception.RefundFailedException;
 import com.rentcar.api.payment.model.PaymentIntentResult;
+import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.model.PaymentResult;
 import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.PaymentRepository;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
@@ -37,6 +40,32 @@ public class PaymentService {
         Payment saved = paymentRepository.save(buildPendingPayment(booking));
         log.debug("Pending payment created: paymentId={} bookingId={} amount={}",
                 saved.getId(), booking.getId(), booking.getTotalPrice());
+        return saved;
+    }
+
+    @Transactional
+    public Payment createPaidAdminPayment(Booking booking, AdminPaymentSource source) {
+        PaymentMethod method = switch (source) {
+            case STRIPE -> PaymentMethod.STRIPE;
+            case CASH -> PaymentMethod.CASH;
+            case CARD_TERMINAL -> PaymentMethod.CARD_TERMINAL;
+            case OFFICE -> PaymentMethod.OFFICE;
+        };
+        PaymentChannel channel = source == AdminPaymentSource.STRIPE
+                ? PaymentChannel.ONLINE
+                : PaymentChannel.OFFICE;
+        Payment saved = paymentRepository.save(Payment.builder()
+                .booking(booking)
+                .amount(booking.getTotalPrice())
+                .currencyCode("EUR")
+                .method(method)
+                .channel(channel)
+                .status(PaymentStatus.PAID)
+                .providerReference("ADMIN-" + source.name())
+                .paidAt(appClock.nowUtc())
+                .build());
+        log.info("Admin payment recorded: paymentId={} bookingId={} source={} amount={}",
+                saved.getId(), booking.getId(), source, booking.getTotalPrice());
         return saved;
     }
 
@@ -60,6 +89,15 @@ public class PaymentService {
         Payment payment = getLatestPaymentForBooking(booking);
 
         if (payment.getStatus() == PaymentStatus.PAID) {
+            if (!hasUsableStripeRefundReference(payment)) {
+                payment.setStatus(PaymentStatus.REFUND_PENDING);
+                log.error("Paid payment cannot be auto-refunded: paymentId={} bookingId={} method={} channel={} stripeIntentId={} providerRef={}",
+                        payment.getId(), booking.getId(), payment.getMethod(), payment.getChannel(),
+                        payment.getStripePaymentIntentId(), payment.getProviderReference());
+                paymentRepository.save(payment);
+                return;
+            }
+
             // Money was collected — issue a full provider refund before cancelling.
             PaymentResult result = paymentProvider.refund(payment);
             if (result.successful()) {
@@ -83,6 +121,23 @@ public class PaymentService {
             // PENDING or FAILED — no money was collected, just void the record.
             payment.setStatus(PaymentStatus.CANCELLED);
             log.info("Payment voided (no charge): paymentId={} bookingId={}", payment.getId(), booking.getId());
+        }
+
+        paymentRepository.save(payment);
+    }
+
+    @Transactional
+    public void handleCancellationWithoutRefund(Booking booking) {
+        Payment payment = getLatestPaymentForBooking(booking);
+
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            payment.setStatus(PaymentStatus.NO_REFUND);
+            log.info("Payment kept without refund by policy: paymentId={} bookingId={}",
+                    payment.getId(), booking.getId());
+        } else {
+            payment.setStatus(PaymentStatus.CANCELLED);
+            log.info("Payment voided by non-refundable cancellation/no-show: paymentId={} bookingId={}",
+                    payment.getId(), booking.getId());
         }
 
         paymentRepository.save(payment);
@@ -133,24 +188,30 @@ public class PaymentService {
     public Payment verifyLatestPaymentIntentForBooking(Booking booking) {
         Payment payment = getLatestPaymentForBooking(booking);
 
-        String intentStatus;
+        if (payment.getStripePaymentIntentId() == null || payment.getStripePaymentIntentId().isBlank()) {
+            throw new InvalidBookingStateException(
+                    "Payment cannot be confirmed without a provider PaymentIntent");
+        }
+
+        PaymentIntentVerification intent;
         try {
-            intentStatus = paymentProvider.fetchPaymentIntentStatus(payment);
+            intent = paymentProvider.fetchPaymentIntent(payment);
         } catch (UnsupportedOperationException e) {
             throw new IllegalStateException("Payment provider does not support intent verification");
         }
 
+        validatePaymentIntentMatchesPayment(intent, payment);
+        String intentStatus = intent.status();
         if (intentStatus == null) {
             throw new IllegalStateException("Provider returned null intent status");
         }
 
-        switch (intentStatus) {
-            case "succeeded" -> markPaymentPaid(payment, intentStatus);
-            case "requires_payment_method", "canceled", "failed" -> markPaymentFailed(payment, intentStatus);
-            default -> markPaymentPending(payment, intentStatus);
+        if ("succeeded".equals(intentStatus)) {
+            markPaymentPaid(payment, intentStatus);
+            return paymentRepository.save(payment);
         }
 
-        return paymentRepository.save(payment);
+        throw new InvalidBookingStateException("PaymentIntent has not succeeded");
     }
 
     /**
@@ -159,32 +220,32 @@ public class PaymentService {
      */
     @Transactional
     public Optional<Payment> applyStripePaymentIntentStatus(
-            String stripePaymentIntentId,
-            String providerStatus,
+            PaymentIntentVerification providerIntent,
             String providerReference) {
 
-        return paymentRepository.findByStripePaymentIntentIdForUpdate(stripePaymentIntentId)
+        return paymentRepository.findByStripePaymentIntentIdForUpdate(providerIntent.id())
                 .map(payment -> {
                     BookingStatus previousBookingStatus = payment.getBooking().getStatus();
                     if (providerReference != null && !providerReference.isBlank()) {
                         payment.setProviderReference(providerReference);
                     }
-                    switch (providerStatus) {
+                    switch (providerIntent.status()) {
                         case "succeeded" -> {
-                            markPaymentPaid(payment, providerStatus);
+                            validatePaymentIntentMatchesPayment(providerIntent, payment);
+                            markPaymentPaid(payment, providerIntent.status());
                             confirmBookingIfOpen(payment.getBooking());
                         }
                         case "requires_payment_method", "canceled", "failed" -> {
-                            markPaymentFailed(payment, providerStatus);
+                            markPaymentFailed(payment, providerIntent.status());
                             failBookingIfOpen(payment.getBooking());
                         }
                         default -> {
-                            markPaymentPending(payment, providerStatus);
+                            markPaymentPending(payment, providerIntent.status());
                             keepBookingPendingIfOpen(payment.getBooking());
                         }
                     }
                     Payment saved = paymentRepository.save(payment);
-                    if ("succeeded".equals(providerStatus)
+                    if ("succeeded".equals(providerIntent.status())
                             && previousBookingStatus != BookingStatus.CONFIRMED
                             && saved.getBooking().getStatus() == BookingStatus.CONFIRMED) {
                         bookingEmailNotificationService.sendBookingConfirmation(saved.getBooking());
@@ -325,5 +386,58 @@ public class PaymentService {
             case "pending", "requires_action" -> true;
             default -> false;
         };
+    }
+
+    private void validatePaymentIntentMatchesPayment(PaymentIntentVerification intent, Payment payment) {
+        if (intent == null) {
+            throw new InvalidBookingStateException("Payment provider did not return a PaymentIntent");
+        }
+        if (!payment.getStripePaymentIntentId().equals(intent.id())) {
+            throw new InvalidBookingStateException("PaymentIntent does not match this payment");
+        }
+        Long expectedAmount = amountInSmallestCurrencyUnit(payment.getAmount());
+        if (!expectedAmount.equals(intent.amountMinor())) {
+            throw new InvalidBookingStateException("PaymentIntent amount does not match this booking");
+        }
+        String expectedCurrency = payment.getCurrencyCode().toLowerCase(Locale.ROOT);
+        String actualCurrency = intent.currency() == null ? "" : intent.currency().toLowerCase(Locale.ROOT);
+        if (!expectedCurrency.equals(actualCurrency)) {
+            throw new InvalidBookingStateException("PaymentIntent currency does not match this booking");
+        }
+        String bookingId = metadataValue(intent, "bookingId");
+        if (!String.valueOf(payment.getBooking().getId()).equals(bookingId)) {
+            throw new InvalidBookingStateException("PaymentIntent booking metadata does not match this booking");
+        }
+        String paymentId = metadataValue(intent, "paymentId");
+        if (!String.valueOf(payment.getId()).equals(paymentId)) {
+            throw new InvalidBookingStateException("PaymentIntent payment metadata does not match this payment");
+        }
+        String paymentReference = metadataValue(intent, "paymentReference");
+        if (!payment.getPaymentReference().equals(paymentReference)) {
+            throw new InvalidBookingStateException("PaymentIntent payment reference does not match this payment");
+        }
+    }
+
+    private String metadataValue(PaymentIntentVerification intent, String key) {
+        return intent.metadata() == null ? null : intent.metadata().get(key);
+    }
+
+    private Long amountInSmallestCurrencyUnit(java.math.BigDecimal amount) {
+        return amount.setScale(2, java.math.RoundingMode.UNNECESSARY)
+                .multiply(java.math.BigDecimal.valueOf(100))
+                .longValueExact();
+    }
+
+    private boolean hasUsableStripeRefundReference(Payment payment) {
+        return isStripePaymentIntentId(payment.getStripePaymentIntentId())
+                || isStripeRefundReference(payment.getProviderReference());
+    }
+
+    private boolean isStripePaymentIntentId(String value) {
+        return value != null && value.startsWith("pi_");
+    }
+
+    private boolean isStripeRefundReference(String value) {
+        return value != null && (value.startsWith("pi_") || value.startsWith("ch_"));
     }
 }

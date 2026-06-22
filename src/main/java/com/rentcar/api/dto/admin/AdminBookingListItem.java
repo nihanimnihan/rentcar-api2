@@ -5,6 +5,7 @@ import com.rentcar.api.domain.booking.BookingSource;
 import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.domain.booking.CancellationPolicyType;
 import com.rentcar.api.domain.payment.PaymentStatus;
+import com.rentcar.api.domain.payment.PaymentMethod;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,6 +34,11 @@ public record AdminBookingListItem(
         BookingOptionType bookingOptionType,
         BigDecimal bookingOptionDailyFee,
         CancellationPolicyType cancellationPolicyType,
+        boolean cancellationAllowed,
+        boolean refundEligible,
+        BigDecimal refundAmount,
+        boolean noShow,
         /** Null when no payment record exists yet (intent not created). */
-        PaymentStatus paymentStatus
+        PaymentStatus paymentStatus,
+        PaymentMethod paymentMethod
 ) {}

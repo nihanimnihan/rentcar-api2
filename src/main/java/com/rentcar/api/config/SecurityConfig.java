@@ -1,6 +1,5 @@
 package com.rentcar.api.config;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -33,7 +32,6 @@ import java.util.Arrays;
 @ConfigurationPropertiesScan
 public class SecurityConfig {
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, com.rentcar.api.security.OAuth2LoginSuccessHandler successHandler, com.rentcar.api.security.CustomOAuth2UserService oauth2UserService, ClientRegistrationRepository clientRegistrationRepository, com.rentcar.api.security.SessionAuthenticationFilter sessionAuthenticationFilter) throws Exception {
         http
@@ -61,8 +59,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // Actuator health — public so load balancers / uptime monitors can probe
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/api/config/**").permitAll()
-
+                        .requestMatchers("/api/config/stripe-publishable-key").permitAll()
                         // ── Public API — car browsing ───────────────────────────────────────
                         .requestMatchers(HttpMethod.GET, "/api/cars/search", "/api/cars/popular").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cars/{id}").permitAll()
@@ -129,7 +126,7 @@ public class SecurityConfig {
                 // JSON 403 for authenticated users without the ADMIN role and JSON 401 for API requests
                 .exceptionHandling(ex -> ex
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            String path = request instanceof HttpServletRequest ? ((HttpServletRequest) request).getRequestURI() : null;
+                            String path = request != null ? request.getRequestURI() : null;
                             if (path != null && path.startsWith("/admin")) {
                                 response.sendRedirect("/admin-login.html?error=forbidden");
                                 return;
@@ -141,7 +138,7 @@ public class SecurityConfig {
                         })
                         .authenticationEntryPoint((request, response, authException) -> {
                             // For API endpoints prefer JSON 401; for browser requests redirect to signup
-                            String path = request instanceof HttpServletRequest ? ((HttpServletRequest) request).getRequestURI() : null;
+                            String path = request != null ? request.getRequestURI() : null;
                             if (path != null && path.startsWith("/admin")) {
                                 response.sendRedirect("/admin-login.html");
                             } else if (path != null && path.startsWith("/api/")) {

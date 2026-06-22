@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Disabled("Airport transfer is out of current MVP scope")
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class TransferBookingControllerTest {
 
     private static final DateTimeFormatter FMT =

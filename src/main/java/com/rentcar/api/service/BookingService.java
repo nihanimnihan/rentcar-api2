@@ -15,6 +15,7 @@ import com.rentcar.api.domain.booking.RentalBookingDetails;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.customer.Customer;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
+import com.rentcar.api.dto.admin.AdminCreateBookingRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
 import com.rentcar.api.exception.BookingNotFoundException;
 import com.rentcar.api.exception.CarNotAvailableException;
@@ -31,10 +32,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -122,8 +126,12 @@ public class BookingService {
                 .bookingReference(bookingReference)
                 .pickupDateTime(request.pickupDateTime())
                 .pickupLocation(request.pickupLocation())
+                .pickupAddress(null)
+                .pickupPlaceId(null)
                 .dropoffDateTime(request.dropoffDateTime())
                 .dropoffLocation(request.dropoffLocation())
+                .dropoffAddress(null)
+                .dropoffPlaceId(null)
                 .rentalDays(price.rentalDays())
                 .baseDailyPrice(price.baseDailyPrice())
                 .discountedDailyPrice(price.effectiveDailyPrice())
@@ -190,6 +198,122 @@ public class BookingService {
         log.info("Booking created: id={} carId={} customerId={} rentalDays={} mileage={} total={}",
                 savedBooking.getId(), car.getId(), customer.getId(),
                 price.rentalDays(), mileageOption, savedBooking.getTotalPrice());
+        return savedBooking;
+    }
+
+    @Transactional
+    public Booking createAdminBooking(AdminCreateBookingRequest request) {
+        LocalDateTime pickupDateTime = LocalDateTime.of(request.pickupDate(), request.pickupTime());
+        LocalDateTime dropoffDateTime = LocalDateTime.of(request.returnDate(), request.returnTime());
+        CreateBookingRequest normalRequest = new CreateBookingRequest(
+                request.vehicleId(),
+                (trim(request.firstName()) + " " + trim(request.lastName())).trim(),
+                trim(request.email()),
+                normalizeAdminPhone(request.phoneCountryCode(), request.phoneNumber()),
+                pickupDateTime,
+                dropoffDateTime,
+                trim(request.pickupLocation()),
+                trim(request.returnLocation()),
+                request.addonIds(),
+                MileageOption.INCLUDED,
+                null
+        );
+
+        validateDates(normalRequest);
+        Car car = carService.getActiveCarByIdForUpdate(normalRequest.carId());
+
+        boolean overlaps = bookingRepository
+                .existsByCarAndActiveStatusAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
+                        car,
+                        normalRequest.dropoffDateTime(),
+                        normalRequest.pickupDateTime(),
+                        appClock.nowUtc()
+                );
+        if (overlaps) {
+            log.warn("Admin booking rejected: car {} unavailable pickup={} dropoff={}",
+                    normalRequest.carId(), normalRequest.pickupDateTime(), normalRequest.dropoffDateTime());
+            throw new CarNotAvailableException(normalRequest.carId());
+        }
+
+        PriceBreakdown price = pricingService.calculate(
+                car,
+                normalRequest.pickupLocation(),
+                normalRequest.dropoffLocation(),
+                normalRequest.pickupDateTime(),
+                normalRequest.dropoffDateTime());
+        List<Addon> addons = resolveAdminAddons(request.addonIds());
+        BigDecimal addonCharge = addons.stream()
+                .map(addon -> computeAddonPrice(addon, price.rentalDays()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal expectedTotal = price.totalPrice().add(addonCharge).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal submittedTotal = request.totalPrice().setScale(2, RoundingMode.HALF_UP);
+        String notes = appendAdminOverrideNote(trimToNull(request.internalNote()), expectedTotal, submittedTotal);
+
+        Customer customer = customerService.getOrCreateCustomer(
+                normalRequest.customerName(),
+                normalRequest.customerEmail(),
+                normalRequest.customerPhone(),
+                LanguageNormalizer.DEFAULT_LANGUAGE);
+        Booking booking = Booking.builder()
+                .car(car)
+                .customer(customer)
+                .bookingReference(generateUniqueReference())
+                .pickupDateTime(normalRequest.pickupDateTime())
+                .pickupLocation(normalRequest.pickupLocation())
+                .pickupAddress(trimToNull(request.pickupAddress()))
+                .pickupPlaceId(trimToNull(request.pickupPlaceId()))
+                .dropoffDateTime(normalRequest.dropoffDateTime())
+                .dropoffLocation(normalRequest.dropoffLocation())
+                .dropoffAddress(trimToNull(request.returnAddress()))
+                .dropoffPlaceId(trimToNull(request.returnPlaceId()))
+                .rentalDays(price.rentalDays())
+                .baseDailyPrice(price.baseDailyPrice())
+                .discountedDailyPrice(price.effectiveDailyPrice())
+                .discountPercentage(price.discountPercentage())
+                .rentalCharge(price.rentalCharge())
+                .oneWayFee(price.oneWayFee())
+                .premiumLocationFee(price.premiumLocationFee())
+                .tax(price.tax())
+                .addonCharge(addonCharge)
+                .totalPrice(submittedTotal)
+                .includedKmSnapshot(price.includedKm())
+                .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
+                .mileageOption(MileageOption.INCLUDED)
+                .bookingOptionType(BookingOptionType.BEST_PRICE)
+                .bookingOptionDailyFee(BigDecimal.ZERO)
+                .cancellationPolicyType(CancellationPolicyType.STRICT)
+                .status(BookingStatus.CONFIRMED)
+                .expiresAt(null)
+                .checkoutSessionToken(null)
+                .language(LanguageNormalizer.DEFAULT_LANGUAGE)
+                .source(BookingSource.OFFICE)
+                .notes(notes)
+                .createdByType(BookingActorType.ADMIN)
+                .createdChannel(BookingChannel.ADMIN_PANEL)
+                .build();
+        booking.attachRentalDetails(RentalBookingDetails.builder()
+                .rentalDays(price.rentalDays())
+                .baseDailyPrice(price.baseDailyPrice())
+                .discountedDailyPrice(price.effectiveDailyPrice())
+                .discountPercentage(price.discountPercentage())
+                .rentalCharge(price.rentalCharge())
+                .oneWayFee(price.oneWayFee())
+                .premiumLocationFee(price.premiumLocationFee())
+                .tax(price.tax())
+                .addonCharge(addonCharge)
+                .includedKmSnapshot(price.includedKm())
+                .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
+                .mileageOption(MileageOption.INCLUDED)
+                .bookingOptionType(BookingOptionType.BEST_PRICE)
+                .bookingOptionDailyFee(BigDecimal.ZERO)
+                .cancellationPolicyType(CancellationPolicyType.STRICT)
+                .build());
+
+        Booking savedBooking = bookingRepository.save(booking);
+        snapshotAddons(savedBooking, addons, price.rentalDays());
+        paymentService.createPaidAdminPayment(savedBooking, request.paymentSource());
+        log.info("Admin booking created: id={} carId={} customerId={} total={} paymentSource={}",
+                savedBooking.getId(), car.getId(), customer.getId(), savedBooking.getTotalPrice(), request.paymentSource());
         return savedBooking;
     }
 
@@ -262,6 +386,66 @@ public class BookingService {
                     .setScale(2, RoundingMode.HALF_UP);
         }
         return addon.getPrice().setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private List<Addon> resolveAdminAddons(List<Long> requestedAddonIds) {
+        if (requestedAddonIds == null || requestedAddonIds.isEmpty()) {
+            return List.of();
+        }
+        List<Addon> addons = addonRepository.findAllById(requestedAddonIds);
+        if (addons.size() != requestedAddonIds.stream().distinct().count()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "One or more selected add-ons do not exist.");
+        }
+        List<Addon> inactive = addons.stream().filter(addon -> !addon.isActive()).toList();
+        if (!inactive.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected add-on is inactive.");
+        }
+        return addons;
+    }
+
+    private void snapshotAddons(Booking savedBooking, List<Addon> addons, int rentalDays) {
+        for (Addon addon : addons) {
+            BookingAddon ba = BookingAddon.builder()
+                    .booking(savedBooking)
+                    .addon(addon)
+                    .addonName(addon.getName())
+                    .pricingTypeSnapshot(addon.getPricingType())
+                    .priceAtBooking(computeAddonPrice(addon, rentalDays))
+                    .build();
+            bookingAddonRepository.save(ba);
+            savedBooking.getBookingAddons().add(ba);
+        }
+    }
+
+    private String normalizeAdminPhone(String phoneCountryCode, String phoneNumber) {
+        return trim(phoneCountryCode).replace(" ", "") + trim(phoneNumber).replaceAll("\\s+", "");
+    }
+
+    private String trim(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String trimToNull(String value) {
+        String trimmed = trim(value);
+        if (trimmed.isBlank()) {
+            return null;
+        }
+        return trimmed.length() > 1000 ? trimmed.substring(0, 1000) : trimmed;
+    }
+
+    private String appendAdminOverrideNote(String note, BigDecimal expectedTotal, BigDecimal submittedTotal) {
+        if (expectedTotal.compareTo(submittedTotal) == 0) {
+            return note;
+        }
+        String marker = "Manual price override active: calculated "
+                + expectedTotal.toPlainString()
+                + " EUR, final "
+                + submittedTotal.toPlainString()
+                + " EUR.";
+        if (note == null || note.isBlank()) {
+            return marker;
+        }
+        return (note + "\n" + marker).trim();
     }
 
 

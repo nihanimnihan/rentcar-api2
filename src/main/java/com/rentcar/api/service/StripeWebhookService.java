@@ -1,6 +1,7 @@
 package com.rentcar.api.service;
 
 import com.rentcar.api.exception.PaymentProviderNotConfiguredException;
+import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Charge;
@@ -52,8 +53,12 @@ public class StripeWebhookService {
         }
 
         paymentService.applyStripePaymentIntentStatus(
-                        intent.getId(),
-                        intent.getStatus(),
+                        new PaymentIntentVerification(
+                                intent.getId(),
+                                intent.getStatus(),
+                                intent.getAmount(),
+                                intent.getCurrency(),
+                                intent.getMetadata()),
                         intent.getLatestCharge() != null ? intent.getLatestCharge() : intent.getId())
                 .ifPresentOrElse(
                         payment -> log.info("Stripe webhook applied: eventId={} type={} paymentId={} status={}",

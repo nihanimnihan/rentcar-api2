@@ -112,7 +112,8 @@
             <h1 class="admin-db__page-title" data-i18n="admin.bookings">Bookings</h1>
             <p class="admin-db__page-sub" data-i18n="admin.bookings.subtitle">All rental reservations - newest first</p>
           </div>
-          <!-- TODO: search/filter bar (bookingReference, status, email) -->
+          <button type="button" class="admin-btn admin-btn--primary" id="create-booking-open">Create Booking</button>
+            <!-- TODO: search/filter bar (bookingReference, status, email) -->
         </div>
 
         <div id="auth-error" class="admin-alert admin-alert--error" hidden>
@@ -149,6 +150,163 @@
     </main>
   </div>
 
+  <div class="admin-modal-overlay" id="create-booking-overlay" hidden>
+    <div class="admin-modal admin-modal--wide" role="dialog" aria-modal="true" aria-labelledby="create-booking-title">
+      <form id="create-booking-form" novalidate>
+        <div class="admin-modal__header">
+          <h2 class="admin-modal__title" id="create-booking-title">Create Booking</h2>
+          <button type="button" class="admin-modal__close" id="create-booking-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="admin-modal__body">
+          <div id="create-booking-error" class="admin-alert admin-alert--error" hidden></div>
+
+          <section class="admin-form-section">
+            <h3 class="admin-form-section__title">Vehicle</h3>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="admin-booking-vehicle">Vehicle <span class="req">*</span></label>
+              <select class="admin-form-input" id="admin-booking-vehicle" name="vehicleId" required></select>
+              <div class="admin-field-error" data-field-error="vehicleId" hidden></div>
+            </div>
+          </section>
+
+          <section class="admin-form-section">
+            <h3 class="admin-form-section__title">Customer</h3>
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-first-name">First name <span class="req">*</span></label>
+                <input class="admin-form-input" id="admin-booking-first-name" name="firstName" required>
+                <div class="admin-field-error" data-field-error="firstName" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-last-name">Last name <span class="req">*</span></label>
+                <input class="admin-form-input" id="admin-booking-last-name" name="lastName" required>
+                <div class="admin-field-error" data-field-error="lastName" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-email">Email <span class="req">*</span></label>
+                <input class="admin-form-input" type="email" id="admin-booking-email" name="email" required>
+                <div class="admin-field-error" data-field-error="email" hidden></div>
+              </div>
+              <div class="admin-form-grid admin-form-grid--phone">
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="admin-booking-phone-code">Code <span class="req">*</span></label>
+                  <input class="admin-form-input" id="admin-booking-phone-code" name="phoneCountryCode" value="+34" required>
+                  <div class="admin-field-error" data-field-error="phoneCountryCode" hidden></div>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="admin-booking-phone">Phone <span class="req">*</span></label>
+                  <input class="admin-form-input" id="admin-booking-phone" name="phoneNumber" required>
+                  <div class="admin-field-error" data-field-error="phoneNumber" hidden></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-form-section">
+            <h3 class="admin-form-section__title">Trip</h3>
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-pickup-location">Pickup location <span class="req">*</span></label>
+                <button class="admin-location-trigger" type="button" id="admin-booking-pickup-location-button">
+                  <span id="admin-booking-pickup-location-text">BCN Airport T1</span>
+                </button>
+                <div class="admin-location-popup" id="admin-booking-pickup-location-popup" style="display:none;"></div>
+                <input type="hidden" id="admin-booking-pickup-location" name="pickupLocation" value="BCN Airport T1">
+                <div class="admin-field-error" data-field-error="pickupLocation" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-return-location">Return location <span class="req">*</span></label>
+                <button class="admin-location-trigger" type="button" id="admin-booking-return-location-button">
+                  <span id="admin-booking-return-location-text">BCN Airport T1</span>
+                </button>
+                <div class="admin-location-popup" id="admin-booking-return-location-popup" style="display:none;"></div>
+                <input type="hidden" id="admin-booking-return-location" name="returnLocation" value="BCN Airport T1">
+                <div class="admin-field-error" data-field-error="returnLocation" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-pickup-date">Pickup date <span class="req">*</span></label>
+                <input class="admin-form-input" type="date" id="admin-booking-pickup-date" name="pickupDate" required>
+                <div class="admin-field-error" data-field-error="pickupDate" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-pickup-time">Pickup time <span class="req">*</span></label>
+                <input class="admin-form-input" type="time" id="admin-booking-pickup-time" name="pickupTime" required>
+                <div class="admin-field-error" data-field-error="pickupTime" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-return-date">Return date <span class="req">*</span></label>
+                <input class="admin-form-input" type="date" id="admin-booking-return-date" name="returnDate" required>
+                <div class="admin-field-error" data-field-error="returnDate" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-return-time">Return time <span class="req">*</span></label>
+                <input class="admin-form-input" type="time" id="admin-booking-return-time" name="returnTime" required>
+                <div class="admin-field-error" data-field-error="returnTime" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-form-section">
+            <h3 class="admin-form-section__title">Add-ons</h3>
+            <div id="admin-booking-addons" class="admin-addon-picker"></div>
+          </section>
+
+          <section class="admin-form-section">
+            <h3 class="admin-form-section__title">Payment</h3>
+            <div class="admin-price-summary" id="admin-booking-price-summary" aria-live="polite">
+              <div>
+                <span>Base rental price</span>
+                <strong id="admin-booking-base-price">-</strong>
+              </div>
+              <div>
+                <span>Add-ons total</span>
+                <strong id="admin-booking-addons-price">-</strong>
+              </div>
+              <div>
+                <span>Calculated total</span>
+                <strong id="admin-booking-calculated-total">-</strong>
+              </div>
+              <div class="admin-price-summary__override" id="admin-booking-override-indicator" hidden>
+                <span>Manual price override active</span>
+                <strong id="admin-booking-override-delta">-</strong>
+              </div>
+            </div>
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-total">Total price <span class="req">*</span></label>
+                <input class="admin-form-input" type="number" min="0.01" step="0.01" id="admin-booking-total" name="totalPrice" required>
+                <div class="admin-field-help">Manual override total is final; selected add-ons are included in this amount.</div>
+                <div class="admin-field-error" data-field-error="totalPrice" hidden></div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="admin-booking-payment-source">Payment source <span class="req">*</span></label>
+                <select class="admin-form-input" id="admin-booking-payment-source" name="paymentSource" required>
+                  <option value="OFFICE">Office</option>
+                  <option value="CASH">Cash</option>
+                  <option value="CARD_TERMINAL">Card terminal</option>
+                  <option value="STRIPE">Stripe</option>
+                </select>
+                <div class="admin-field-error" data-field-error="paymentSource" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-form-section">
+            <h3 class="admin-form-section__title">Notes</h3>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="admin-booking-note">Internal note</label>
+              <textarea class="admin-form-input admin-form-textarea" id="admin-booking-note" name="internalNote" maxlength="1000"></textarea>
+            </div>
+          </section>
+        </div>
+        <div class="admin-modal__footer">
+          <button type="button" class="admin-btn admin-btn--ghost" id="create-booking-cancel">Cancel</button>
+          <button type="submit" class="admin-btn admin-btn--primary" id="create-booking-submit">Create Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="admin-modal-overlay" id="booking-detail-overlay" hidden>
     <div class="admin-modal admin-modal--detail" role="dialog" aria-modal="true" aria-labelledby="booking-detail-title">
       <div class="admin-modal__header">
@@ -171,8 +329,15 @@
   <script src="../js/i18n/tr.js"></script>
   <script src="../js/admin-i18n.js"></script>
   <script src="../js/i18n/i18n.js"></script>
+  <script src="../js/location-picker.js"></script>
   <script src="../js/admin-bookings.js"></script>
   <script src="../js/admin-session.js"></script>
+  <script>
+    window.initGooglePlaces = function () {
+      window.dispatchEvent(new Event('google-places-ready'));
+    };
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR_2YHxCNRdMpMuJTA1J8WMznjAVA_IkQ&libraries=places&callback=initGooglePlaces" async defer></script>
   <script>
     // Mobile sidebar toggle
     document.querySelectorAll('.js-admin-sidebar-toggle').forEach(function(el) {

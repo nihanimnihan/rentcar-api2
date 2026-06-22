@@ -3,6 +3,7 @@ package com.rentcar.api.payment.provider;
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.exception.PaymentProviderNotConfiguredException;
 import com.rentcar.api.payment.model.PaymentIntentResult;
+import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.model.PaymentResult;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -26,7 +27,7 @@ import java.util.Locale;
  * instantiated in unit tests), methods throw {@link PaymentProviderNotConfiguredException}
  * to yield a 503 Service Unavailable instead of a raw NPE or 500.
  */
-@Profile({"stripe-local", "prod", "local-postgres"})
+@Profile({"dev", "prod"})
 @Component
 public class StripePaymentProvider implements PaymentProvider {
 
@@ -135,6 +136,28 @@ public class StripePaymentProvider implements PaymentProvider {
         try {
             PaymentIntent pi = PaymentIntent.retrieve(intentId, requestOptions());
             return pi.getStatus();
+        } catch (StripeException e) {
+            throw new RuntimeException("Stripe error while fetching payment intent: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public PaymentIntentVerification fetchPaymentIntent(com.rentcar.api.domain.payment.Payment payment) {
+        requireConfigured();
+        String intentId = payment.getStripePaymentIntentId();
+        if (intentId == null || intentId.isBlank()) {
+            throw new IllegalArgumentException("Payment has no stripePaymentIntentId");
+        }
+
+        try {
+            PaymentIntent pi = PaymentIntent.retrieve(intentId, requestOptions());
+            return new PaymentIntentVerification(
+                    pi.getId(),
+                    pi.getStatus(),
+                    pi.getAmount(),
+                    pi.getCurrency(),
+                    pi.getMetadata()
+            );
         } catch (StripeException e) {
             throw new RuntimeException("Stripe error while fetching payment intent: " + e.getMessage(), e);
         }

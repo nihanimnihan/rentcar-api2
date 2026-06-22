@@ -1,0 +1,37 @@
+# Test-only runtime configuration.
+# H2 is scope=test so this is available during Maven tests but not in the production JAR.
+spring:
+  datasource:
+    url: jdbc:h2:mem:rentcardb;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-client-id
+            client-secret: test-google-client-secret
+            scope:
+              - openid
+              - profile
+              - email
+
+rentcar:
+  admin:
+    username: admin
+    password: change-me
+
+app:
+  public-base-url: http://localhost:8091

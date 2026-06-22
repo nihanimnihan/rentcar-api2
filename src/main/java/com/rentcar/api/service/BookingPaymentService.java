@@ -9,6 +9,7 @@ import com.rentcar.api.dto.payment.PaymentIntentResponse;
 import com.rentcar.api.exception.BookingNotFoundException;
 import com.rentcar.api.exception.InvalidBookingStateException;
 import com.rentcar.api.exception.PaymentNotFoundException;
+import com.rentcar.api.exception.PaymentProviderNotConfiguredException;
 import com.rentcar.api.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +42,8 @@ public class BookingPaymentService {
      *
      * <p>The row lock prevents concurrent cancel + intent races.
      *
-     * <p>The returned {@link PaymentIntentResponse#clientSecret()} is {@code null} for the
-     * fake dev provider. Real Stripe returns a secret that the frontend passes to
+     * <p>The returned {@link PaymentIntentResponse#clientSecret()} is the
+     * Stripe secret that the frontend passes to
      * {@code stripe.confirmCardPayment()}.
      *
      * <p>Amount and currency are always derived from the booking — the frontend must never
@@ -105,6 +106,10 @@ public class BookingPaymentService {
             log.debug("paymentMethodType '{}' received but not yet applied — defaulting to CARD", requestedMethodType);
         }
 
+        if (!"STRIPE".equals(paymentService.providerName())) {
+            throw new PaymentProviderNotConfiguredException("Stripe");
+        }
+
         return switch (booking.getStatus()) {
             case CONFIRMED -> throw new InvalidBookingStateException(
                     "Booking " + bookingId + " is already confirmed — payment intent not needed");
@@ -146,24 +151,18 @@ public class BookingPaymentService {
                     "Payment can only be processed for bookings in PENDING or FAILED status");
         }
 
-        // For Stripe flows (PaymentIntent created), verify the provider-side intent status
-        // instead of calling the synchronous pay() method. Fake provider also supports
-        // fetchPaymentIntentStatus and will return 'succeeded' for local dev flows.
-        // Determine whether this booking has a provider intent that must be verified.
         Payment latestPayment = paymentService.findLatestPayment(booking)
                 .orElseThrow(() -> new PaymentNotFoundException(bookingId));
-
-        Payment payment;
-        if (latestPayment.getStripePaymentIntentId() != null && paymentService.providerName().equals("STRIPE")) {
-            payment = paymentService.verifyLatestPaymentIntentForBooking(booking);
-        } else {
-            payment = paymentService.processLatestPaymentForBooking(booking, paymentMethodId);
+        if (!hasRealStripePaymentIntent(latestPayment)) {
+            throw new InvalidBookingStateException(
+                    "Payment can only be completed after a real Stripe PaymentIntent has been created");
         }
 
-        // With real Stripe, payment may stay PENDING while the provider processes it
+        Payment payment = paymentService.verifyLatestPaymentIntentForBooking(booking);
+
+        // With Stripe, payment may stay PENDING while the provider processes it
         // (e.g. 3DS challenge, bank redirect). The Stripe webhook advances it to
-        // CONFIRMED when Stripe sends payment_intent.succeeded. FakePaymentProvider
-        // resolves synchronously.
+        // CONFIRMED when Stripe sends payment_intent.succeeded.
         if (payment.getStatus() == PaymentStatus.PAID) {
             booking.setStatus(BookingStatus.CONFIRMED);
             booking.setExpiresAt(null);
@@ -234,6 +233,13 @@ public class BookingPaymentService {
                 result.clientSecret(),
                 payment.getPaymentReference()
         );
+    }
+
+    private boolean hasRealStripePaymentIntent(Payment payment) {
+        String intentId = payment.getStripePaymentIntentId();
+        return intentId != null
+                && intentId.startsWith("pi_")
+                && "STRIPE".equals(paymentService.providerName());
     }
 
 }

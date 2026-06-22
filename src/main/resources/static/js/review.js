@@ -112,6 +112,9 @@ function initStripeElements() {
       hidePostalCode: true,
       disableLink: true
     });
+    stripeCard.on('change', event => {
+      setStripeCardError(event.error?.message || "");
+    });
     stripeInitialized = true;
   } catch (e) {
     console.error('Stripe initialization failed', e);
@@ -129,6 +132,50 @@ function showStripeCardContainer(show) {
   } else if (!show && stripeCard) {
     try { stripeCard.unmount(); } catch (e) { /* ignore */ }
   }
+}
+
+function setStripeCardError(message) {
+  const errorDiv = document.getElementById('stripe-card-errors');
+  const element = document.getElementById('stripe-card-element');
+  if (!errorDiv) return;
+  const text = message || "";
+  errorDiv.textContent = text;
+  errorDiv.style.display = text ? 'block' : 'none';
+  if (element) {
+    element.classList.toggle('is-invalid', Boolean(text));
+    element.setAttribute('aria-invalid', text ? 'true' : 'false');
+  }
+}
+
+function focusStripeCardField() {
+  const container = document.getElementById('stripe-card-container');
+  if (container) {
+    container.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  if (stripeCard && typeof stripeCard.focus === "function") {
+    setTimeout(() => stripeCard.focus(), 120);
+  }
+}
+
+function showStripeCardValidation(message) {
+  setStripeCardError(message || t('review.cardDetailsIncomplete'));
+  focusStripeCardField();
+}
+
+function isStripeValidationError(error) {
+  if (!error) return false;
+  const validationCodes = [
+    "incomplete_number",
+    "incomplete_expiry",
+    "incomplete_cvc",
+    "incomplete_zip",
+    "invalid_number",
+    "invalid_expiry_month",
+    "invalid_expiry_year",
+    "invalid_cvc",
+    "incorrect_number"
+  ];
+  return error.type === "validation_error" || validationCodes.includes(error.code);
 }
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
@@ -493,88 +540,98 @@ async function submitBooking() {
         sessionStorage.removeItem('rentcarCheckoutSignature');
       }
       showReviewFlowModal({
-        title: "Payment could not be started",
-        message: err.message || "Your booking was created, but payment could not be started. Please try again.",
-        buttonText: "Try again"
+        title: t('review.paymentStartFailedTitle'),
+        message: t('review.paymentStartFailedMessage'),
+        buttonText: t('review.tryAgain')
       });
       return; // paymentSucceeded stays false → finally re-enables button
     }
 
-     const provider = intent?.providerName || intent?.provider;
-     if (provider === "STRIPE" && intent?.clientSecret) {      // Stripe flow: confirm the PaymentIntent client-side with Stripe Elements.
-        if (!stripePublishableKey) {
-          await loadStripePublishableKey();
+    const provider = intent?.providerName || intent?.provider;
+    if (provider !== "STRIPE" || !intent?.clientSecret) {
+      showReviewFlowModal({
+        title: t('review.paymentStartFailedTitle'),
+        message: t('review.paymentUnavailableMessage'),
+        buttonText: t('review.tryAgain')
+      });
+      return;
+    }
+
+    // Stripe flow: confirm the PaymentIntent client-side with Stripe Elements.
+    if (!stripePublishableKey) {
+      await loadStripePublishableKey();
+    }
+    if (!stripePublishableKey) {
+      showBookingFormError('Payment provider not available. Please try again later.');
+      return;
+    }
+
+    if (!stripeInitialized) initStripeElements();
+
+    if (!stripe || !stripeCard) {
+      showBookingFormError('Payment initialization failed. Please try again.');
+      return;
+    }
+
+    setStripeCardError("");
+    if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
+
+    try {
+      const result = await stripe.confirmCardPayment(intent.clientSecret, {
+        payment_method: {
+          card: stripeCard,
+          billing_details: { name: `${firstName} ${lastName}`, email }
         }
-        if (!stripePublishableKey) {
-          showBookingFormError('Payment provider not available. Please try again later.');
+      });
+
+      if (result.error) {
+        console.error('Stripe confirm error', result.error);
+        if (isStripeValidationError(result.error)) {
+          showStripeCardValidation(result.error.message || t('review.cardDetailsIncomplete'));
           return;
         }
-
-        if (!stripeInitialized) initStripeElements();
-
-        if (!stripe || !stripeCard) {
-          showBookingFormError('Payment initialization failed. Please try again.');
-          return;
-        }
-
-        if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
-
-        try {
-          const result = await stripe.confirmCardPayment(intent.clientSecret, {
-            payment_method: {
-              card: stripeCard,
-              billing_details: { name: `${firstName} ${lastName}`, email }
-            }
-          });
-
-          if (result.error) {
-            // Show Stripe error to user and allow retry
-            console.error('Stripe confirm error', result.error);
-            showReviewFlowModal({
-              title: "Payment could not be completed",
-              message: result.error.message || "Payment failed. Please check your card details or try another card.",
-              buttonText: "Try again"
-            });
-            return;
-          }
-
-          const paymentIntent = result.paymentIntent;
-          if (paymentIntent && paymentIntent.status === 'succeeded') {
-            // Backend verifies intent status before confirming booking
-            paymentSucceeded = await processBookingPayment(booking.id, firstName);
-          } else if (paymentIntent && (paymentIntent.status === 'processing' || paymentIntent.status === 'requires_action' || paymentIntent.status === 'requires_confirmation' || paymentIntent.status === 'requires_capture')) {
-            showReviewFlowModal({
-              title: "Payment is still processing",
-              message: "Your payment is still processing or requires additional action. Please try again in a moment.",
-              buttonText: "OK"
-            });
-            return;
-          } else {
-            showReviewFlowModal({
-              title: "Payment was not completed",
-              message: "Payment did not complete successfully. Please check your card details or try again.",
-              buttonText: "Try again"
-            });
-            return;
-          }
-        } catch (err) {
-          console.error('Stripe confirmation failed', err);
-          showReviewFlowModal({
-            title: "Network error",
-            message: "Payment failed due to a network error. Please check your connection and try again.",
-            buttonText: "Try again"
-          });
-          return;
-        } finally {
-          // Hide Stripe card to avoid leaving sensitive UI mounted after flow
-          // but keep it mounted if you want subsequent retries without reload.
-          // showStripeCardContainer(false);
-        }
-      } else {
-        // Fake provider or no client secret — continue existing process
-        if (confirmBtn) confirmBtn.textContent = t('review.confirmingPayment');
-        paymentSucceeded = await processBookingPayment(booking.id, firstName);
+        showReviewFlowModal({
+          title: t('review.paymentCouldNotBeCompletedTitle'),
+          message: result.error.message || t('review.paymentCouldNotBeCompletedMessage'),
+          buttonText: t('review.tryAgain'),
+          variant: "error"
+        });
+        return;
       }
+
+      const paymentIntent = result.paymentIntent;
+      if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Backend verifies intent status before confirming booking
+        paymentSucceeded = await processBookingPayment(booking.id, firstName);
+      } else if (paymentIntent && (paymentIntent.status === 'processing' || paymentIntent.status === 'requires_action' || paymentIntent.status === 'requires_confirmation' || paymentIntent.status === 'requires_capture')) {
+        showReviewFlowModal({
+          title: t('review.paymentProcessingTitle'),
+          message: t('review.paymentProcessingMessage'),
+          buttonText: t('common.ok')
+        });
+        return;
+      } else {
+        showReviewFlowModal({
+          title: t('review.paymentNotCompletedTitle'),
+          message: t('review.paymentNotCompletedMessage'),
+          buttonText: t('review.tryAgain')
+        });
+        return;
+      }
+    } catch (err) {
+      console.error('Stripe confirmation failed', err);
+      showReviewFlowModal({
+        title: t('review.paymentNetworkErrorTitle'),
+        message: t('review.paymentNetworkErrorMessage'),
+        buttonText: t('review.tryAgain'),
+        variant: "error"
+      });
+      return;
+    } finally {
+      // Hide Stripe card to avoid leaving sensitive UI mounted after flow
+      // but keep it mounted if you want subsequent retries without reload.
+      // showStripeCardContainer(false);
+    }
   } catch (err) {
     console.error("Booking submission failed:", err);
     showBookingFormError(t('error.networkError'));
@@ -596,8 +653,8 @@ async function submitBooking() {
  * providerName, clientSecret, paymentReference }.
  *
  * Amount and currency are always derived server-side from the booking — the
- * frontend never sends them.  clientSecret is null in dev/fake mode and is
- * the real Stripe secret in production.
+ * frontend never sends them. clientSecret must be a Stripe secret; the server
+ * rejects fake/dev providers for public checkout.
  *
  * Throws with a user-visible message on non-OK responses.
  */
@@ -620,8 +677,8 @@ async function createPaymentIntent(bookingId) {
 /**
  * Returns the payment method ID to send to the backend.
  *
- * Fake/dev fallback uses a deterministic token. In the Stripe PaymentIntent
- * flow the backend verifies the intent status by id, so this value is ignored.
+ * The backend verifies the Stripe PaymentIntent status by id, so this legacy
+ * value is ignored for public checkout.
  */
 function getSelectedPaymentMethodId() {
   return "pm_test_valid";
@@ -660,128 +717,289 @@ async function processBookingPayment(bookingId, firstName) {
     const fallback = t('review.bookingCreatedPaymentFailed');
     showReviewFlowModal({
 
-      title: "Payment could not be completed",
+      title: t('review.paymentCouldNotBeCompletedTitle'),
       message: data?.message || fallback,
-      buttonText: "Try again"
+      buttonText: t('review.tryAgain'),
+      variant: "error"
     });
     return false;
   } catch (err) {
     console.error("Payment processing failed:", err);
     showReviewFlowModal({
 
-      title: "Payment could not be completed",
+      title: t('review.paymentCouldNotBeCompletedTitle'),
       message: t('review.bookingCreatedPaymentFailed'),
-      buttonText: "Try again"
+      buttonText: t('review.tryAgain'),
+      variant: "error"
     });
     return false;
   }
 }
 
 // ── Success screen ────────────────────────────────────────────────────────────
+function formatReviewDateTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return esc(String(value));
+  return esc(date.toLocaleString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }));
+}
+
+function formatReviewMoney(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "—";
+  return esc(new Intl.NumberFormat(typeof getLanguage === "function" ? getLanguage() : undefined, {
+    style: "currency",
+    currency: "EUR"
+  }).format(amount));
+}
+
+function bookingLocationValue(booking, key, paramName) {
+  return esc(booking?.[key] || new URLSearchParams(window.location.search).get(paramName) || "—");
+}
+
+function bookingCarName(booking) {
+  const car = booking?.car || reviewCar;
+  const value = car
+    ? `${car.brand || ""} ${car.model || ""}`.trim()
+    : "";
+  return esc(value || t('review.vehicle'));
+}
+
+function bookingCarCategory(booking) {
+  const car = booking?.car || reviewCar || {};
+  const parts = [car.segment, car.vehicleType]
+    .filter(Boolean)
+    .map(value => typeof tEnum === "function" ? tEnum(value === car.segment ? "segment" : "vehicleType", value) : value);
+  return esc(parts.join(" ") || t('summary.orSimilar'));
+}
+
+function reviewRentalDays(booking) {
+  return Number(booking?.rentalDays || reviewCar?.priceBreakdown?.rentalDays || 1);
+}
+
+function reviewDurationLabel(booking) {
+  const days = reviewRentalDays(booking);
+  const key = days === 1 ? 'price.rentalDay' : 'price.rentalDays';
+  return `${days} ${t(key)}`;
+}
+
+function selectedAddonRows(booking) {
+  const rentalDays = reviewRentalDays(booking);
+  const rows = [];
+
+  if (reviewMileageOption === "UNLIMITED") {
+    const charge = Number(reviewCar?.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays;
+    rows.push({ name: t('car.unlimitedKm'), totalPrice: charge });
+  }
+
+  if (Array.isArray(booking?.addons) && booking.addons.length > 0) {
+    booking.addons.forEach(addon => {
+      rows.push({
+        name: addon.name || addon.code || t('review.addedFeatures'),
+        totalPrice: Number(addon.totalPrice || addon.price || 0)
+      });
+    });
+  } else {
+    reviewAddonIds.forEach(addonId => {
+      const addon = reviewAllAddons.find(item => item.id === addonId);
+      if (!addon) return;
+      const price = addon.pricingType === "DAILY"
+        ? Number(addon.price) * rentalDays
+        : Number(addon.price);
+      rows.push({ name: localAddonName(addon), totalPrice: price });
+    });
+  }
+
+  return rows;
+}
+
+function includedFeatureRows(booking) {
+  const car = booking?.car || reviewCar || {};
+  const included = car.includedFeatures || car.included || [];
+  return Array.isArray(included) ? included.filter(Boolean) : [];
+}
+
+function formatBookingCreatedDate(booking) {
+  return formatReviewDateTime(booking?.createdAt || booking?.createdDate || booking?.createdDateTime || new Date().toISOString());
+}
+
+function paymentStatusLabel(booking) {
+  const status = booking?.paymentStatus || "PAID";
+  return status === "PAID" ? t('review.paidVerified') : esc(String(status));
+}
+
+function priceDetailsRows(booking, addonRows) {
+  const price = reviewCar?.priceBreakdown;
+  if (!price) return "";
+  const rows = [];
+  if (Number(price.rentalCharge) > 0) {
+    rows.push([t('price.rentalCharges'), formatReviewMoney(price.rentalCharge)]);
+  }
+  if (Number(price.oneWayFee) > 0) {
+    rows.push([t('price.oneWayFee'), formatReviewMoney(price.oneWayFee)]);
+  }
+  if (Number(price.premiumLocationFee) > 0) {
+    rows.push([t('price.premiumLocationFee'), formatReviewMoney(price.premiumLocationFee)]);
+  }
+  addonRows.forEach(addon => {
+    if (Number(addon.totalPrice) > 0) {
+      rows.push([esc(addon.name), formatReviewMoney(addon.totalPrice)]);
+    }
+  });
+  return rows.map(([label, value]) => `
+    <div class="rc-booking-complete__price-row">
+      <span>${label}</span>
+      <strong>${value}</strong>
+    </div>
+  `).join("");
+}
+
 function showBookingSuccess(booking, firstName) {
   clearCheckoutSession();
 
   const formColumn = document.getElementById("reviewFormColumn");
   if (!formColumn) return;
 
-  const bookingRef = esc(String(booking.bookingReference || booking.id || "—"));
-  const customerName = esc(firstName || "");
-  const carName = esc(
-    reviewCar
-      ? `${reviewCar.brand || ""} ${reviewCar.model || ""}`.trim()
-      : "car"
-  );
+  const params = new URLSearchParams(window.location.search);
+  const bookingRefRaw = String(booking.bookingReference || "");
+  const bookingRef = esc(bookingRefRaw || "—");
+  const pickupDateTime = booking?.pickupDateTime || params.get("pickupDateTime");
+  const dropoffDateTime = booking?.dropoffDateTime || params.get("dropoffDateTime");
+  const total = booking?.totalPrice ?? reviewCar?.priceBreakdown?.totalPrice;
+  const pickupLocation = bookingLocationValue(booking, "pickupLocation", "pickupLocation");
+  const dropoffLocation = bookingLocationValue(booking, "dropoffLocation", "dropoffLocation");
+  const addonRows = selectedAddonRows(booking);
+  const includedRows = includedFeatureRows(booking);
+  const priceRows = priceDetailsRows(booking, addonRows);
+  const existingSummary = document.getElementById("bookingSummaryCard")?.closest(".col-lg-4");
 
-  const email = esc(document.getElementById("rfEmail")?.value?.trim() || "");
-  const now = new Date();
-  const bookingDate = now.toLocaleDateString(undefined, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
-  const bookingTime = now.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  if (existingSummary) existingSummary.style.display = "none";
+  formColumn.className = "col-12";
 
   formColumn.innerHTML = `
-    <div id="rfSuccessPanel" class="rc-confirmation-card">
-      <div class="rc-confetti" aria-hidden="true">
-        <span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span>
-      </div>
-
-      <div class="rc-success-icon" aria-hidden="true">
-        <i class="icon-check"></i>
-      </div>
-
-      <h2 class="rc-meta-value-h3">${t("review.bookingConfirmed")}</h2>
-
-      <p class="rc-confirmation-subtitle">
-        Thank you, <strong>${customerName}</strong>. Your ${carName} is reserved.
-      </p>
-
-      <div class="rc-booking-reference-box">
-        <div class="rc-reference-icon" aria-hidden="true">
-          <i class="icon-ticket"></i>
+    <section id="rfSuccessPanel" class="rc-booking-complete-layout" aria-labelledby="bookingCompleteTitle">
+      <div class="rc-booking-complete-card rc-booking-complete-card--main">
+        <div class="rc-booking-complete__hero">
+          <div class="rc-booking-complete__check" aria-hidden="true"><i class="icon-check"></i></div>
+          <h2 id="bookingCompleteTitle">${t('booking.completed.title')}</h2>
+          <p>${t('booking.completed.subtitle')}</p>
         </div>
 
-        <div class="rc-reference-main">
-          <div class="rc-reference-label">${t("review.bookingRef").replace(":", "")}</div>
-          <div class="rc-meta-value">${bookingRef}</div>
-        </div>
-
-        <div class="rc-status-pill">
-          <i class="icon-check"></i>
-          <span>CONFIRMED</span>
-        </div>
-      </div>
-
-      <div class="rc-confirmation-meta">
-        <div class="rc-meta-item">
-          <div class="rc-meta-icon"><i class="icon-calendar"></i></div>
-          <div>
-            <div class="rc-meta-label">Booking date</div>
-            <div class="rc-meta-value">${bookingDate}</div>
-            <div class="rc-meta-sub">${bookingTime}</div>
+        <div class="rc-booking-complete__info-row">
+          <div class="rc-booking-complete__info-card rc-booking-complete__info-card--reference">
+            <span>${t('review.bookingReferenceLabel')}</span>
+            <strong>${bookingRef}</strong>
+          </div>
+          <div class="rc-booking-complete__info-card">
+            <span>${t('booking.completed.bookingDate')}</span>
+            <strong>${formatBookingCreatedDate(booking)}</strong>
+          </div>
+          <div class="rc-booking-complete__info-card">
+            <span>${t('booking.completed.paymentStatus')}</span>
+            <strong>${paymentStatusLabel(booking)}</strong>
           </div>
         </div>
 
-        <div class="rc-meta-item">
-          <div class="rc-meta-icon"><i class="icon-shield"></i></div>
-          <div>
-            <div class="rc-meta-label">Payment status</div>
-            <div class="rc-meta-value">
-              Paid <span class="rc-paid-dot">✓</span>
+        <div class="rc-booking-complete__trip-card">
+          <div class="rc-booking-complete__vehicle">
+            <strong>${bookingCarName(booking)}</strong>
+            <span>${bookingCarCategory(booking)}</span>
+          </div>
+          <div class="rc-booking-complete__route">
+            <div>
+              <span>${t('review.pickup')}</span>
+              <strong>${pickupLocation}</strong>
+              <small>${formatReviewDateTime(pickupDateTime)}</small>
+            </div>
+            <div class="rc-booking-complete__route-arrow" aria-hidden="true">→</div>
+            <div>
+              <span>${t('review.return')}</span>
+              <strong>${dropoffLocation}</strong>
+              <small>${formatReviewDateTime(dropoffDateTime)}</small>
             </div>
           </div>
         </div>
 
-        <div class="rc-meta-item">
-          <div class="rc-meta-icon"><i class="icon-email"></i></div>
+        <div class="rc-booking-complete__next">
           <div>
-            <div class="rc-meta-label">Confirmation sent to</div>
-            <div class="rc-meta-value rc-meta-email">${email || "—"}</div>
+            <h3>${t('booking.completed.whatsNext')}</h3>
+            <p>${t('booking.completed.nextText')}</p>
+          </div>
+          <a href="manage-booking.html?ref=${encodeURIComponent(bookingRefRaw)}" class="rc-booking-complete__button rc-booking-complete__button--primary">
+            ${t('review.manageBooking')}
+            <i class="icon-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        <div class="rc-booking-complete__main-total">
+          <span>${t('summary.total')}</span>
+          <strong>${formatReviewMoney(total)}</strong>
+        </div>
+
+        <p class="rc-booking-complete__secured">
+          <i class="icon-lock" aria-hidden="true"></i>
+          ${t('booking.completed.securedNote')}
+        </p>
+      </div>
+
+      <aside class="rc-booking-complete-card rc-booking-complete-card--summary" aria-label="${t('booking.completed.summaryTitle')}">
+        <h3>${t('booking.completed.summaryTitle')}</h3>
+
+        <div class="rc-booking-complete__summary-vehicle">
+          <strong>${bookingCarName(booking)}</strong>
+          <span>${bookingCarCategory(booking)}</span>
+        </div>
+
+        <div class="rc-booking-complete__summary-list">
+          <div>
+            <span>${t('review.pickup')}</span>
+            <strong>${pickupLocation}</strong>
+            <small>${formatReviewDateTime(pickupDateTime)}</small>
+          </div>
+          <div>
+            <span>${t('review.return')}</span>
+            <strong>${dropoffLocation}</strong>
+            <small>${formatReviewDateTime(dropoffDateTime)}</small>
+          </div>
+          <div>
+            <span>${t('transfer.duration')}</span>
+            <strong>${reviewDurationLabel(booking)}</strong>
           </div>
         </div>
-      </div>
 
-      <div class="rc-next-card">
-        <div class="rc-next-icon">
-          <i class="icon-send"></i>
+        ${includedRows.length > 0 ? `
+          <div class="rc-booking-complete__summary-section">
+            <h4>${t('summary.includedFeatures')}</h4>
+            <ul>${includedRows.map(item => `<li>${esc(item)}</li>`).join("")}</ul>
+          </div>
+        ` : ""}
+
+        <div class="rc-booking-complete__summary-section">
+          <h4>${t('summary.addedFeatures')}</h4>
+          ${addonRows.length > 0
+            ? `<ul>${addonRows.map(addon => `<li><span>${esc(addon.name)}</span><strong>${formatReviewMoney(addon.totalPrice)}</strong></li>`).join("")}</ul>`
+            : `<p>${t('summary.noAddons')}</p>`}
         </div>
 
-        <div class="rc-next-copy">
-          <h3>What’s next?</h3>
-          <p>We’ve sent your booking details to your email. You can manage your booking in My bookings.</p>
+        <div class="rc-booking-complete__summary-total">
+          <span>${t('summary.total')}</span>
+          <strong>${formatReviewMoney(total)}</strong>
         </div>
 
-        <a href="bookings.html" class="rc-confirmation-cta">
-          View my bookings
-          <i class="icon-arrow-right"></i>
-        </a>
-      </div>
-    </div>
+        ${priceRows ? `
+          <details class="rc-booking-complete__price-details">
+            <summary>${t('review.priceDetails')}</summary>
+            ${priceRows}
+          </details>
+        ` : ""}
+      </aside>
+    </section>
   `;
 
   window.scrollTo({ top: 0, behavior: "smooth" });

@@ -22,7 +22,7 @@ public class BookingController {
     @PostMapping
     public org.springframework.http.ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody CreateBookingRequest request) {
         var booking = bookingService.createBooking(request);
-        BookingResponse response = bookingMapper.toResponse(booking);
+        BookingResponse response = enrichWithPayment(bookingMapper.toResponse(booking), booking);
         String token = booking.getCheckoutSessionToken();
         // Return token in a response header so it is only available to the creator and not included
         // in standard BookingResponse bodies used by other APIs or admin tooling.

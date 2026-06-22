@@ -2,9 +2,16 @@ package com.rentcar.api.payment.provider;
 
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.payment.model.PaymentIntentResult;
+import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.model.PaymentResult;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Dev/local fake {@link PaymentProvider} that resolves synchronously.
@@ -22,9 +29,9 @@ import org.springframework.stereotype.Component;
  *       until the {@code charge.refunded} webhook confirms the refund.</li>
  * </ul>
  */
-@Profile({"dev & !stripe-local", "!local-postgres & !stripe-local"})
+@Profile("test")
 @Component
-public class FakePaymentProvider implements PaymentProvider {
+public class FakePaymentProvider implements PaymentProvider, EnvironmentAware {
 
     /**
      * Pass this paymentMethodId to simulate a provider-side payment failure.
@@ -66,6 +73,35 @@ public class FakePaymentProvider implements PaymentProvider {
     public String fetchPaymentIntentStatus(com.rentcar.api.domain.payment.Payment payment) {
         // Fake provider resolves synchronously to 'succeeded' for local testing flows.
         return "succeeded";
+    }
+
+    @Override
+    public PaymentIntentVerification fetchPaymentIntent(com.rentcar.api.domain.payment.Payment payment) {
+        return new PaymentIntentVerification(
+                payment.getStripePaymentIntentId(),
+                fetchPaymentIntentStatus(payment),
+                amountInMinorUnits(payment),
+                payment.getCurrencyCode().toLowerCase(java.util.Locale.ROOT),
+                Map.of(
+                        "bookingId", String.valueOf(payment.getBooking().getId()),
+                        "paymentId", String.valueOf(payment.getId()),
+                        "paymentReference", payment.getPaymentReference()
+                )
+        );
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        if (!Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+            throw new IllegalStateException("Fake payment provider is only allowed with the test profile");
+        }
+    }
+
+    private long amountInMinorUnits(Payment payment) {
+        return payment.getAmount()
+                .setScale(2, RoundingMode.UNNECESSARY)
+                .multiply(java.math.BigDecimal.valueOf(100))
+                .longValueExact();
     }
 }
 

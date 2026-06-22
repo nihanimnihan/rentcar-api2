@@ -4,6 +4,7 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Profile;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -19,7 +20,8 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@Profile({"prod", "local-smtp"})
+@Profile({"dev", "prod"})
+@ConditionalOnExpression("'${spring.mail.host:}' != ''")
 public class SmtpEmailService implements EmailService {
 
     private final JavaMailSender mailSender;
@@ -61,6 +63,16 @@ public class SmtpEmailService implements EmailService {
     @Override
     public void sendRefundCompleted(RefundCompletedEmailData data) {
         LocalizedEmail email = emailLocalizationService.refundCompleted(data);
+        send(
+                data.customerEmail(),
+                email.subject(),
+                email.body(),
+                data.bookingReference());
+    }
+
+    @Override
+    public void sendNoShowRecorded(NoShowEmailData data) {
+        LocalizedEmail email = emailLocalizationService.noShowRecorded(data);
         send(
                 data.customerEmail(),
                 email.subject(),

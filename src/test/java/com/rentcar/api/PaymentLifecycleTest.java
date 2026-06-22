@@ -1,13 +1,18 @@
 package com.rentcar.api;
 
 import com.jayway.jsonpath.JsonPath;
-import com.rentcar.api.payment.provider.FakePaymentProvider;
+import com.rentcar.api.payment.provider.PaymentProvider;
+import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.repository.PaymentRepository;
+import com.rentcar.api.service.PaymentService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -32,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   <li>{@code findLatestPayment} deterministically returns the newest record.</li>
  *   <li>Successful payment sets {@code paidAt} and {@code updatedAt}.</li>
  *   <li>Duplicate payment attempts are blocked at the service layer.</li>
- *   <li>Cancellation of a PAID booking marks payment REFUNDED via fake provider.</li>
+ *   <li>Cancellation of a PAID fake booking does not create a fake provider refund.</li>
  * </ul>
  *
  * <p>Uses {@code GET /api/bookings/{id}/payments} (admin endpoint) to inspect
@@ -45,12 +50,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <ul>
  *   <li>{@code MockPaymentFlowTest#processPayment_happyPath_*} — happy path via /payments/process</li>
  *   <li>{@code MockPaymentFlowTest#processPayment_alreadyPaidBooking_returns409} — duplicate guard</li>
- *   <li>{@code ManageCancelTest#cancel_confirmedRefundEligibleBooking_paymentRefunded} — refund path</li>
+ *   <li>{@code ManageCancelTest#cancel_confirmedRefundEligibleBooking_refundPendingWithoutStripeReference} — refund safety</li>
  * </ul>
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class PaymentLifecycleTest {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -60,7 +65,24 @@ class PaymentLifecycleTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private PaymentService paymentService;
+
+    @MockitoBean
+    private PaymentProvider paymentProvider;
+
     private String lastCheckoutToken = null;
+
+    @BeforeEach
+    void configureStripeProvider() {
+        TestPaymentFixtures.configureStripeIntentProvider(paymentProvider);
+    }
 
     // ── 1. Latest payment returns the newest attempt ──────────────────────────
     //      After failure + successful retry, history has 2 records.
@@ -70,19 +92,14 @@ class PaymentLifecycleTest {
     void latestPayment_afterMultipleAttempts_returnsNewestRecord() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1700, 1702), daysFromNow(1700), daysFromNow(1702));
 
-        // First attempt: forced failure — creates FAILED payment record
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody(FakePaymentProvider.FORCE_FAIL_METHOD_ID)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("FAILED"));
+        TestPaymentFixtures.failByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
-        // Retry: successful payment — creates new PAID record, old FAILED record preserved
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
+        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/intent")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_valid")))
+                        .content(intentRequestBody()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+                .andExpect(jsonPath("$.paymentReference").value(matchesPattern("PAY-[0-9A-F]{8}")));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         // Payment history: 2 records, newest first
         MvcResult historyResult = mockMvc.perform(get("/api/bookings/" + bookingId + "/payments")
@@ -110,12 +127,7 @@ class PaymentLifecycleTest {
     void failedAttempt_followedByRetry_createsFreshPendingPayment() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1710, 1712), daysFromNow(1710), daysFromNow(1712));
 
-        // Force failure
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody(FakePaymentProvider.FORCE_FAIL_METHOD_ID)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("FAILED"));
+        TestPaymentFixtures.failByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         // Before retry: 1 payment record, FAILED
         MvcResult beforeHistory = mockMvc.perform(get("/api/bookings/" + bookingId + "/payments")
@@ -157,11 +169,7 @@ class PaymentLifecycleTest {
     void successfulPayment_marksBookingConfirmed_paymentPaidWithTimestamps() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1720, 1722), daysFromNow(1720), daysFromNow(1722));
 
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_valid")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         MvcResult historyResult = mockMvc.perform(get("/api/bookings/" + bookingId + "/payments")
                         .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
@@ -190,12 +198,7 @@ class PaymentLifecycleTest {
     void duplicatePaymentAttempt_isRejected_noExtraPaymentRecord() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1730, 1732), daysFromNow(1730), daysFromNow(1732));
 
-        // First payment succeeds
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_valid")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         // Second attempt is rejected
         mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
@@ -214,20 +217,17 @@ class PaymentLifecycleTest {
         assertThat(statuses.get(0)).isEqualTo("PAID");
     }
 
-    // ── 5. Cancellation of paid booking marks payment REFUNDED ────────────────
-    //      The PAID payment record transitions to REFUNDED; paidAt is preserved
-    //      and updatedAt advances to the refund time.
+    // ── 5. Cancellation of fake-paid booking does not create fake refund ─────
+    //      The PAID payment record transitions to REFUND_PENDING for operations review.
 
     @Test
-    void cancellationOfPaidBooking_marksPaymentRefunded_withFakeProvider() throws Exception {
+    void cancellationOfPaidBooking_withoutStripeReference_marksRefundPending() throws Exception {
         long bookingId = createBooking(anyAvailableCarId(1740, 1742), daysFromNow(1740), daysFromNow(1742));
 
-        // Pay the booking
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_valid")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.markConfirmedPaidWithoutStripeReference(
+                bookingRepository,
+                paymentRepository,
+                bookingId);
 
         // Admin cancel (pickup is far future → refund eligible)
         mockMvc.perform(post("/api/bookings/" + bookingId + "/cancel")
@@ -235,7 +235,7 @@ class PaymentLifecycleTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
 
-        // Payment history: still 1 record, now REFUNDED
+        // Payment history: still 1 record, now REFUND_PENDING because there is no Stripe reference.
         MvcResult historyResult = mockMvc.perform(get("/api/bookings/" + bookingId + "/payments")
                         .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
                 .andExpect(status().isOk())
@@ -244,9 +244,11 @@ class PaymentLifecycleTest {
         String body = historyResult.getResponse().getContentAsString();
         List<String> statuses = JsonPath.read(body, "$[*].status");
         assertThat(statuses).hasSize(1);
-        assertThat(statuses.get(0)).as("PAID payment should be REFUNDED after cancellation").isEqualTo("REFUNDED");
+        assertThat(statuses.get(0))
+                .as("paid fake payment should require manual refund review")
+                .isEqualTo("REFUND_PENDING");
 
-        // paidAt preserved; updatedAt advanced by the refund state transition
+        // paidAt preserved; updatedAt advanced by the refund-pending state transition
         String paidAt = JsonPath.read(body, "$[0].paidAt");
         String updatedAt = JsonPath.read(body, "$[0].updatedAt");
         assertThat(paidAt).as("paidAt should still be present after refund").isNotNull();

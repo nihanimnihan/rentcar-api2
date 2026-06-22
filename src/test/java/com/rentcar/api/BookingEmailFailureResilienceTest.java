@@ -4,13 +4,14 @@ import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.email.EmailService;
 import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.service.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -23,7 +24,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class BookingEmailFailureResilienceTest {
 
     private static final DateTimeFormatter FMT =
@@ -46,9 +46,11 @@ class BookingEmailFailureResilienceTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired BookingRepository bookingRepository;
+    @Autowired PaymentService paymentService;
 
     /** Replaces FakeEmailService — throws on every sendBookingConfirmation() call. */
-    @MockBean EmailService emailService;
+    @MockitoBean
+    EmailService emailService;
 
     @Test
     void emailFailure_doesNotRollbackConfirmedBooking() throws Exception {
@@ -67,15 +69,7 @@ class BookingEmailFailureResilienceTest {
                 .andReturn();
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
-        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
-
-        // Process payment — email will throw, but booking must still be CONFIRMED
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", checkoutToken)))
-                .andExpect(status().isOk())
-                // Response must indicate CONFIRMED despite email failure
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         // Verify at entity level — booking must be persisted as CONFIRMED
         var savedBooking = bookingRepository.findById(bookingId).orElseThrow();
@@ -119,9 +113,4 @@ class BookingEmailFailureResilienceTest {
                 """.formatted(carId, name, email, pickup, dropoff);
     }
 
-    private String payBody(String paymentMethodId, String checkoutToken) {
-        return """
-                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
-                """.formatted(paymentMethodId, checkoutToken);
-    }
 }

@@ -3,6 +3,7 @@ package com.rentcar.api;
 import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.repository.PaymentRepository;
 import com.rentcar.api.service.ManageBookingTokenService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,21 +27,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Integration tests for POST /api/bookings/manage/cancel.
- *
+
  * Covered scenarios:
  *  1. Cancellable PENDING booking cancelled by reference + lastName → CANCELLED
- *  2. Cancellable CONFIRMED (refund-eligible) booking → CANCELLED, payment REFUNDED
+ *  2. Cancellable CONFIRMED fake-paid booking → CANCELLED, payment REFUND_PENDING
  *  3. Wrong lastName cannot cancel → 404
  *  4. Already-cancelled booking cannot be cancelled again → 409
  *  5. Booking with past pickup cannot be cancelled → 409
- *
+
  * Uses date windows starting at 1200 days to avoid conflicts with all existing
  * tests (CancellationPolicyTest occupies 1100–1152, ManageBookingTest 950–1006,
  * MockPaymentFlowTest 900–922, TransferBookingControllerTest 800–870).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class ManageCancelTest {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -49,6 +50,7 @@ class ManageCancelTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private BookingRepository bookingRepository;
+    @Autowired private PaymentRepository paymentRepository;
     @Autowired private ManageBookingTokenService manageBookingTokenService;
 
     // ── 1. Cancel PENDING booking by reference + lastName ────────────────────
@@ -65,10 +67,10 @@ class ManageCancelTest {
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
 
-    // ── 2. Cancel CONFIRMED booking → payment becomes REFUNDED ───────────────
+    // ── 2. Cancel CONFIRMED booking without Stripe reference → REFUND_PENDING
 
     @Test
-    void cancel_confirmedRefundEligibleBooking_paymentRefunded() throws Exception {
+    void cancel_confirmedRefundEligibleBooking_refundPendingWithoutStripeReference() throws Exception {
         BookingInfo b = createConfirmedBooking(1210, 1212, "Bob Refund", "bob.refund@test.com");
 
         MvcResult result = mockMvc.perform(post("/api/bookings/manage/cancel")
@@ -79,10 +81,10 @@ class ManageCancelTest {
                 .andExpect(jsonPath("$.status").value("CANCELLED"))
                 .andReturn();
 
-        // Payment should be REFUNDED (mock refund provider succeeds).
+        // No real Stripe PaymentIntent/charge exists, so no fake refund is created.
         String paymentStatus = JsonPath.read(
                 result.getResponse().getContentAsString(), "$.paymentStatus");
-        assertThat(paymentStatus).isEqualTo("REFUNDED");
+        assertThat(paymentStatus).isEqualTo("REFUND_PENDING");
     }
 
     // ── 3. Wrong lastName → 404 (same safe message as lookup) ────────────────
@@ -166,11 +168,10 @@ class ManageCancelTest {
     private BookingInfo createConfirmedBooking(int pickupOffset, int dropoffOffset,
                                                String name, String email) throws Exception {
         BookingInfo b = createPendingBooking(pickupOffset, dropoffOffset, name, email);
-        mockMvc.perform(post("/api/bookings/" + b.id() + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", b.checkoutToken())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.markConfirmedPaidWithoutStripeReference(
+                bookingRepository,
+                paymentRepository,
+                b.id());
         return b;
     }
 
@@ -233,12 +234,6 @@ class ManageCancelTest {
                   "dropoffLocation": "City Centre"
                 }
                 """.formatted(carId, name, email, pickup, dropoff);
-    }
-
-    private String payBody(String paymentMethodId, String checkoutToken) {
-        return """
-                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
-                """.formatted(paymentMethodId, checkoutToken);
     }
 
     private record BookingInfo(long id, String reference, String checkoutToken) {}

@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -29,6 +27,7 @@ public class BookingCancellationService {
     private final BusinessTimezone businessTimezone;
     private final BookingEmailNotificationService bookingEmailNotificationService;
     private final ManageBookingTokenService manageBookingTokenService;
+    private final BookingCancellationPolicyService cancellationPolicyService;
 
     @Transactional
     public Booking cancelBooking(Long id) {
@@ -36,26 +35,36 @@ public class BookingCancellationService {
         Booking booking = bookingRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new BookingNotFoundException(id));
 
-        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.CONFIRMED) {
+        CancellationPolicyDecision policy = cancellationPolicyService.evaluateAdminPolicy(booking);
+        if (!policy.adminOperationalCancellationAllowed()) {
             throw new BookingCannotBeCancelledException(id);
         }
 
-        booking.setStatus(BookingStatus.CANCELLED);
-        booking.setExpiresAt(null);
-        booking.setCheckoutSessionToken(null);
-        booking.setCancelledByType(BookingActorType.ADMIN);
-        booking.setCancelledChannel(BookingChannel.ADMIN_PANEL);
-        booking.setCancelledAt(businessTimezone.nowBusiness().toInstant());
-        booking.setCancellationReason("Cancelled by admin");
-        Booking savedBooking = bookingRepository.save(booking);
-        paymentService.handleCancellationPayment(savedBooking);
-        paymentService.findLatestPayment(savedBooking)
-                .ifPresent(payment -> bookingEmailNotificationService
-                        .sendBookingCancellation(savedBooking, payment.getStatus()));
-        log.info("Booking cancelled by admin: bookingId={} reference={} status={} cancelledByType={} cancelledChannel={}",
-                savedBooking.getId(), savedBooking.getBookingReference(), savedBooking.getStatus(),
-                savedBooking.getCancelledByType(), savedBooking.getCancelledChannel());
-        return savedBooking;
+        return cancelLockedBookingAsAdmin(booking, "Cancelled by admin", policy.refundEligible(), false);
+    }
+
+    @Transactional
+    public Booking cancelBookingWithRefund(Long id) {
+        Booking booking = bookingRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new BookingNotFoundException(id));
+        CancellationPolicyDecision policy = cancellationPolicyService.evaluateAdminPolicy(booking);
+        if (!policy.cancellable() || !policy.refundEligible()) {
+            throw new BookingCannotBeCancelledException(policy.reason() != null
+                    ? policy.reason()
+                    : "This booking is not eligible for cancellation with refund.");
+        }
+        return cancelLockedBookingAsAdmin(booking, "Cancelled by admin with refund", true, false);
+    }
+
+    @Transactional
+    public Booking markNoShow(Long id) {
+        Booking booking = bookingRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new BookingNotFoundException(id));
+        CancellationPolicyDecision policy = cancellationPolicyService.evaluateNoShow(booking);
+        if (!policy.adminOperationalCancellationAllowed()) {
+            throw new BookingCannotBeCancelledException(id);
+        }
+        return cancelLockedBookingAsAdmin(booking, policy.cancellationReason(), false, true);
     }
 
     /**
@@ -64,9 +73,9 @@ public class BookingCancellationService {
      * throws {@link BookingCannotBeCancelledException} with a human-readable
      * reason when cancellation is not allowed.
      *
-     * <p>For PAID bookings that are refund-eligible the mock refund provider is
-     * invoked via {@link PaymentService#handleCancellationPayment}; it sets the
-     * payment status to {@code REFUNDED}.
+     * <p>For PAID bookings that are refund-eligible, {@link PaymentService#handleCancellationPayment}
+     * refunds only payments that have a real provider reference. Missing Stripe references
+     * are left in {@code REFUND_PENDING} for operations review.
      *
      * <p>The numeric booking id is never exposed to the caller — authentication
      * is entirely through the reference + lastName pair.
@@ -90,18 +99,10 @@ public class BookingCancellationService {
     }
 
     private Booking cancelVerifiedCustomerBooking(Booking booking, String cancellationReason, String manageToken) {
-        LocalDateTime now = businessTimezone.nowBusinessLocal();
-
-        if (booking.getStatus() == BookingStatus.CANCELLED) {
-            throw new BookingCannotBeCancelledException("This booking has already been cancelled.");
+        CancellationPolicyDecision policy = cancellationPolicyService.evaluateCustomerPolicy(booking);
+        if (!policy.cancellable()) {
+            throw new BookingCannotBeCancelledException(policy.policyMessage());
         }
-        if (booking.getPickupDateTime().isBefore(now)) {
-            throw new BookingCannotBeCancelledException("The booking can no longer be modified after the pickup date.");
-        }
-        if (booking.getStatus() == BookingStatus.FAILED) {
-            throw new BookingCannotBeCancelledException("This booking payment has already failed.");
-        }
-        // PENDING, CONFIRMED are all cancellable.
 
         // Step 2: Re-fetch with PESSIMISTIC_WRITE lock so concurrent
         // cancel + completePayment requests are serialised.
@@ -116,6 +117,10 @@ public class BookingCancellationService {
         if (locked.getStatus() == BookingStatus.CANCELLED) {
             throw new BookingCannotBeCancelledException("This booking has already been cancelled.");
         }
+        policy = cancellationPolicyService.evaluateCustomerPolicy(locked);
+        if (!policy.cancellable()) {
+            throw new BookingCannotBeCancelledException(policy.policyMessage());
+        }
 
         locked.setStatus(BookingStatus.CANCELLED);
         locked.setExpiresAt(null);
@@ -125,9 +130,11 @@ public class BookingCancellationService {
         locked.setCancelledAt(businessTimezone.nowBusiness().toInstant());
         locked.setCancellationReason(cancellationReasonOrDefault(cancellationReason));
         Booking saved = bookingRepository.save(locked);
-        // handleCancellationPayment handles PAID (mock refund → REFUNDED) and
-        // PENDING/FAILED (voids the record → CANCELLED).
-        paymentService.handleCancellationPayment(saved);
+        if (policy.refundEligible()) {
+            paymentService.handleCancellationPayment(saved);
+        } else {
+            paymentService.handleCancellationWithoutRefund(saved);
+        }
         paymentService.findLatestPayment(saved)
                 .ifPresent(payment -> bookingEmailNotificationService
                         .sendBookingCancellation(saved, payment.getStatus()));
@@ -155,63 +162,39 @@ public class BookingCancellationService {
      */
     public CancellationPolicyResponse getCancellationPolicy(String bookingReference, String lastName) {
         Booking booking = bookingService.findBookingByReferenceAndLastName(bookingReference, lastName);
-        return cancellationPolicyFor(booking);
+        return cancellationPolicyService.toResponse(cancellationPolicyService.evaluateCustomerPolicy(booking));
     }
 
     public CancellationPolicyResponse getCancellationPolicyByManageToken(String manageToken) {
         Booking booking = manageBookingTokenService.findBookingByToken(manageToken);
-        return cancellationPolicyFor(booking);
+        return cancellationPolicyService.toResponse(cancellationPolicyService.evaluateCustomerPolicy(booking));
     }
 
-    private CancellationPolicyResponse cancellationPolicyFor(Booking booking) {
-        LocalDateTime now = businessTimezone.nowBusinessLocal();
-
-        // Rule 1 — already cancelled
-        if (booking.getStatus() == BookingStatus.CANCELLED) {
-            return blocked(
-                    "Booking is already cancelled.",
-                    "This booking has already been cancelled and cannot be modified.");
+    private Booking cancelLockedBookingAsAdmin(Booking booking, String reason, boolean refundEligible, boolean noShow) {
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setExpiresAt(null);
+        booking.setCheckoutSessionToken(null);
+        booking.setCancelledByType(BookingActorType.ADMIN);
+        booking.setCancelledChannel(BookingChannel.ADMIN_PANEL);
+        booking.setCancelledAt(businessTimezone.nowBusiness().toInstant());
+        booking.setCancellationReason(reason);
+        Booking savedBooking = bookingRepository.save(booking);
+        if (refundEligible) {
+            paymentService.handleCancellationPayment(savedBooking);
+        } else {
+            paymentService.handleCancellationWithoutRefund(savedBooking);
         }
-
-        // Rule 2 — pickup date has passed (applies to any non-cancelled status)
-        if (booking.getPickupDateTime().isBefore(now)) {
-            return blocked(
-                    "Your pickup date has passed.",
-                    "The booking can no longer be modified after the pickup date.");
+        if (noShow) {
+            bookingEmailNotificationService.sendNoShowRecorded(savedBooking);
+        } else {
+            paymentService.findLatestPayment(savedBooking)
+                    .ifPresent(payment -> bookingEmailNotificationService
+                            .sendBookingCancellation(savedBooking, payment.getStatus()));
         }
-
-        // Rule 3 & 4 — CONFIRMED bookings: refund depends on 24-h window
-        if (booking.getStatus() == BookingStatus.CONFIRMED) {
-            boolean moreThan24h = booking.getPickupDateTime().isAfter(now.plusHours(24));
-            if (moreThan24h) {
-                return new CancellationPolicyResponse(
-                        true, null, true,
-                        booking.getTotalPrice().setScale(2, RoundingMode.HALF_UP),
-                        BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
-                        "Full refund will be applied.");
-            } else {
-                return new CancellationPolicyResponse(
-                        true, null, false,
-                        BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
-                        BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
-                        "Cancellation within 24 hours of pickup — no refund applies.");
-            }
-        }
-
-        // Rule 5 — PENDING or FAILED: payment was never collected
-        return new CancellationPolicyResponse(
-                true, null, false,
-                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
-                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
-                "Your booking has not been paid — no charge applies.");
-    }
-
-    private static CancellationPolicyResponse blocked(String reason, String policyMessage) {
-        return new CancellationPolicyResponse(
-                false, reason, false,
-                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
-                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP),
-                policyMessage);
+        log.info("Booking cancelled by admin: bookingId={} reference={} status={} noShow={} refundEligible={}",
+                savedBooking.getId(), savedBooking.getBookingReference(), savedBooking.getStatus(),
+                noShow, refundEligible);
+        return savedBooking;
     }
 
     private String cancellationReasonOrDefault(String cancellationReason) {

@@ -25,7 +25,7 @@ import java.util.List;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile({"dev", "local-postgres", "stripe-local"})
+@Profile({"dev", "test"})
 @RequiredArgsConstructor
 public class SeedDataConfig {
 

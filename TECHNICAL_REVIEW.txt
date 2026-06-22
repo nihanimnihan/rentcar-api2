@@ -489,7 +489,7 @@ RECOMMENDED FIX:
   Restrict to non-production profiles:
 
     @Configuration
-    @Profile({"dev", "local-postgres"})
+    @Profile({"dev", "test"})
     public class SeedDataConfig { ... }
 
   For production, use Flyway migration scripts with proper seed data (see [M-4]).
@@ -529,8 +529,8 @@ RECOMMENDED FIX:
 SEVERITY: Medium
 
 FILE:
-  src/main/resources/application-local-postgres.yaml  (ddl-auto: update)
-  src/main/resources/application-dev.yaml              (ddl-auto: create-drop)
+  src/main/resources/application-dev.yaml              (ddl-auto: update)
+  src/test/resources/application-test.yaml             (ddl-auto: create-drop)
   src/main/resources/application-prod.yaml             (ddl-auto: validate)
   pom.xml (no Flyway/Liquibase dependency)
 
@@ -960,7 +960,7 @@ SEVERITY: Low
 
 FILE:
   docker-compose.yml
-  src/main/resources/application-local-postgres.yaml
+  src/main/resources/application-dev.yaml
 
 PROBLEM:
   Both files hardcode database credentials in plain text (user: rentcar,

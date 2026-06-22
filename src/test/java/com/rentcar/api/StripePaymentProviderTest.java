@@ -15,8 +15,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Unit tests for StripePaymentProvider MVP stub.
  *
- * <p>StripePaymentProvider is {@code @Profile("prod")} so it is never loaded in the dev/test
- * Spring context. These tests instantiate it directly to verify the safe-failure contract:
+ * <p>These tests instantiate it directly to verify the safe-failure contract when
+ * Stripe configuration is missing:
  * all operations throw {@link PaymentProviderNotConfiguredException} (→ 503), never a raw
  * {@link UnsupportedOperationException} that would produce a generic 500.
  */
@@ -85,4 +85,3 @@ class StripePaymentProviderTest {
         assertThat(provider.providerName()).isEqualTo("STRIPE");
     }
 }
-

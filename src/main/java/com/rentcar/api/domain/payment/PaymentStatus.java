@@ -9,17 +9,18 @@ package com.rentcar.api.domain.payment;
  *   PENDING ──► PAID ──────────────────────► REFUND_PENDING ──► REFUNDED
  *     │                                           ▲
  *     │                                           │ (real Stripe: set here until webhook confirms)
- *     └──► FAILED                                 │ (FakePaymentProvider: skips to REFUNDED directly)
+ *     └──► FAILED                                 │
  *
  *   PENDING ──► CANCELLED  (booking cancelled before any charge)
  *   FAILED  ──► CANCELLED  (booking cancelled after failed charge attempt)
+ *   PAID    ──► NO_REFUND  (booking cancelled/no-show outside refundable policy)
  * </pre>
  *
  * <p><b>Async-readiness notes:</b>
  * <ul>
  *   <li>{@link #REFUND_PENDING} is reserved for when a real payment provider (e.g. Stripe)
  *       initiates a refund asynchronously and confirmation arrives via webhook.
- *       The {@link FakePaymentProvider} transitions directly to {@link #REFUNDED}.</li>
+ *       Payments without a real Stripe reference remain pending for operations review.</li>
  *   <li>The Stripe webhook service consumes refund events and advances
  *       {@code REFUND_PENDING → REFUNDED} without any synchronous waiting.</li>
  *   <li>Similarly, the Stripe webhook service can advance
@@ -42,7 +43,7 @@ public enum PaymentStatus {
      *
      * <p>Used in real async flows (e.g. Stripe): set this immediately when the refund is
      * initiated, then advance to {@link #REFUNDED} when the provider webhook confirms.
-     * The {@link FakePaymentProvider} skips this state and goes directly to {@link #REFUNDED}.
+     * Payments without a real Stripe reference use this state for operations review.
      *
      * <p>The Stripe webhook handler transitions this to {@link #REFUNDED}.
      */
@@ -55,5 +56,11 @@ public enum PaymentStatus {
      * Payment voided without any charge (booking was PENDING or FAILED at cancellation time).
      * No financial transaction occurred.
      */
-    CANCELLED
+    CANCELLED,
+
+    /**
+     * Money was collected, but the cancellation/no-show policy does not allow a refund.
+     * No provider refund should be created.
+     */
+    NO_REFUND
 }

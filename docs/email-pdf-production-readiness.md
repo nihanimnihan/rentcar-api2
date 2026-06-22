@@ -59,9 +59,9 @@ The Stripe webhook endpoint must receive refund events such as `refund.updated` 
 
 ## Local Mailhog SMTP testing
 
-The default local profiles still use `FakeEmailService`. To send real SMTP messages to
-Mailhog, add the `local-smtp` profile. It activates `SmtpEmailService` and points Spring
-Mail at `localhost:1025` with no username or password.
+The `dev` profile uses `FakeEmailService` unless SMTP environment variables are
+configured. To send real SMTP messages to Mailhog, run the app with `dev` and provide
+the SMTP settings via environment variables.
 
 Start Mailhog:
 
@@ -69,10 +69,14 @@ Start Mailhog:
 docker run --rm -p 1025:1025 -p 8025:8025 mailhog/mailhog
 ```
 
-Start the app with local SMTP and fake payment processing:
+Start the app with local SMTP:
 
 ```bash
-SPRING_PROFILES_ACTIVE=dev,local-smtp ./mvnw spring-boot:run
+SMTP_HOST=localhost \
+SMTP_PORT=1025 \
+MAIL_FROM=no-reply@rentcar.local \
+SPRING_PROFILES_ACTIVE=dev \
+./mvnw spring-boot:run
 ```
 
 Then open the Mailhog UI:
@@ -81,14 +85,14 @@ Then open the Mailhog UI:
 http://localhost:8025
 ```
 
-Alternative, if you want the local PostgreSQL + Stripe-local profile set:
+For normal local development without SMTP:
 
 ```bash
-SPRING_PROFILES_ACTIVE=local-postgres,stripe-local,local-smtp ./mvnw spring-boot:run
+SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ```
 
-That alternative still sends mail through Mailhog, but payment flows require the existing
-Stripe-local configuration to be usable for the scenario you are testing.
+Payment flows in `dev` use Stripe; set `STRIPE_API_KEY` and `STRIPE_PUBLISHABLE_KEY`
+to Stripe test keys before testing customer checkout.
 
 ## PDF/booking contract attachment
 

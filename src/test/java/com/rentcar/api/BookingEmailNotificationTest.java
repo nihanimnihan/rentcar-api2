@@ -3,13 +3,15 @@ package com.rentcar.api;
 import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.booking.BookingStatus;
 import com.rentcar.api.domain.payment.PaymentStatus;
+import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.email.CancellationEmailData;
 import com.rentcar.api.email.ConfirmationEmailData;
 import com.rentcar.api.email.EmailLocalizationService;
 import com.rentcar.api.email.FakeEmailService;
 import com.rentcar.api.email.RefundCompletedEmailData;
-import com.rentcar.api.payment.provider.FakePaymentProvider;
 import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.repository.PaymentRepository;
+import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,12 +20,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(properties = "app.public-base-url=http://localhost:8091")
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class BookingEmailNotificationTest {
 
     private static final DateTimeFormatter FMT =
@@ -55,10 +59,14 @@ class BookingEmailNotificationTest {
     @Autowired FakeEmailService fakeEmailService;
     @Autowired EmailLocalizationService emailLocalizationService;
     @Autowired BookingRepository bookingRepository;
+    @Autowired PaymentRepository paymentRepository;
     @Autowired PaymentService paymentService;
+    @MockitoBean
+    PaymentProvider paymentProvider;
 
     @BeforeEach
     void clearEmails() {
+        TestPaymentFixtures.configureStripeIntentProvider(paymentProvider);
         fakeEmailService.clearSentEmails();
     }
 
@@ -80,11 +88,7 @@ class BookingEmailNotificationTest {
 
         assertThat(fakeEmailService.getSentEmails()).as("No email before payment").isEmpty();
 
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", checkoutToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         assertThat(fakeEmailService.getSentEmails())
                 .as("Exactly one confirmation email should be captured")
@@ -106,12 +110,7 @@ class BookingEmailNotificationTest {
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
         String bookingRef = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
-        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
-
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", checkoutToken)))
-                .andExpect(status().isOk());
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         List<ConfirmationEmailData> emails = fakeEmailService.getSentEmails();
         assertThat(emails).hasSize(1);
@@ -149,17 +148,11 @@ class BookingEmailNotificationTest {
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
         String bookingRef = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
-        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
-
         var persistedBooking = bookingRepository.findByIdWithDetails(bookingId).orElseThrow();
         assertThat(persistedBooking.getLanguage()).isEqualTo("tr");
         assertThat(persistedBooking.getCustomer().getPreferredLanguage()).isEqualTo("tr");
 
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", checkoutToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         List<ConfirmationEmailData> emails = fakeEmailService.getSentEmails();
         assertThat(emails).hasSize(1);
@@ -189,13 +182,7 @@ class BookingEmailNotificationTest {
                 .andReturn();
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
-        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
-
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody(FakePaymentProvider.FORCE_FAIL_METHOD_ID, checkoutToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("FAILED"));
+        TestPaymentFixtures.failByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         assertThat(fakeEmailService.getSentEmails())
                 .as("No email should be sent after a failed payment")
@@ -217,13 +204,10 @@ class BookingEmailNotificationTest {
 
         long bookingId = ((Number) JsonPath.read(created.getResponse().getContentAsString(), "$.id")).longValue();
         String bookingRef = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
-        String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
-
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", checkoutToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.markConfirmedPaidWithoutStripeReference(
+                bookingRepository,
+                paymentRepository,
+                bookingId);
 
         mockMvc.perform(post("/api/bookings/manage/cancel")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -239,7 +223,7 @@ class BookingEmailNotificationTest {
         assertThat(email.bookingReference()).isEqualTo(bookingRef);
         assertThat(email.customerEmail()).isEqualTo("cancel.reason@example.com");
         assertThat(email.cancellationReason()).isEqualTo("Travel plans changed");
-        assertThat(email.refundStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(email.refundStatus()).isEqualTo(PaymentStatus.REFUND_PENDING);
         assertThat(email.language()).isEqualTo("tr");
         assertTokenizedManageUrl(email.managementUrl());
 
@@ -247,7 +231,7 @@ class BookingEmailNotificationTest {
         assertThat(rendered.subject()).isEqualTo("Paradise Deluxe rezervasyonunuz iptal edildi - " + bookingRef);
         assertThat(rendered.body())
                 .contains("Paradise Deluxe rezervasyonunuz iptal edildi.")
-                .contains("İade durumu: İade tamamlandı")
+                .contains("İade durumu: İade başlatıldı")
                 .contains("İade uygulanıyorsa, tutarın banka hesabınızda görünmesi birkaç iş günü sürebilir.")
                 .contains("Paradise Deluxe’i tercih ettiğiniz için teşekkür ederiz.")
                 .doesNotContain("RentCar");
@@ -276,13 +260,12 @@ class BookingEmailNotificationTest {
                 .andExpect(status().isOk());
 
         var booking = bookingRepository.findById(bookingId).orElseThrow();
-        String intentId = paymentService.findLatestPayment(booking)
-                .orElseThrow()
-                .getStripePaymentIntentId();
+        var payment = paymentService.findLatestPayment(booking).orElseThrow();
+        String intentId = payment.getStripePaymentIntentId();
         assertThat(intentId).isNotBlank();
 
-        paymentService.applyStripePaymentIntentStatus(intentId, "succeeded", "ch_test_123");
-        paymentService.applyStripePaymentIntentStatus(intentId, "succeeded", "ch_test_123");
+        paymentService.applyStripePaymentIntentStatus(intent(payment, "succeeded"), "ch_test_123");
+        paymentService.applyStripePaymentIntentStatus(intent(payment, "succeeded"), "ch_test_123");
 
         assertThat(bookingRepository.findById(bookingId).orElseThrow().getStatus())
                 .isEqualTo(BookingStatus.CONFIRMED);
@@ -319,11 +302,7 @@ class BookingEmailNotificationTest {
                 .getStripePaymentIntentId();
         assertThat(intentId).isNotBlank();
 
-        mockMvc.perform(post("/api/bookings/" + bookingId + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", checkoutToken)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, bookingId);
 
         paymentService.applyStripeRefundStatus(intentId, "re_test_123", "succeeded");
         paymentService.applyStripeRefundStatus(intentId, "re_test_123", "succeeded");
@@ -435,10 +414,18 @@ class BookingEmailNotificationTest {
                 """.formatted(carId, name, email, languageLine, pickup, dropoff);
     }
 
-    private String payBody(String paymentMethodId, String checkoutToken) {
-        return """
-                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
-                """.formatted(paymentMethodId, checkoutToken);
+    private PaymentIntentVerification intent(com.rentcar.api.domain.payment.Payment payment, String status) {
+        return new PaymentIntentVerification(
+                payment.getStripePaymentIntentId(),
+                status,
+                payment.getAmount().movePointRight(2).longValueExact(),
+                payment.getCurrencyCode().toLowerCase(java.util.Locale.ROOT),
+                Map.of(
+                        "bookingId", String.valueOf(payment.getBooking().getId()),
+                        "paymentId", String.valueOf(payment.getId()),
+                        "paymentReference", payment.getPaymentReference()
+                )
+        );
     }
 
     private String intentBody(String checkoutToken) {

@@ -3,15 +3,19 @@ package com.rentcar.api;
 import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.repository.BookingRepository;
+import com.rentcar.api.repository.PaymentRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -30,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *  1. CANCELLED booking             → cancellable=false
  *  2. Pickup in the past            → cancellable=false
  *  3. CONFIRMED + pickup > 24h away → cancellable=true, full refund
- *  4. CONFIRMED + pickup ≤ 24h away → cancellable=true, no refund
+ *  4. CONFIRMED + pickup ≤ 24h away after first hour → cancellable=false, no refund
  *  5. PENDING booking               → cancellable=true, no charge
  *  6. FAILED booking                → cancellable=true, no charge
  *  7. Unknown reference             → 404
@@ -41,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class CancellationPolicyTest {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -53,6 +57,12 @@ class CancellationPolicyTest {
 
     @Autowired
     private BookingRepository bookingRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     // ── 1. Already-cancelled booking → not cancellable ────────────────────────
 
@@ -132,26 +142,60 @@ class CancellationPolicyTest {
         assertThat(refundAmount).isGreaterThan(0.0);
     }
 
-    // ── 4. CONFIRMED + pickup ≤ 24h away → no refund ─────────────────────────
+    @Test
+    void policy_confirmedWithinFirstHour_fullRefundEligible() throws Exception {
+        String pickup  = hoursFromNow(2);
+        String dropoff = hoursFromNow(4);
+        BookingInfo b  = createConfirmedBookingWithDates(pickup, dropoff, "First Hour", "first.hour@test.com");
+
+        mockMvc.perform(get("/api/bookings/manage/cancellation-policy")
+                        .param("bookingReference", b.reference())
+                        .param("lastName", "Hour"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cancellable").value(true))
+                .andExpect(jsonPath("$.refundEligible").value(true))
+                .andExpect(jsonPath("$.refundAmount").isNumber())
+                .andExpect(jsonPath("$.cancellationFee").value(0.00))
+                .andExpect(jsonPath("$.policyMessage").value("Full refund will be applied."));
+    }
+
+    // ── 4. CONFIRMED + pickup ≤ 24h away after first hour → blocked ──────────
 
     @Test
-    void policy_confirmedWithin24h_noRefund() throws Exception {
+    void policy_confirmedWithin24hAfterFirstHour_notCancellableNoRefund() throws Exception {
         // Use a pickup 2h from now — satisfies the ">1h" API guard and is within the 24h window.
         // The booking occupies the car for only a few hours so it doesn't block other test windows.
         String pickup  = hoursFromNow(2);
         String dropoff = hoursFromNow(4);
         BookingInfo b  = createConfirmedBookingWithDates(pickup, dropoff, "No Refund", "no.refund@test.com");
+        ageBookingCreatedAt(b.id(), Instant.now().minusSeconds(2 * 60 * 60));
 
         mockMvc.perform(get("/api/bookings/manage/cancellation-policy")
                         .param("bookingReference", b.reference())
                         .param("lastName", "Refund"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cancellable").value(true))
+                .andExpect(jsonPath("$.cancellable").value(false))
+                .andExpect(jsonPath("$.reason").value("Cancellation window has expired."))
                 .andExpect(jsonPath("$.refundEligible").value(false))
                 .andExpect(jsonPath("$.refundAmount").value(0.00))
                 .andExpect(jsonPath("$.cancellationFee").value(0.00))
                 .andExpect(jsonPath("$.policyMessage")
-                        .value("Cancellation within 24 hours of pickup — no refund applies."));
+                        .value("Cancellation window has expired. This booking is no longer refundable."));
+    }
+
+    @Test
+    void customerCancel_confirmedWithin24hAfterFirstHour_returnsConflict() throws Exception {
+        String pickup  = hoursFromNow(2);
+        String dropoff = hoursFromNow(4);
+        BookingInfo b  = createConfirmedBookingWithDates(pickup, dropoff, "Blocked Cancel", "blocked.cancel@test.com");
+        ageBookingCreatedAt(b.id(), Instant.now().minusSeconds(2 * 60 * 60));
+
+        mockMvc.perform(post("/api/bookings/manage/cancel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cancelBody(b.reference(), "Cancel", "Too late")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message")
+                        .value("Cancellation window has expired. This booking is no longer refundable."));
     }
 
     // ── 5. PENDING booking → cancellable, no charge ───────────────────────────
@@ -178,12 +222,10 @@ class CancellationPolicyTest {
     void policy_failedBooking_cancellableNoCharge() throws Exception {
         BookingInfo b = createPendingBooking(1150, 1152, "Failed Pay", "failed.pay@test.com");
 
-        // Trigger payment failure → booking moves to FAILED
-        mockMvc.perform(post("/api/bookings/" + b.id() + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_fail", b.checkoutToken())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("FAILED"));
+        TestPaymentFixtures.markFailedWithoutStripeReference(
+                bookingRepository,
+                paymentRepository,
+                b.id());
 
         mockMvc.perform(get("/api/bookings/manage/cancellation-policy")
                         .param("bookingReference", b.reference())
@@ -211,15 +253,14 @@ class CancellationPolicyTest {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /** Creates a booking and processes payment with pm_test_valid → CONFIRMED. */
+    /** Creates a booking and marks it confirmed as a paid fixture. */
     private BookingInfo createConfirmedBooking(
             int pickupOffset, int dropoffOffset, String name, String email) throws Exception {
         BookingInfo b = createPendingBooking(pickupOffset, dropoffOffset, name, email);
-        mockMvc.perform(post("/api/bookings/" + b.id() + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", b.checkoutToken())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.markConfirmedPaidWithoutStripeReference(
+                bookingRepository,
+                paymentRepository,
+                b.id());
         return b;
     }
 
@@ -227,11 +268,10 @@ class CancellationPolicyTest {
     private BookingInfo createConfirmedBookingWithDates(
             String pickup, String dropoff, String name, String email) throws Exception {
         BookingInfo b = createPendingBookingWithDates(pickup, dropoff, name, email);
-        mockMvc.perform(post("/api/bookings/" + b.id() + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_test_valid", b.checkoutToken())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.markConfirmedPaidWithoutStripeReference(
+                bookingRepository,
+                paymentRepository,
+                b.id());
         return b;
     }
 
@@ -254,6 +294,11 @@ class CancellationPolicyTest {
         String ref = JsonPath.read(created.getResponse().getContentAsString(), "$.bookingReference");
         String checkoutToken = created.getResponse().getHeader("X-Checkout-Session-Token");
         return new BookingInfo(id, ref, checkoutToken);
+    }
+
+    private void ageBookingCreatedAt(long bookingId, Instant createdAt) {
+        jdbcTemplate.update("UPDATE bookings SET created_at = ? WHERE id = ?",
+                Timestamp.from(createdAt), bookingId);
     }
 
     private long anyAvailableCarId(int pickupOffset, int dropoffOffset) throws Exception {
@@ -300,10 +345,14 @@ class CancellationPolicyTest {
                 """.formatted(carId, name, email, pickup, dropoff);
     }
 
-    private String payBody(String paymentMethodId, String checkoutToken) {
+    private String cancelBody(String bookingReference, String lastName, String reason) {
         return """
-                {"paymentMethodId":"%s","checkoutSessionToken":"%s"}
-                """.formatted(paymentMethodId, checkoutToken);
+                {
+                  "bookingReference": "%s",
+                  "lastName": "%s",
+                  "cancellationReason": "%s"
+                }
+                """.formatted(bookingReference, lastName, reason);
     }
 
     private record BookingInfo(long id, String reference, String checkoutToken) {}

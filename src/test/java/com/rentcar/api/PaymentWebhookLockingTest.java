@@ -6,6 +6,7 @@ import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.domain.payment.PaymentChannel;
 import com.rentcar.api.domain.payment.PaymentMethod;
 import com.rentcar.api.domain.payment.PaymentStatus;
+import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.PaymentRepository;
 import com.rentcar.api.service.BookingEmailNotificationService;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
@@ -50,7 +52,9 @@ class PaymentWebhookLockingTest {
                 .thenReturn(Optional.of(payment));
         when(paymentRepository.save(payment)).thenReturn(payment);
 
-        paymentService.applyStripePaymentIntentStatus("pi_test_123", "succeeded", "ch_test_123");
+        paymentService.applyStripePaymentIntentStatus(
+                intent(payment, "succeeded"),
+                "ch_test_123");
 
         verify(paymentRepository).findByStripePaymentIntentIdForUpdate("pi_test_123");
         verify(paymentRepository, never()).findByStripePaymentIntentId("pi_test_123");
@@ -87,6 +91,21 @@ class PaymentWebhookLockingTest {
                 .channel(PaymentChannel.ONLINE)
                 .status(paymentStatus)
                 .stripePaymentIntentId("pi_test_123")
+                .paymentReference("PAY-LOCK123")
                 .build();
+    }
+
+    private PaymentIntentVerification intent(Payment payment, String status) {
+        return new PaymentIntentVerification(
+                payment.getStripePaymentIntentId(),
+                status,
+                9500L,
+                "eur",
+                Map.of(
+                        "bookingId", String.valueOf(payment.getBooking().getId()),
+                        "paymentId", String.valueOf(payment.getId()),
+                        "paymentReference", payment.getPaymentReference()
+                )
+        );
     }
 }

@@ -2,6 +2,18 @@ server:
   port: 8091
 
 spring:
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:false}
+          starttls:
+            enable: ${SMTP_STARTTLS_ENABLE:false}
+
   security:
     oauth2:
       client:
@@ -14,20 +26,23 @@ spring:
               - profile
               - email
   datasource:
-    url: jdbc:postgresql://localhost:5432/rentcar
-    username: rentcar
-    password: rentcar
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/rentcar}
+    username: ${SPRING_DATASOURCE_USERNAME:rentcar}
+    password: ${SPRING_DATASOURCE_PASSWORD:rentcar}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
 
 rentcar:
   admin:
     username: admin
     password: local-admin-password
+  email:
+    from: ${MAIL_FROM:no-reply@rentcar.local}
+    from-name: ${MAIL_FROM_NAME:Paradise Deluxe Local}
 
 app:
   public-base-url: http://localhost:8091

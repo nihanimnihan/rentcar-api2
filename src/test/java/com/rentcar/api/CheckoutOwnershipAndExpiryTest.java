@@ -3,20 +3,22 @@ package com.rentcar.api;
 import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.booking.Booking;
 import com.rentcar.api.domain.booking.BookingStatus;
-import com.rentcar.api.payment.provider.FakePaymentProvider;
+import com.rentcar.api.payment.provider.PaymentProvider;
 import com.rentcar.api.repository.BookingRepository;
 import com.rentcar.api.scheduler.BookingExpiryScheduler;
+import com.rentcar.api.service.PaymentService;
 import com.rentcar.api.util.AppClock;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -33,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class CheckoutOwnershipAndExpiryTest {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -50,7 +52,18 @@ class CheckoutOwnershipAndExpiryTest {
     @Autowired
     private AppClock appClock;
 
+    @Autowired
+    private PaymentService paymentService;
+
+    @MockitoBean
+    private PaymentProvider paymentProvider;
+
     private String lastCheckoutToken;
+
+    @BeforeEach
+    void configureStripeProvider() {
+        TestPaymentFixtures.configureStripeIntentProvider(paymentProvider);
+    }
 
     // Helpers copied from existing tests for consistency
     private long anyAvailableCarId(int pickupOffset, int dropoffOffset) throws Exception {
@@ -176,12 +189,7 @@ class CheckoutOwnershipAndExpiryTest {
         long carId = anyAvailableCarId(1830, 1832);
         long id = createBooking(carId, daysFromNow(1830), daysFromNow(1832));
 
-        // Force a failed payment
-        mockMvc.perform(post("/api/bookings/" + id + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody(FakePaymentProvider.FORCE_FAIL_METHOD_ID)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("FAILED"));
+        TestPaymentFixtures.failByVerifiedStripeWebhook(bookingRepository, paymentService, id);
 
         // After FAILED, car should be available (FAILED does not block)
         MvcResult search = mockMvc.perform(get("/api/cars/search")
@@ -210,12 +218,7 @@ class CheckoutOwnershipAndExpiryTest {
         long carId = anyAvailableCarId(1860, 1862);
         long id = createBooking(carId, daysFromNow(1860), daysFromNow(1862));
 
-        // Process payment successfully
-        mockMvc.perform(post("/api/bookings/" + id + "/payments/process")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payBody("pm_valid")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+        TestPaymentFixtures.confirmByVerifiedStripeWebhook(bookingRepository, paymentService, id);
 
         Booking booking = bookingRepository.findById(id).orElseThrow();
         assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
@@ -223,7 +226,4 @@ class CheckoutOwnershipAndExpiryTest {
         assertThat(booking.getCheckoutSessionToken()).isNull();
     }
 
-    private String payBody(String paymentMethodId) {
-        return "{\"paymentMethodId\":\"" + paymentMethodId + "\",\"checkoutSessionToken\":\"" + lastCheckoutToken + "\"}";
-    }
 }

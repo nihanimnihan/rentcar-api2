@@ -19,6 +19,13 @@ let _currentBooking  = null;
 let _currentPolicy   = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const prefillRef = params.get('ref') || params.get('bookingReference');
+  const refInput = document.getElementById('mfReference');
+  if (refInput && prefillRef) {
+    refInput.value = prefillRef.trim().toUpperCase();
+  }
+
   const btn = document.getElementById('mfSubmitBtn');
   if (btn) btn.addEventListener('click', lookupBooking);
 
@@ -41,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshCancelConfirmationText();
   });
 
-  const manageToken = new URLSearchParams(window.location.search).get('token');
+  const manageToken = params.get('token');
   if (manageToken && manageToken.trim()) {
     lookupBookingByToken(manageToken.trim());
   }
@@ -719,6 +726,8 @@ function localizePolicyMessage(message) {
     'The booking can no longer be modified after the pickup date.': 'manage.policyPickupPassed',
     'Full refund will be applied.': 'manage.policyFullRefund',
     'Cancellation within 24 hours of pickup — no refund applies.': 'manage.policyNoRefundWithin24h',
+    'Cancellation window has expired.': 'manage.policyWindowExpiredReason',
+    'Cancellation window has expired. This booking is no longer refundable.': 'manage.policyWindowExpired',
     'Your booking has not been paid — no charge applies.': 'manage.policyNoCharge',
   };
   const key = keyByMessage[message];
