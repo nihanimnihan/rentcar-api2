@@ -8,6 +8,7 @@ import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.email.CancellationEmailData;
 import com.rentcar.api.email.ConfirmationEmailData;
 import com.rentcar.api.email.EmailService;
+import com.rentcar.api.email.NoShowEmailData;
 import com.rentcar.api.email.RefundCompletedEmailData;
 import com.rentcar.api.util.LanguageNormalizer;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,15 @@ public class BookingEmailNotificationService {
         }
     }
 
+    public void sendNoShowRecorded(Booking booking) {
+        try {
+            emailService.sendNoShowRecorded(buildNoShowEmailData(booking));
+        } catch (Exception e) {
+            log.warn("No-show email failed for bookingId={} reference={}: {}",
+                    booking.getId(), booking.getBookingReference(), e.getMessage());
+        }
+    }
+
     private ConfirmationEmailData buildConfirmationEmailData(Booking booking) {
         return new ConfirmationEmailData(
                 booking.getBookingReference(),
@@ -88,6 +98,16 @@ public class BookingEmailNotificationService {
                 booking.getCustomer().getEmail(),
                 booking.getCustomer().getFullName(),
                 payment.getProviderReference(),
+                manageBookingUrl(booking),
+                bookingLanguage(booking)
+        );
+    }
+
+    private NoShowEmailData buildNoShowEmailData(Booking booking) {
+        return new NoShowEmailData(
+                booking.getBookingReference(),
+                booking.getCustomer().getEmail(),
+                booking.getCustomer().getFullName(),
                 manageBookingUrl(booking),
                 bookingLanguage(booking)
         );

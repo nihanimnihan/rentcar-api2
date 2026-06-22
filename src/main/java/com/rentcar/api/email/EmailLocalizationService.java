@@ -54,6 +54,18 @@ public class EmailLocalizationService {
         );
     }
 
+    public LocalizedEmail noShowRecorded(NoShowEmailData data) {
+        String language = normalizeLanguage(data.language());
+        return new LocalizedEmail(
+                switch (language) {
+                    case "tr" -> "Paradise Deluxe gelinmeyen rezervasyon kaydı - " + data.bookingReference();
+                    case "es" -> "No-show registrado para su reserva Paradise Deluxe - " + data.bookingReference();
+                    default -> "Paradise Deluxe no-show recorded - " + data.bookingReference();
+                },
+                noShowRecordedBody(data, language)
+        );
+    }
+
     public LocalizedEmail loginOtp(LoginOtpEmailData data) {
         String language = normalizeLanguage(data.language());
         return new LocalizedEmail(
@@ -103,18 +115,21 @@ public class EmailLocalizationService {
                 case REFUNDED -> "İade tamamlandı";
                 case REFUND_PENDING -> "İade başlatıldı";
                 case PAID -> "Ödendi - iade henüz tamamlanmadı";
+                case NO_REFUND -> "İade uygulanmaz";
                 case PENDING, FAILED, CANCELLED -> "Ödeme alınmadı";
             };
             case "es" -> switch (status) {
                 case REFUNDED -> "Reembolso completado";
                 case REFUND_PENDING -> "Reembolso iniciado";
                 case PAID -> "Pagado - reembolso aún no completado";
+                case NO_REFUND -> "Sin reembolso aplicable";
                 case PENDING, FAILED, CANCELLED -> "No se ha cobrado ningún cargo";
             };
             default -> switch (status) {
                 case REFUNDED -> "Refund completed";
                 case REFUND_PENDING -> "Refund initiated";
                 case PAID -> "Paid - refund not yet completed";
+                case NO_REFUND -> "No refund applies";
                 case PENDING, FAILED, CANCELLED -> "No charge collected";
             };
         };
@@ -329,6 +344,53 @@ public class EmailLocalizationService {
                     data.bookingReference(),
                     optional(data.refundReference(), notAvailable(language)),
                     refundCompletedTimingMessage(language),
+                    optional(data.managementUrl(), notAvailable(language)));
+        };
+    }
+
+    private String noShowRecordedBody(NoShowEmailData data, String language) {
+        return switch (language) {
+            case "tr" -> """
+                    Merhaba %s,
+
+                    Paradise Deluxe rezervasyonunuz gelinmedi olarak kaydedildi.
+
+                    Rezervasyon referansı: %s
+                    İade durumu: İade uygulanmaz
+                    Rezervasyonu yönetin: %s
+
+                    Sorularınız varsa lütfen destek ekibimizle iletişime geçin.
+                    """.formatted(
+                    data.customerName(),
+                    data.bookingReference(),
+                    optional(data.managementUrl(), notAvailable(language)));
+            case "es" -> """
+                    Hola %s,
+
+                    Su reserva con Paradise Deluxe se ha registrado como no-show.
+
+                    Referencia de reserva: %s
+                    Estado del reembolso: Sin reembolso aplicable
+                    Gestionar reserva: %s
+
+                    Si tiene alguna pregunta, contacte con nuestro equipo de soporte.
+                    """.formatted(
+                    data.customerName(),
+                    data.bookingReference(),
+                    optional(data.managementUrl(), notAvailable(language)));
+            default -> """
+                    Hi %s,
+
+                    Your Paradise Deluxe booking has been recorded as a no-show.
+
+                    Booking reference: %s
+                    Refund status: No refund applies
+                    Manage booking: %s
+
+                    If you have questions, please contact our support team.
+                    """.formatted(
+                    data.customerName(),
+                    data.bookingReference(),
                     optional(data.managementUrl(), notAvailable(language)));
         };
     }

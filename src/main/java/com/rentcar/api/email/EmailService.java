@@ -34,6 +34,13 @@ public interface EmailService {
     void sendRefundCompleted(RefundCompletedEmailData data);
 
     /**
+     * Sends (or simulates sending) a no-show recorded email.
+     *
+     * @param data all content required to render the no-show email
+     */
+    void sendNoShowRecorded(NoShowEmailData data);
+
+    /**
      * Sends (or simulates sending) a passwordless login code.
      *
      * @param data all content required to render the login code email
