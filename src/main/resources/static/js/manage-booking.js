@@ -263,10 +263,13 @@ function renderResult(booking, policy) {
         </div>
       </div>
 
-      <!-- ⑤ Payment status -->
+      <!-- ⑤ Protection -->
+      ${protectionSectionHtml(booking)}
+
+      <!-- ⑥ Payment status -->
       ${paymentSectionHtml(booking)}
 
-      <!-- ⑥ Cancellation policy (conditionally rendered) -->
+      <!-- ⑦ Cancellation policy (conditionally rendered) -->
       ${cancellationPolicySectionHtml(policy)}
 
     </div>`;
@@ -275,6 +278,31 @@ function renderResult(booking, policy) {
 }
 
 /* ── helpers ─────────────────────────────────────────────────────────────*/
+
+function protectionSectionHtml(booking) {
+  const name = booking.insuranceNameSnapshot || booking.insurancePackageName || booking.insuranceCode;
+  if (!name) return '';
+
+  const protectionTotal = booking.insuranceTotalSnapshot != null
+    ? `€${Number(booking.insuranceTotalSnapshot).toFixed(2)}`
+    : null;
+  const deposit = booking.depositAmountSnapshot != null
+    ? `€${Number(booking.depositAmountSnapshot).toFixed(2)}`
+    : null;
+
+  return `
+    <div class="manage-booking-grid">
+      <div class="manage-booking-grid__cell">
+        <div class="manage-booking-meta__label">${trans('manage.protection')}</div>
+        <div class="manage-booking-meta__value">${escHtml(name)}</div>
+        ${protectionTotal ? `<div class="manage-booking-meta__sub">${trans('manage.protectionTotal')}: ${protectionTotal}</div>` : ''}
+      </div>
+      <div class="manage-booking-grid__cell">
+        <div class="manage-booking-meta__label">${trans('manage.deposit')}</div>
+        <div class="manage-booking-meta__value">${deposit || '—'}</div>
+      </div>
+    </div>`;
+}
 
 /**
  * Renders the cancellation policy + optional actions embedded at the

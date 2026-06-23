@@ -404,7 +404,8 @@ class BookingPricingIntegrationTest {
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "%s",
-                  "dropoffLocation": "%s"
+                  "dropoffLocation": "%s",
+                  "insurancePackageId": 1
                 }
                 """.formatted(carId, pickup, dropoff, pickupLocation, dropoffLocation);
     }
@@ -420,6 +421,7 @@ class BookingPricingIntegrationTest {
                   "dropoffDateTime": "%s",
                   "pickupLocation": "City Centre",
                   "dropoffLocation": "City Centre",
+                  "insurancePackageId": 1,
                   "addonIds": [%d]
                 }
                 """.formatted(carId, pickup, dropoff, addonId);
@@ -436,6 +438,7 @@ class BookingPricingIntegrationTest {
                   "dropoffDateTime": "%s",
                   "pickupLocation": "City Centre",
                   "dropoffLocation": "City Centre",
+                  "insurancePackageId": 1,
                   "mileageOption": "%s"
                 }
                 """.formatted(carId, pickup, dropoff, mileageOption);

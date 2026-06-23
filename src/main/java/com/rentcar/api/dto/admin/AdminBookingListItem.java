@@ -30,6 +30,7 @@ public record AdminBookingListItem(
         BigDecimal premiumLocationFee,
         BigDecimal tax,
         BigDecimal addonCharge,
+        BigDecimal insuranceTotalSnapshot,
         BigDecimal totalPrice,
         BookingOptionType bookingOptionType,
         BigDecimal bookingOptionDailyFee,

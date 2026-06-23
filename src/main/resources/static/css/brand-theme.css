@@ -2330,6 +2330,206 @@ section.bg-dark-2 {
   }
 }
 
+.rentcar-protection-heading {
+  margin-bottom: 24px;
+}
+
+.rentcar-protection-heading h1 {
+  margin: 0;
+  color: #191B1E;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.rentcar-protection-heading p {
+  margin: 8px 0 0;
+  color: #697386;
+  font-size: 16px;
+}
+
+.rentcar-protection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.rentcar-protection-card {
+  position: relative;
+  display: block;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid #E4E7EC;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.rentcar-protection-card:hover,
+.rentcar-protection-card.is-selected {
+  border-color: #1F9D55;
+  box-shadow: 0 14px 36px rgba(25, 27, 30, 0.08);
+}
+
+.rentcar-protection-card.is-selected {
+  transform: translateY(-2px);
+}
+
+.rentcar-protection-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rentcar-protection-radio {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #D0D5DD;
+  border-radius: 50%;
+}
+
+.rentcar-protection-card.is-selected .rentcar-protection-radio {
+  border-color: #1F9D55;
+  background: radial-gradient(circle, #1F9D55 45%, transparent 48%);
+}
+
+.rentcar-protection-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-right: 28px;
+}
+
+.rentcar-protection-badge {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(31, 157, 85, 0.1);
+  color: #11743B;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rentcar-protection-card h2 {
+  margin: 0;
+  color: #191B1E;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.rentcar-protection-card p {
+  margin: 8px 0 0;
+  color: #697386;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.rentcar-protection-price {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.rentcar-protection-price strong {
+  display: block;
+  color: #191B1E;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.rentcar-protection-price span {
+  color: #697386;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rentcar-protection-deposit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  color: #344054;
+  font-size: 14px;
+}
+
+.rentcar-protection-deposit strong {
+  color: #191B1E;
+}
+
+.rentcar-protection-coverage {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rentcar-protection-coverage li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  color: #344054;
+}
+
+.rentcar-protection-coverage li > span {
+  color: #1F9D55;
+  font-weight: 900;
+}
+
+.rentcar-protection-coverage li.is-excluded {
+  color: #98A2B3;
+}
+
+.rentcar-protection-coverage li.is-excluded > span {
+  color: #98A2B3;
+}
+
+.rentcar-protection-coverage strong {
+  display: block;
+  font-size: 14px;
+}
+
+.rentcar-protection-coverage small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+@media (max-width: 991px) {
+  .rentcar-protection-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575px) {
+  .rentcar-protection-heading h1 {
+    font-size: 24px;
+  }
+
+  .rentcar-protection-card {
+    padding: 20px;
+  }
+
+  .rentcar-protection-card__top {
+    display: block;
+  }
+
+  .rentcar-protection-price {
+    margin-top: 14px;
+    text-align: left;
+  }
+}
+
 @media (max-width: 575px) {
   .rentcar-home-yellow-header [data-x="header-mobile-icons"] a.icon-user,
   .rentcar-home-yellow-header [data-x="header-mobile-icons"] .icon-user {

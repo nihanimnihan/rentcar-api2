@@ -433,7 +433,7 @@ function buildDetailHtml(car, carId) {
                 </button>
               </div>
 
-              <button type="button" class="rentcar-next-button" onclick="goToAddons(${carId})">
+              <button type="button" class="rentcar-next-button" onclick="goToInsurance(${carId})">
                 ${t('car.next')}
               </button>
             </div>
@@ -619,15 +619,15 @@ function findRowEndCard(card) {
   return rowEndCard;
 }
 
-function goToAddons(carId) {
+function goToInsurance(carId) {
   const params = new URLSearchParams(window.location.search);
   params.set("carId", carId);
   params.set("mileageOption", mileageOptions[carId] || "INCLUDED");
 
-  window.location.href = `/addons.html?${params.toString()}`;
+  window.location.href = `/insurance.html?${params.toString()}`;
 }
 
-window.goToAddons = goToAddons;
+window.goToInsurance = goToInsurance;
 
 document.addEventListener('languageChanged', function () {
   applyTranslations(document);

@@ -66,6 +66,8 @@ public class FakeEmailService implements EmailService {
                   Pick-up       : {} — {}
                   Return        : {} — {}
                   Service       : {}
+                  Protection    : {} ({} EUR)
+                  Deposit       : {} EUR
                   Total         : {} EUR{}
                 """,
                 data.customerName(), data.customerEmail(),
@@ -74,6 +76,9 @@ public class FakeEmailService implements EmailService {
                 data.pickupLocation(), data.pickupDateTime().format(DISPLAY_FMT),
                 data.dropoffLocation(), data.dropoffDateTime().format(DISPLAY_FMT),
                 data.selectedService(),
+                data.insuranceName(),
+                data.insuranceTotal(),
+                data.depositAmount(),
                 data.totalPrice(),
                 manageLink);
     }

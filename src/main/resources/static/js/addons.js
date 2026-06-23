@@ -1,6 +1,7 @@
 let availableAddons = [];
 let selectedAddons = new Set(); // Set<Number> — stores numeric addon IDs
 let selectedCar = null;
+let selectedInsurance = null;
 // "INCLUDED" | "UNLIMITED" — read from URL so a browser refresh preserves the choice
 const mileageOption = new URLSearchParams(window.location.search).get("mileageOption") || "INCLUDED";
 
@@ -12,16 +13,23 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadAddonPage() {
   const params = new URLSearchParams(window.location.search);
   const carId = params.get("carId");
+  const insurancePackageId = params.get("insurancePackageId");
 
   if (!carId) {
     showPageError(t('error.noCarSelected'));
     return;
   }
+  if (!insurancePackageId) {
+    showPageError(t('protection.required'));
+    return;
+  }
 
   try {
-    const [carRes, addonsRes] = await Promise.all([
+    const lang = typeof getLanguage === "function" ? getLanguage() : "en";
+    const [carRes, addonsRes, insuranceRes] = await Promise.all([
       fetch(`/api/cars/${carId}${window.location.search}`),
-      fetch("/api/addons/active")
+      fetch("/api/addons/active"),
+      fetch(`/api/insurance-packages/active?lang=${encodeURIComponent(lang)}`)
     ]);
 
     if (!carRes.ok) {
@@ -41,6 +49,17 @@ async function loadAddonPage() {
       availableAddons = [];
     } else {
       availableAddons = await addonsRes.json();
+    }
+
+    if (!insuranceRes.ok) {
+      showPageError(t('protection.loadError'));
+      return;
+    }
+    const packages = await insuranceRes.json();
+    selectedInsurance = packages.find(pkg => Number(pkg.id) === Number(insurancePackageId));
+    if (!selectedInsurance) {
+      showPageError(t('protection.unavailable'));
+      return;
     }
 
     selectedCar = await carRes.json();
@@ -210,10 +229,11 @@ function renderSummary() {
     mileageOption,
     selectedAddonIds: selectedAddons,
     availableAddons,
+    selectedInsurance,
     pageType: 'addons'
   });
 
-  const { total } = calcBookingTotal(selectedCar, mileageOption, selectedAddons, availableAddons);
+  const { total } = calcBookingTotal(selectedCar, mileageOption, selectedAddons, availableAddons, selectedInsurance);
   setText("addonsHeaderTotal", formatMoney(total));
 
   renderAddonsPriceModal();
@@ -255,6 +275,11 @@ function renderAddonsPriceModal() {
   if (mileageOption === "UNLIMITED") {
     const charge = Number(selectedCar.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays;
     addonLines.push({ name: t('car.unlimitedKm'), totalPrice: charge.toFixed(2) });
+  }
+
+  if (selectedInsurance) {
+    const charge = Number(selectedInsurance.pricePerDay || 0) * rentalDays;
+    addonLines.push({ name: selectedInsurance.name || t('summary.protection'), totalPrice: charge.toFixed(2) });
   }
 
   Array.from(selectedAddons).map(addonId => {

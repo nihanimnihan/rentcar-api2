@@ -74,6 +74,9 @@ public class BookingEmailNotificationService {
                 booking.getDropoffDateTime(),
                 booking.getDropoffLocation(),
                 selectedService(booking),
+                booking.getInsuranceNameSnapshot(),
+                booking.getInsuranceTotalSnapshot(),
+                booking.getDepositAmountSnapshot(),
                 booking.getTotalPrice(),
                 manageBookingUrl(booking),
                 bookingLanguage(booking)

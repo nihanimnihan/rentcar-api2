@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
@@ -17,6 +18,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.rentcar.api.domain.insurance.InsurancePackage;
 
 import java.math.BigDecimal;
 
@@ -66,6 +69,28 @@ public class RentalBookingDetails {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal addonCharge = BigDecimal.ZERO;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "insurance_package_id")
+    private InsurancePackage insurancePackage;
+
+    @Column(length = 50)
+    private String insuranceCode;
+
+    @Column(length = 255)
+    private String insuranceNameSnapshot;
+
+    @Builder.Default
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal insuranceDailyPriceSnapshot = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal insuranceTotalSnapshot = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal depositAmountSnapshot = BigDecimal.ZERO;
+
     @Column(nullable = false)
     private int includedKmSnapshot;
 
@@ -102,6 +127,9 @@ public class RentalBookingDetails {
         if (premiumLocationFee == null) premiumLocationFee = BigDecimal.ZERO;
         if (tax == null) tax = BigDecimal.ZERO;
         if (addonCharge == null) addonCharge = BigDecimal.ZERO;
+        if (insuranceDailyPriceSnapshot == null) insuranceDailyPriceSnapshot = BigDecimal.ZERO;
+        if (insuranceTotalSnapshot == null) insuranceTotalSnapshot = BigDecimal.ZERO;
+        if (depositAmountSnapshot == null) depositAmountSnapshot = BigDecimal.ZERO;
         if (unlimitedKmPriceSnapshot == null) unlimitedKmPriceSnapshot = BigDecimal.ZERO;
         if (mileageOption == null) mileageOption = MileageOption.INCLUDED;
         if (bookingOptionType == null) bookingOptionType = BookingOptionType.BEST_PRICE;

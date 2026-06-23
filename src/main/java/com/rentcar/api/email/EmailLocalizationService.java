@@ -163,6 +163,9 @@ public class EmailLocalizationService {
                     Alış: %s - %s
                     Teslim: %s - %s
                     Seçilen araç/hizmet: %s
+                    Koruma paketi: %s
+                    Koruma toplamı: %s EUR
+                    Güvence bedeli: %s EUR
                     Toplam fiyat: %s EUR
                     Rezervasyonu yönetin: %s
 
@@ -176,6 +179,9 @@ public class EmailLocalizationService {
                     data.dropoffLocation(),
                     formatDate(data.dropoffDateTime(), language),
                     data.selectedService(),
+                    optional(data.insuranceName(), notAvailable(language)),
+                    money(data.insuranceTotal()),
+                    money(data.depositAmount()),
                     money(data.totalPrice()),
                     optional(data.managementUrl(), notAvailable(language)));
             case "es" -> """
@@ -188,6 +194,9 @@ public class EmailLocalizationService {
                     Recogida: %s - %s
                     Devolución: %s - %s
                     Coche/servicio seleccionado: %s
+                    Paquete de protección: %s
+                    Total de protección: EUR %s
+                    Depósito: EUR %s
                     Precio total: EUR %s
                     Gestionar reserva: %s
 
@@ -201,6 +210,9 @@ public class EmailLocalizationService {
                     data.dropoffLocation(),
                     formatDate(data.dropoffDateTime(), language),
                     data.selectedService(),
+                    optional(data.insuranceName(), notAvailable(language)),
+                    money(data.insuranceTotal()),
+                    money(data.depositAmount()),
                     money(data.totalPrice()),
                     optional(data.managementUrl(), notAvailable(language)));
             default -> """
@@ -213,6 +225,9 @@ public class EmailLocalizationService {
                     Pick-up: %s - %s
                     Drop-off: %s - %s
                     Selected car/service: %s
+                    Protection package: %s
+                    Protection total: EUR %s
+                    Deposit: EUR %s
                     Total price: EUR %s
                     Manage booking: %s
 
@@ -226,6 +241,9 @@ public class EmailLocalizationService {
                     data.dropoffLocation(),
                     formatDate(data.dropoffDateTime(), language),
                     data.selectedService(),
+                    optional(data.insuranceName(), notAvailable(language)),
+                    money(data.insuranceTotal()),
+                    money(data.depositAmount()),
                     money(data.totalPrice()),
                     optional(data.managementUrl(), notAvailable(language)));
         };

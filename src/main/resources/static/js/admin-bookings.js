@@ -6,6 +6,7 @@ let currentBookings = [];
 let currentDetail = null;
 let adminVehicles = [];
 let adminAddons = [];
+let adminInsurancePackages = [];
 let adminCalculatedTotal = null;
 let adminPriceRequestSeq = 0;
 let adminManualPriceOverride = false;
@@ -240,6 +241,10 @@ function renderBookingDetail(b) {
       detailItem('admin.detail.oneWayFee', formatPrice(b.oneWayFee)),
       detailItem('admin.detail.premiumLocationFee', formatPrice(b.premiumLocationFee)),
       detailItem('admin.detail.tax', formatPrice(b.tax)),
+      detailItem('admin.detail.insurance', b.insuranceNameSnapshot),
+      detailItem('admin.detail.insuranceDailyPrice', formatPrice(b.insuranceDailyPriceSnapshot)),
+      detailItem('admin.detail.insuranceTotal', formatPrice(b.insuranceTotalSnapshot)),
+      detailItem('admin.detail.deposit', formatPrice(b.depositAmountSnapshot)),
       detailItem('admin.detail.addonCharge', formatPrice(b.addonCharge)),
       detailItem('admin.detail.bookingOptionFee', formatPrice(b.bookingOptionDailyFee)),
       detailItem('admin.detail.totalPrice', formatPrice(b.totalPrice), true)
@@ -411,7 +416,7 @@ async function openCreateBooking() {
   overlay.hidden = false;
   requestAnimationFrame(() => overlay.classList.add('-visible'));
   try {
-    await Promise.all([loadAdminVehicles(), loadAdminAddons()]);
+    await Promise.all([loadAdminVehicles(), loadAdminAddons(), loadAdminInsurance()]);
     updateAdminPriceSummary();
   } catch (err) {
     showCreateError(err.message);
@@ -435,6 +440,35 @@ async function loadAdminVehicles() {
   select.innerHTML = '<option value="">Select vehicle</option>' + activeVehicles.map(vehicle => `
     <option value="${esc(vehicle.id)}">${esc(vehicle.brand)} ${esc(vehicle.model)} - ${esc(formatPrice(vehicle.dailyPrice))}/day</option>
   `).join('');
+}
+
+async function loadAdminInsurance() {
+  const container = document.getElementById('admin-booking-insurance');
+  container.innerHTML = `<div class="admin-field-help">${esc(tt('admin.create.loadingProtection'))}</div>`;
+  const lang = window.getLanguage ? window.getLanguage() : 'en';
+  const res = await fetch(`/api/insurance-packages/active?lang=${encodeURIComponent(lang)}`);
+  if (!res.ok) throw new Error(`Could not load protection packages: HTTP ${res.status}`);
+  adminInsurancePackages = await res.json();
+  if (!adminInsurancePackages.length) {
+    container.innerHTML = `<div class="admin-field-help">${esc(tt('admin.create.noProtectionPackages'))}</div>`;
+    return;
+  }
+  container.innerHTML = adminInsurancePackages.map(pkg => `
+    <label class="admin-addon-option">
+      <input type="radio" name="insurancePackageId" value="${esc(pkg.id)}" ${pkg.recommended ? 'checked' : ''}>
+      <span>
+        <span class="admin-addon-option__name">${esc(pkg.name)}${pkg.badge ? ` · ${esc(pkg.badge)}` : ''}</span>
+        <span class="admin-addon-option__meta">${esc(formatPrice(pkg.pricePerDay))} / ${esc(tt('admin.create.day'))} · ${esc(tt('admin.create.deposit'))}: ${esc(formatPrice(pkg.depositAmount))}</span>
+      </span>
+    </label>
+  `).join('');
+  if (!container.querySelector('input[name="insurancePackageId"]:checked')) {
+    const first = container.querySelector('input[name="insurancePackageId"]');
+    if (first) first.checked = true;
+  }
+  container.querySelectorAll('input[name="insurancePackageId"]').forEach(input => {
+    input.addEventListener('change', updateAdminPriceSummary);
+  });
 }
 
 async function loadAdminAddons() {
@@ -552,6 +586,8 @@ function initCreatePricingListeners() {
 async function updateAdminPriceSummary() {
   const baseEl = document.getElementById('admin-booking-base-price');
   const addonsEl = document.getElementById('admin-booking-addons-price');
+  const insuranceEl = document.getElementById('admin-booking-insurance-price');
+  const depositEl = document.getElementById('admin-booking-deposit-price');
   const totalEl = document.getElementById('admin-booking-calculated-total');
   if (!baseEl || !addonsEl || !totalEl) return;
 
@@ -559,9 +595,13 @@ async function updateAdminPriceSummary() {
   const rentalDays = calculateAdminRentalDays();
   const vehicle = selectedAdminVehicle();
   const addonsTotal = calculateSelectedAddonsTotal(rentalDays || 1);
+  const insurancePackage = selectedAdminInsurance();
+  const insuranceTotal = calculateSelectedInsuranceTotal(rentalDays || 1);
   addonsEl.textContent = formatPrice(addonsTotal);
+  if (insuranceEl) insuranceEl.textContent = insurancePackage ? formatPrice(insuranceTotal) : '-';
+  if (depositEl) depositEl.textContent = insurancePackage ? formatPrice(insurancePackage.depositAmount) : '-';
 
-  if (!vehicle || !rentalDays) {
+  if (!vehicle || !rentalDays || !insurancePackage) {
     adminCalculatedTotal = null;
     baseEl.textContent = '-';
     totalEl.textContent = '-';
@@ -577,7 +617,7 @@ async function updateAdminPriceSummary() {
     if (requestSeq !== adminPriceRequestSeq) return;
     const baseTotal = Number(price.totalPrice || 0);
     const rentalCharge = Number(price.rentalCharge || baseTotal);
-    const calculatedTotal = roundMoney(baseTotal + addonsTotal);
+    const calculatedTotal = roundMoney(baseTotal + addonsTotal + insuranceTotal);
     adminCalculatedTotal = calculatedTotal;
 
     baseEl.textContent = `${formatPrice(rentalCharge)} (${rentalDays} day${rentalDays === 1 ? '' : 's'})`;
@@ -636,6 +676,12 @@ function selectedAdminVehicle() {
   return adminVehicles.find(vehicle => Number(vehicle.id) === vehicleId) || null;
 }
 
+function selectedAdminInsurance() {
+  const selected = numberOrNull(document.querySelector('input[name="insurancePackageId"]:checked')?.value);
+  if (selected == null) return null;
+  return adminInsurancePackages.find(pkg => Number(pkg.id) === selected) || null;
+}
+
 function calculateAdminRentalDays() {
   const pickupDate = document.getElementById('admin-booking-pickup-date')?.value;
   const pickupTime = document.getElementById('admin-booking-pickup-time')?.value;
@@ -664,6 +710,12 @@ function calculateSelectedAddonsTotal(rentalDays) {
   }, 0);
 }
 
+function calculateSelectedInsuranceTotal(rentalDays) {
+  const pkg = selectedAdminInsurance();
+  if (!pkg) return 0;
+  return Number(pkg.pricePerDay || 0) * rentalDays;
+}
+
 function createBookingPayload() {
   const form = document.getElementById('create-booking-form');
   const data = new FormData(form);
@@ -686,6 +738,7 @@ function createBookingPayload() {
     email: stringValue(data.get('email')),
     phoneCountryCode: stringValue(data.get('phoneCountryCode')),
     phoneNumber: stringValue(data.get('phoneNumber')),
+    insurancePackageId: numberOrNull(data.get('insurancePackageId')),
     addonIds: data.getAll('addonIds').map(numberOrNull).filter(value => value != null),
     totalPrice: numberOrNull(data.get('totalPrice')),
     paymentSource: stringValue(data.get('paymentSource')),
@@ -698,7 +751,7 @@ function validateCreatePayload(payload) {
   [
     'vehicleId', 'firstName', 'lastName', 'email', 'phoneCountryCode', 'phoneNumber',
     'pickupLocation', 'pickupDate', 'pickupTime', 'returnLocation', 'returnDate',
-    'returnTime', 'totalPrice', 'paymentSource'
+    'returnTime', 'insurancePackageId', 'totalPrice', 'paymentSource'
   ].forEach(field => {
     if (payload[field] == null || payload[field] === '') errors[field] = 'Required field';
   });

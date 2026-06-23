@@ -14,6 +14,7 @@ import com.rentcar.api.domain.booking.MileageOption;
 import com.rentcar.api.domain.booking.RentalBookingDetails;
 import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.customer.Customer;
+import com.rentcar.api.domain.insurance.InsurancePackage;
 import com.rentcar.api.dto.booking.CreateBookingRequest;
 import com.rentcar.api.dto.admin.AdminCreateBookingRequest;
 import com.rentcar.api.dto.pricing.PriceBreakdown;
@@ -58,6 +59,7 @@ public class BookingService {
     private final BookingReferenceGenerator referenceGenerator;
     private final AppClock appClock;
     private final ManageBookingTokenService manageBookingTokenService;
+    private final InsurancePackageService insurancePackageService;
 
     private static final String MANAGE_NOT_FOUND_MSG =
             "We couldn't find a booking with these details. Please check your reference and last name.";
@@ -88,6 +90,9 @@ public class BookingService {
         }
 
         PriceBreakdown price = pricingService.calculate(car, request.pickupLocation(), request.dropoffLocation(), request.pickupDateTime(), request.dropoffDateTime());
+        String language = LanguageNormalizer.normalizeOrDefault(request.language());
+        InsurancePackage insurancePackage = insurancePackageService.getActivePackage(request.insurancePackageId());
+        BigDecimal insuranceTotal = computeInsurancePrice(insurancePackage, price.rentalDays());
 
         // Resolve add-ons (ignore inactive ones; requesting a non-existent ID is silently skipped)
         List<Long> requestedAddonIds = request.addonIds() == null ? List.of() : request.addonIds();
@@ -111,7 +116,6 @@ public class BookingService {
                         .setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        String language = LanguageNormalizer.normalizeOrDefault(request.language());
         Customer customer = customerService.getOrCreateCustomer(
                 request.customerName(),
                 request.customerEmail(),
@@ -141,7 +145,7 @@ public class BookingService {
                 .premiumLocationFee(price.premiumLocationFee())
                 .tax(price.tax())
                 .addonCharge(addonCharge)
-                .totalPrice(price.totalPrice().add(addonCharge).add(unlimitedKmCharge))
+                .totalPrice(price.totalPrice().add(addonCharge).add(unlimitedKmCharge).add(insuranceTotal))
                 .includedKmSnapshot(price.includedKm())
                 .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
                 .mileageOption(mileageOption)
@@ -170,6 +174,12 @@ public class BookingService {
                 .premiumLocationFee(price.premiumLocationFee())
                 .tax(price.tax())
                 .addonCharge(addonCharge)
+                .insurancePackage(insurancePackage)
+                .insuranceCode(insurancePackage.getCode())
+                .insuranceNameSnapshot(insurancePackageService.localizedName(insurancePackage, language))
+                .insuranceDailyPriceSnapshot(insurancePackage.getPricePerDay())
+                .insuranceTotalSnapshot(insuranceTotal)
+                .depositAmountSnapshot(insurancePackage.getDepositAmount())
                 .includedKmSnapshot(price.includedKm())
                 .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
                 .mileageOption(mileageOption)
@@ -214,6 +224,7 @@ public class BookingService {
                 dropoffDateTime,
                 trim(request.pickupLocation()),
                 trim(request.returnLocation()),
+                request.insurancePackageId(),
                 request.addonIds(),
                 MileageOption.INCLUDED,
                 null
@@ -241,11 +252,13 @@ public class BookingService {
                 normalRequest.dropoffLocation(),
                 normalRequest.pickupDateTime(),
                 normalRequest.dropoffDateTime());
+        InsurancePackage insurancePackage = insurancePackageService.getActivePackage(request.insurancePackageId());
+        BigDecimal insuranceTotal = computeInsurancePrice(insurancePackage, price.rentalDays());
         List<Addon> addons = resolveAdminAddons(request.addonIds());
         BigDecimal addonCharge = addons.stream()
                 .map(addon -> computeAddonPrice(addon, price.rentalDays()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal expectedTotal = price.totalPrice().add(addonCharge).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal expectedTotal = price.totalPrice().add(addonCharge).add(insuranceTotal).setScale(2, RoundingMode.HALF_UP);
         BigDecimal submittedTotal = request.totalPrice().setScale(2, RoundingMode.HALF_UP);
         String notes = appendAdminOverrideNote(trimToNull(request.internalNote()), expectedTotal, submittedTotal);
 
@@ -301,6 +314,12 @@ public class BookingService {
                 .premiumLocationFee(price.premiumLocationFee())
                 .tax(price.tax())
                 .addonCharge(addonCharge)
+                .insurancePackage(insurancePackage)
+                .insuranceCode(insurancePackage.getCode())
+                .insuranceNameSnapshot(insurancePackageService.localizedName(insurancePackage, LanguageNormalizer.DEFAULT_LANGUAGE))
+                .insuranceDailyPriceSnapshot(insurancePackage.getPricePerDay())
+                .insuranceTotalSnapshot(insuranceTotal)
+                .depositAmountSnapshot(insurancePackage.getDepositAmount())
                 .includedKmSnapshot(price.includedKm())
                 .unlimitedKmPriceSnapshot(price.unlimitedKmDailyPrice())
                 .mileageOption(MileageOption.INCLUDED)
@@ -386,6 +405,12 @@ public class BookingService {
                     .setScale(2, RoundingMode.HALF_UP);
         }
         return addon.getPrice().setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal computeInsurancePrice(InsurancePackage insurancePackage, int rentalDays) {
+        return insurancePackage.getPricePerDay()
+                .multiply(BigDecimal.valueOf(rentalDays))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     private List<Addon> resolveAdminAddons(List<Long> requestedAddonIds) {

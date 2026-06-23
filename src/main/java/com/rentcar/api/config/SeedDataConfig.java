@@ -7,11 +7,14 @@ import com.rentcar.api.domain.car.FuelType;
 import com.rentcar.api.domain.car.TransmissionType;
 import com.rentcar.api.domain.car.VehicleSegment;
 import com.rentcar.api.domain.car.VehicleType;
+import com.rentcar.api.domain.insurance.InsuranceCoverageItem;
+import com.rentcar.api.domain.insurance.InsurancePackage;
 import com.rentcar.api.domain.transfer.ChauffeurCategory;
 import com.rentcar.api.domain.transfer.TransferDuration;
 import com.rentcar.api.repository.AddonRepository;
 import com.rentcar.api.repository.CarRepository;
 import com.rentcar.api.repository.ChauffeurCategoryRepository;
+import com.rentcar.api.repository.InsurancePackageRepository;
 import com.rentcar.api.repository.TransferDurationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -31,6 +34,7 @@ public class SeedDataConfig {
 
     private final CarRepository carRepository;
     private final AddonRepository addonRepository;
+    private final InsurancePackageRepository insurancePackageRepository;
     private final TransferDurationRepository transferDurationRepository;
     private final ChauffeurCategoryRepository chauffeurCategoryRepository;
 
@@ -245,6 +249,84 @@ public class SeedDataConfig {
 
     @Bean
     @Order(4)
+    CommandLineRunner seedInsurancePackages() {
+        return args -> {
+            if (insurancePackageRepository.count() > 0) {
+                return;
+            }
+
+            InsurancePackage basic = InsurancePackage.builder()
+                    .code("BASIC")
+                    .nameEn("Basic Protection")
+                    .nameEs("Protección básica")
+                    .nameTr("Temel Koruma")
+                    .descriptionEn("Included protection with a higher refundable deposit.")
+                    .descriptionEs("Protección incluida con un depósito reembolsable más alto.")
+                    .descriptionTr("Daha yüksek iade edilebilir depozito ile dahil koruma.")
+                    .pricePerDay(new BigDecimal("0.00"))
+                    .depositAmount(new BigDecimal("750.00"))
+                    .displayOrder(1)
+                    .active(true)
+                    .recommended(false)
+                    .badgeEn("Included")
+                    .badgeEs("Incluido")
+                    .badgeTr("Dahil")
+                    .build();
+            addCoverage(basic, "Collision damage waiver", "Standard collision damage coverage with excess.",
+                    "Cobertura por daños de colisión", "Cobertura estándar por daños de colisión con franquicia.",
+                    "Çarpışma hasarı muafiyeti", "Muafiyetli standart çarpışma hasarı koruması.", true, 1);
+            addCoverage(basic, "Theft protection", "Protection if the vehicle is stolen during the rental.",
+                    "Protección contra robo", "Protección si el vehículo es robado durante el alquiler.",
+                    "Hırsızlık koruması", "Kiralama sırasında aracın çalınmasına karşı koruma.", true, 2);
+            addCoverage(basic, "Roadside assistance", "24/7 support for breakdowns and urgent issues.",
+                    "Asistencia en carretera", "Soporte 24/7 para averías e incidencias urgentes.",
+                    "Yol yardımı", "Arıza ve acil durumlar için 7/24 destek.", true, 3);
+            addCoverage(basic, "Glass and tire damage", "Glass, tire, and underbody damage are not reduced.",
+                    "Daños en cristales y neumáticos", "Los daños en cristales, neumáticos y bajos no se reducen.",
+                    "Cam ve lastik hasarı", "Cam, lastik ve alt gövde hasarlarında indirim yoktur.", false, 4);
+            addCoverage(basic, "Reduced deposit", "Standard deposit applies at pickup.",
+                    "Depósito reducido", "Se aplica el depósito estándar en la recogida.",
+                    "Azaltılmış depozito", "Teslim alma sırasında standart depozito uygulanır.", false, 5);
+
+            InsurancePackage full = InsurancePackage.builder()
+                    .code("FULL")
+                    .nameEn("Full Protection")
+                    .nameEs("Protección completa")
+                    .nameTr("Tam Koruma")
+                    .descriptionEn("Enhanced protection with lower deposit and broader coverage.")
+                    .descriptionEs("Protección ampliada con menor depósito y cobertura más amplia.")
+                    .descriptionTr("Daha düşük depozito ve genişletilmiş kapsamla gelişmiş koruma.")
+                    .pricePerDay(new BigDecimal("21.00"))
+                    .depositAmount(new BigDecimal("300.00"))
+                    .displayOrder(2)
+                    .active(true)
+                    .recommended(true)
+                    .badgeEn("Recommended")
+                    .badgeEs("Recomendado")
+                    .badgeTr("Önerilir")
+                    .build();
+            addCoverage(full, "Collision damage waiver", "Enhanced collision damage coverage with lower excess.",
+                    "Cobertura por daños de colisión", "Cobertura ampliada por daños de colisión con menor franquicia.",
+                    "Çarpışma hasarı muafiyeti", "Daha düşük muafiyetli geliştirilmiş çarpışma hasarı koruması.", true, 1);
+            addCoverage(full, "Theft protection", "Protection if the vehicle is stolen during the rental.",
+                    "Protección contra robo", "Protección si el vehículo es robado durante el alquiler.",
+                    "Hırsızlık koruması", "Kiralama sırasında aracın çalınmasına karşı koruma.", true, 2);
+            addCoverage(full, "Roadside assistance", "24/7 support for breakdowns and urgent issues.",
+                    "Asistencia en carretera", "Soporte 24/7 para averías e incidencias urgentes.",
+                    "Yol yardımı", "Arıza ve acil durumlar için 7/24 destek.", true, 3);
+            addCoverage(full, "Glass and tire damage", "Glass, tire, and underbody damage are included.",
+                    "Daños en cristales y neumáticos", "Cristales, neumáticos y bajos están incluidos.",
+                    "Cam ve lastik hasarı", "Cam, lastik ve alt gövde hasarları dahildir.", true, 4);
+            addCoverage(full, "Reduced deposit", "Lower refundable deposit at pickup.",
+                    "Depósito reducido", "Depósito reembolsable más bajo en la recogida.",
+                    "Azaltılmış depozito", "Teslim alma sırasında daha düşük iade edilebilir depozito.", true, 5);
+
+            insurancePackageRepository.saveAll(List.of(basic, full));
+        };
+    }
+
+    @Bean
+    @Order(5)
     CommandLineRunner seedTransferDurations() {
         return args -> {
             if (transferDurationRepository.count() > 0) {
@@ -262,5 +344,27 @@ public class SeedDataConfig {
                 );
             }
         };
+    }
+
+    private void addCoverage(
+            InsurancePackage insurancePackage,
+            String titleEn,
+            String descriptionEn,
+            String titleEs,
+            String descriptionEs,
+            String titleTr,
+            String descriptionTr,
+            boolean included,
+            int displayOrder) {
+        insurancePackage.addCoverageItem(InsuranceCoverageItem.builder()
+                .titleEn(titleEn)
+                .descriptionEn(descriptionEn)
+                .titleEs(titleEs)
+                .descriptionEs(descriptionEs)
+                .titleTr(titleTr)
+                .descriptionTr(descriptionTr)
+                .included(included)
+                .displayOrder(displayOrder)
+                .build());
     }
 }

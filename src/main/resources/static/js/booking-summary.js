@@ -2,7 +2,7 @@
 // Renders a unified summary card into #bookingSummaryCard for both Addons and Review
 
 // ── Total calculation (unchanged) ──────────────────────────────────────────
-function calcBookingTotal(car, mileageOption, selectedAddonIds, availableAddons) {
+function calcBookingTotal(car, mileageOption, selectedAddonIds, availableAddons, selectedInsurance) {
   const rentalDays = car?.priceBreakdown?.rentalDays || 1;
   const base = Number(car?.totalPrice || 0);
 
@@ -19,12 +19,17 @@ function calcBookingTotal(car, mileageOption, selectedAddonIds, availableAddons)
     return sum + addonPrice;
   }, 0);
 
+  const insuranceTotal = selectedInsurance
+    ? Number(selectedInsurance.pricePerDay || selectedInsurance.insuranceDailyPriceSnapshot || 0) * rentalDays
+    : 0;
+
   return {
-    total: base + unlimitedKmCharge + addonsTotal,
+    total: base + unlimitedKmCharge + addonsTotal + insuranceTotal,
     rentalDays,
     base,
     unlimitedKmCharge,
-    addonsTotal
+    addonsTotal,
+    insuranceTotal
   };
 }
 
@@ -33,7 +38,7 @@ function calcBookingTotal(car, mileageOption, selectedAddonIds, availableAddons)
  * renderBookingSummary({ car, params, mileageOption, selectedAddonIds, availableAddons, pageType })
  * pageType: 'addons' | 'review' (controls whether Total block appears)
  */
-function renderBookingSummary({ car, params, mileageOption, selectedAddonIds, availableAddons, pageType = 'addons' } = {}) {
+function renderBookingSummary({ car, params, mileageOption, selectedAddonIds, availableAddons, selectedInsurance, pageType = 'addons' } = {}) {
   if (!car) return;
   const container = document.getElementById('bookingSummaryCard');
   if (!container) return;
@@ -61,8 +66,9 @@ function renderBookingSummary({ car, params, mileageOption, selectedAddonIds, av
   _setText('summaryPickupDate', _formatDT(params?.get('pickupDateTime')));
   _setText('summaryDropoffDate', _formatDT(params?.get('dropoffDateTime')));
 
-  const totals = calcBookingTotal(car, mileageOption, selectedAddonIds || [], availableAddons || []);
+  const totals = calcBookingTotal(car, mileageOption, selectedAddonIds || [], availableAddons || [], selectedInsurance);
 
+  _renderInsurance(selectedInsurance, totals.insuranceTotal);
   _renderAddedFeatures(mileageOption, totals.unlimitedKmCharge, selectedAddonIds || [], availableAddons || [], totals.rentalDays);
 
   // Only render total for review pageType
@@ -127,6 +133,13 @@ function _buildSummaryHtml(pageType) {
       <div class="rentcar-summary-divider"></div>
 
       <div>
+        <div class="rentcar-summary-section-label" data-i18n="summary.protection">${t('summary.protection')}</div>
+        <div id="summaryInsurance" class="rentcar-summary-added-list">${t('summary.noProtection')}</div>
+      </div>
+
+      <div class="rentcar-summary-divider"></div>
+
+      <div>
         <div class="rentcar-summary-section-label" data-i18n="summary.addedFeatures">${t('summary.addedFeatures')}</div>
         <div id="summaryAddedFeatures" class="rentcar-summary-added-list">${t('summary.noAddons')}</div>
       </div>
@@ -164,6 +177,21 @@ function _renderAddedFeatures(mileageOption, unlimitedKmCharge, selectedAddonIds
   });
 
   container.innerHTML = lines.length > 0 ? lines.join('') : t('summary.noAddons');
+}
+
+function _renderInsurance(selectedInsurance, insuranceTotal) {
+  const container = document.getElementById('summaryInsurance');
+  if (!container) return;
+  if (!selectedInsurance) {
+    container.innerHTML = t('summary.noProtection');
+    return;
+  }
+  const name = selectedInsurance.name || selectedInsurance.insuranceNameSnapshot || selectedInsurance.code || t('summary.protection');
+  const deposit = selectedInsurance.depositAmount ?? selectedInsurance.depositAmountSnapshot;
+  container.innerHTML = `
+    <div class="d-flex justify-between mb-8"><span>✓ ${_esc(name)}</span><strong>${_formatMoney(insuranceTotal || 0)}</strong></div>
+    <div class="text-13 text-light-1">${t('protection.deposit')}: ${_formatMoney(deposit || 0)}</div>
+  `;
 }
 
 function _setText(id, value) {

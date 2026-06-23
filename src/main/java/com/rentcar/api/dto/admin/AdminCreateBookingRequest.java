@@ -27,6 +27,7 @@ public record AdminCreateBookingRequest(
         @Email @NotBlank String email,
         @NotBlank String phoneCountryCode,
         @NotBlank String phoneNumber,
+        @NotNull Long insurancePackageId,
         List<Long> addonIds,
         @NotNull @DecimalMin("0.01") BigDecimal totalPrice,
         @NotNull AdminPaymentSource paymentSource,

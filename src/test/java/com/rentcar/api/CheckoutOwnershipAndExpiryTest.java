@@ -102,7 +102,8 @@ class CheckoutOwnershipAndExpiryTest {
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "Airport T1",
-                  "dropoffLocation": "City Centre"
+                  "dropoffLocation": "City Centre",
+                  "insurancePackageId": 1
                 }
                 """.formatted(carId, pickup, dropoff);
     }

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-x="html" data-x-toggle="html-overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/vendors.css">
+    <style>html,body{background-color:#191B1E}</style>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/brand-theme.css?v=20260622-insurance">
+
+    <title>RentCar - Protection</title>
+</head>
+
+<body>
+<main>
+    <section class="py-20 bg-dark-3 rc-simple-header rentcar-addons-header">
+        <div class="container">
+            <div class="row justify-between items-center">
+                <div class="col-auto">
+                    <div class="d-flex items-center rc-simple-header__brand">
+                        <button type="button"
+                                onclick="history.back()"
+                                class="button -blue-1 size-40 rounded-full bg-white-10 mr-15 text-white rc-simple-header__back">
+                            <i class="icon-arrow-left text-18"></i>
+                        </button>
+
+                        <a href="index.html" class="header-logo">
+                            <img src="img/general/deluxelogo.png" alt="Rent Car Paradise Deluxe logo">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <div class="d-flex items-center x-gap-20 text-white rentcar-addons-header__actions">
+                        <div>
+                            <span class="text-15 fw-600" data-i18n="protection.totalLabel">Total:</span>
+                            <span id="insuranceHeaderTotal" class="text-26 fw-800">€-</span>
+                        </div>
+
+                        <button id="continueButton"
+                                type="button"
+                                class="button h-60 px-50 bg-yellow-1 text-dark-1 rounded-8 fw-700 rentcar-addons-continue">
+                            <span data-i18n="protection.continue">Continue</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="layout-pt-md layout-pb-md bg-white rentcar-addons-content">
+        <div class="container">
+            <div class="row x-gap-60 y-gap-40">
+                <div class="col-lg-8">
+                    <div class="rentcar-protection-heading">
+                        <h1 data-i18n="protection.title">Choose your protection</h1>
+                        <p data-i18n="protection.subtitle">Select one package to continue to add-ons.</p>
+                    </div>
+                    <div id="insuranceList" class="rentcar-protection-grid"></div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div id="bookingSummaryCard"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script src="js/i18n/en.js"></script>
+<script src="js/i18n/es.js"></script>
+<script src="js/i18n/tr.js"></script>
+<script src="js/i18n/i18n.js"></script>
+<script src="js/vendors.js"></script>
+<script src="js/main.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/escape-html.js"></script>
+<script src="js/price-details-modal.js"></script>
+<script src="js/booking-summary.js"></script>
+<script src="js/insurance.js"></script>
+</body>
+</html>

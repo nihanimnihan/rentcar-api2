@@ -247,6 +247,12 @@
           </section>
 
           <section class="admin-form-section">
+            <h3 class="admin-form-section__title" data-i18n="admin.create.protection">Protection</h3>
+            <div id="admin-booking-insurance" class="admin-addon-picker"></div>
+            <div class="admin-field-error" data-field-error="insurancePackageId" hidden></div>
+          </section>
+
+          <section class="admin-form-section">
             <h3 class="admin-form-section__title">Add-ons</h3>
             <div id="admin-booking-addons" class="admin-addon-picker"></div>
           </section>
@@ -257,6 +263,14 @@
               <div>
                 <span>Base rental price</span>
                 <strong id="admin-booking-base-price">-</strong>
+              </div>
+              <div>
+                <span data-i18n="admin.create.insuranceTotal">Protection total</span>
+                <strong id="admin-booking-insurance-price">-</strong>
+              </div>
+              <div>
+                <span data-i18n="admin.create.deposit">Deposit</span>
+                <strong id="admin-booking-deposit-price">-</strong>
               </div>
               <div>
                 <span>Add-ons total</span>

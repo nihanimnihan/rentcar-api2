@@ -18,6 +18,9 @@ public record ConfirmationEmailData(
         LocalDateTime dropoffDateTime,
         String dropoffLocation,
         String selectedService,
+        String insuranceName,
+        BigDecimal insuranceTotal,
+        BigDecimal depositAmount,
         BigDecimal totalPrice,
         /** Optional manage-booking deep-link. Null if base URL not configured. */
         String managementUrl,

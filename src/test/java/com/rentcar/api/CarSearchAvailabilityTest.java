@@ -228,7 +228,8 @@ class CarSearchAvailabilityTest {
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "City Centre",
-                  "dropoffLocation": "City Centre"
+                  "dropoffLocation": "City Centre",
+                  "insurancePackageId": 1
                 }
                 """.formatted(carId, pickup, dropoff);
     }

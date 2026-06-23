@@ -335,6 +335,9 @@ class BookingEmailNotificationTest {
                 LocalDateTime.now().plusDays(2),
                 "Airport T1",
                 "Mercedes Vito",
+                "Full Protection",
+                java.math.BigDecimal.valueOf(42),
+                java.math.BigDecimal.valueOf(300),
                 java.math.BigDecimal.valueOf(120),
                 "http://localhost:8091/manage-booking.html?token=test",
                 "es");
@@ -409,7 +412,8 @@ class BookingEmailNotificationTest {
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "Airport T1",
-                  "dropoffLocation": "Airport T1"
+                  "dropoffLocation": "Airport T1",
+                  "insurancePackageId": 1
                 }
                 """.formatted(carId, name, email, languageLine, pickup, dropoff);
     }

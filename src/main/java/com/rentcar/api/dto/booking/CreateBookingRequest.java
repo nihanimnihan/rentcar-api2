@@ -38,6 +38,9 @@ public record CreateBookingRequest(
         @NotNull
         String dropoffLocation,
 
+        @NotNull
+        Long insurancePackageId,
+
         // nullable — no add-ons selected is valid
         List<Long> addonIds,
 

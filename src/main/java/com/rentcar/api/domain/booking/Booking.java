@@ -319,6 +319,33 @@ public class Booking {
         return rentalDetails != null ? rentalDetails.getAddonCharge() : addonCharge;
     }
 
+    public Long getInsurancePackageId() {
+        if (rentalDetails == null || rentalDetails.getInsurancePackage() == null) {
+            return null;
+        }
+        return rentalDetails.getInsurancePackage().getId();
+    }
+
+    public String getInsuranceCode() {
+        return rentalDetails != null ? rentalDetails.getInsuranceCode() : null;
+    }
+
+    public String getInsuranceNameSnapshot() {
+        return rentalDetails != null ? rentalDetails.getInsuranceNameSnapshot() : null;
+    }
+
+    public BigDecimal getInsuranceDailyPriceSnapshot() {
+        return rentalDetails != null ? rentalDetails.getInsuranceDailyPriceSnapshot() : BigDecimal.ZERO;
+    }
+
+    public BigDecimal getInsuranceTotalSnapshot() {
+        return rentalDetails != null ? rentalDetails.getInsuranceTotalSnapshot() : BigDecimal.ZERO;
+    }
+
+    public BigDecimal getDepositAmountSnapshot() {
+        return rentalDetails != null ? rentalDetails.getDepositAmountSnapshot() : BigDecimal.ZERO;
+    }
+
     public int getIncludedKmSnapshot() {
         return rentalDetails != null ? rentalDetails.getIncludedKmSnapshot() : includedKmSnapshot;
     }

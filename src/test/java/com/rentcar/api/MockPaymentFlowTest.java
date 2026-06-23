@@ -159,7 +159,8 @@ class MockPaymentFlowTest {
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "Airport",
-                  "dropoffLocation": "City Centre"
+                  "dropoffLocation": "City Centre",
+                  "insurancePackageId": 1
                 }
                 """.formatted(carId, pickup, dropoff);
     }

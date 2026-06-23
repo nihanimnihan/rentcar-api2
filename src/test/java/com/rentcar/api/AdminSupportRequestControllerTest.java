@@ -97,6 +97,7 @@ class AdminSupportRequestControllerTest {
                                   "email": "public-admin-list@example.com",
                                   "phoneCountryCode": "+34",
                                   "phoneNumber": "600 000 000",
+                                  "insurancePackageId": 1,
                                   "message": "Payment support request from the public site."
                                 }
                                 """))

@@ -108,7 +108,8 @@ class BookingEmailFailureResilienceTest {
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "Airport T2",
-                  "dropoffLocation": "City Centre"
+                  "dropoffLocation": "City Centre",
+                  "insurancePackageId": 1
                 }
                 """.formatted(carId, name, email, pickup, dropoff);
     }

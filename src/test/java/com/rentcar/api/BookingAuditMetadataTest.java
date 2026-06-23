@@ -147,7 +147,8 @@ class BookingAuditMetadataTest {
                   "pickupDateTime": "%s",
                   "dropoffDateTime": "%s",
                   "pickupLocation": "Airport T1",
-                  "dropoffLocation": "Airport T1"
+                  "dropoffLocation": "Airport T1",
+                  "insurancePackageId": 1
                 }
                 """.formatted(carId, name, email, pickup, dropoff);
     }

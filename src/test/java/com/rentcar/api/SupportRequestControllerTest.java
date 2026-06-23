@@ -41,6 +41,7 @@ class SupportRequestControllerTest {
                                   "email": "customer@example.com",
                                   "phoneCountryCode": "+34",
                                   "phoneNumber": "600 000 000",
+                                  "insurancePackageId": 1,
                                   "message": "Can you confirm my pickup details?"
                                 }
                                 """))
@@ -93,6 +94,7 @@ class SupportRequestControllerTest {
                                   "bookingReference": "PD-NO-CC",
                                   "email": "customer@example.com",
                                   "phoneNumber": "600 000 000",
+                                  "insurancePackageId": 1,
                                   "message": "Can you confirm my pickup details?"
                                 }
                                 """))
@@ -133,6 +135,7 @@ class SupportRequestControllerTest {
                                   "email": "not-an-email",
                                   "phoneCountryCode": "+34",
                                   "phoneNumber": "600 000 000",
+                                  "insurancePackageId": 1,
                                   "message": "%s"
                                 }
                                 """.formatted(longReference, longMessage)))

@@ -67,6 +67,7 @@ let reviewCar = null;
 let reviewAllAddons = [];
 let reviewAddonIds = [];
 let reviewMileageOption = "INCLUDED";
+let reviewInsurancePackage = null;
 
 // Checkout session signature stored for reuse detection
 let reviewCheckoutSignature = null;
@@ -83,10 +84,10 @@ let stripeInitialized = false;
  * Not a secret — used only to detect whether stored pending booking belongs to
  * the same search (car/dates/addons/mileage).
  */
-function buildCheckoutSignature({carId, pickupDateTime, dropoffDateTime, pickupLocation, dropoffLocation, addonIds, mileageOption}) {
+function buildCheckoutSignature({carId, pickupDateTime, dropoffDateTime, pickupLocation, dropoffLocation, addonIds, mileageOption, insurancePackageId}) {
   const addons = (Array.isArray(addonIds) ? [...addonIds] : []).filter(Boolean).map(Number).sort((a,b)=>a-b);
   // Use a simple canonical string. Avoid JSON.stringify ordering gotchas by explicit order.
-  return `${carId}|${pickupDateTime || ''}|${dropoffDateTime || ''}|${pickupLocation || ''}|${dropoffLocation || ''}|${mileageOption || ''}|${addons.join(',')}`;
+  return `${carId}|${pickupDateTime || ''}|${dropoffDateTime || ''}|${pickupLocation || ''}|${dropoffLocation || ''}|${mileageOption || ''}|${insurancePackageId || ''}|${addons.join(',')}`;
 }
 
 async function loadStripePublishableKey() {
@@ -193,12 +194,19 @@ async function loadReviewPage() {
   const dropoffDateTime = params.get("dropoffDateTime");
   reviewMileageOption   = params.get("mileageOption") || "INCLUDED";
   reviewAddonIds        = params.getAll("addonIds").map(Number).filter(Boolean);
+  const insurancePackageId = params.get("insurancePackageId");
+  if (!insurancePackageId) {
+    showReviewError(t('protection.required'), "insurance.html" + window.location.search);
+    return;
+  }
 
   // Fetch car details + available addons
   try {
-    const [carRes, addonsRes] = await Promise.all([
+    const lang = typeof getLanguage === "function" ? getLanguage() : "en";
+    const [carRes, addonsRes, insuranceRes] = await Promise.all([
       fetch(`/api/cars/${encodeURIComponent(carId)}${window.location.search}`),
-      fetch("/api/addons/active")
+      fetch("/api/addons/active"),
+      fetch(`/api/insurance-packages/active?lang=${encodeURIComponent(lang)}`)
     ]);
 
     if (!carRes.ok) {
@@ -215,6 +223,16 @@ async function loadReviewPage() {
     if (addonsRes.ok) {
       reviewAllAddons = await addonsRes.json();
     }
+    if (!insuranceRes.ok) {
+      showReviewError(t('protection.loadError'), "insurance.html" + window.location.search);
+      return;
+    }
+    const insurancePackages = await insuranceRes.json();
+    reviewInsurancePackage = insurancePackages.find(pkg => Number(pkg.id) === Number(insurancePackageId));
+    if (!reviewInsurancePackage) {
+      showReviewError(t('protection.unavailable'), "insurance.html" + window.location.search);
+      return;
+    }
 
     // Render shared summary card
     renderBookingSummary({
@@ -223,11 +241,12 @@ async function loadReviewPage() {
       mileageOption: reviewMileageOption,
       selectedAddonIds: reviewAddonIds,
       availableAddons: reviewAllAddons,
+      selectedInsurance: reviewInsurancePackage,
       pageType: 'review'
     });
 
     // Render page-specific total
-    const { total } = calcBookingTotal(reviewCar, reviewMileageOption, reviewAddonIds, reviewAllAddons);
+    const { total } = calcBookingTotal(reviewCar, reviewMileageOption, reviewAddonIds, reviewAllAddons, reviewInsurancePackage);
     const fmt = (v) => `€${Number(v).toFixed(2)}`;
     const rfTotal = document.getElementById("rfTotalAmount");
     if (rfTotal) rfTotal.textContent = fmt(total);
@@ -330,6 +349,11 @@ function buildAndOpenPriceModal() {
   if (reviewMileageOption === "UNLIMITED") {
     const charge = Number(reviewCar.priceBreakdown?.unlimitedKmDailyPrice || 0) * rentalDays;
     addonLines.push({ name: t('car.unlimitedKm'), totalPrice: charge.toFixed(2) });
+  }
+
+  if (reviewInsurancePackage) {
+    const charge = Number(reviewInsurancePackage.pricePerDay || 0) * rentalDays;
+    addonLines.push({ name: reviewInsurancePackage.name || t('summary.protection'), totalPrice: charge.toFixed(2) });
   }
 
   reviewAddonIds.forEach(addonId => {
@@ -438,7 +462,8 @@ async function submitBooking() {
     pickupLocation,
     dropoffLocation,
     addonIds,
-    mileageOption: reviewMileageOption
+    mileageOption: reviewMileageOption,
+    insurancePackageId: Number(params.get("insurancePackageId"))
   });
 
 
@@ -457,6 +482,7 @@ async function submitBooking() {
     dropoffDateTime,
     pickupLocation,
     dropoffLocation,
+    insurancePackageId: Number(params.get("insurancePackageId")),
     addonIds: addonIds.length > 0 ? addonIds : null,
     mileageOption,
     language: currentReviewLanguage()
@@ -819,6 +845,20 @@ function selectedAddonRows(booking) {
   return rows;
 }
 
+function selectedInsuranceRow(booking) {
+  const rentalDays = reviewRentalDays(booking);
+  const name = booking?.insuranceNameSnapshot || reviewInsurancePackage?.name;
+  const daily = Number(booking?.insuranceDailyPriceSnapshot ?? reviewInsurancePackage?.pricePerDay ?? 0);
+  const total = Number(booking?.insuranceTotalSnapshot ?? (daily * rentalDays));
+  const deposit = booking?.depositAmountSnapshot ?? reviewInsurancePackage?.depositAmount;
+  if (!name) return null;
+  return {
+    name,
+    totalPrice: total,
+    depositAmount: Number(deposit || 0)
+  };
+}
+
 function includedFeatureRows(booking) {
   const car = booking?.car || reviewCar || {};
   const included = car.includedFeatures || car.included || [];
@@ -846,6 +886,10 @@ function priceDetailsRows(booking, addonRows) {
   }
   if (Number(price.premiumLocationFee) > 0) {
     rows.push([t('price.premiumLocationFee'), formatReviewMoney(price.premiumLocationFee)]);
+  }
+  const insurance = selectedInsuranceRow(booking);
+  if (insurance && Number(insurance.totalPrice) > 0) {
+    rows.push([esc(insurance.name), formatReviewMoney(insurance.totalPrice)]);
   }
   addonRows.forEach(addon => {
     if (Number(addon.totalPrice) > 0) {
@@ -875,6 +919,7 @@ function showBookingSuccess(booking, firstName) {
   const pickupLocation = bookingLocationValue(booking, "pickupLocation", "pickupLocation");
   const dropoffLocation = bookingLocationValue(booking, "dropoffLocation", "dropoffLocation");
   const addonRows = selectedAddonRows(booking);
+  const insuranceRow = selectedInsuranceRow(booking);
   const includedRows = includedFeatureRows(booking);
   const priceRows = priceDetailsRows(booking, addonRows);
   const existingSummary = document.getElementById("bookingSummaryCard")?.closest(".col-lg-4");
@@ -979,6 +1024,14 @@ function showBookingSuccess(booking, firstName) {
             <ul>${includedRows.map(item => `<li>${esc(item)}</li>`).join("")}</ul>
           </div>
         ` : ""}
+
+        <div class="rc-booking-complete__summary-section">
+          <h4>${t('summary.protection')}</h4>
+          ${insuranceRow
+            ? `<ul><li><span>${esc(insuranceRow.name)}</span><strong>${formatReviewMoney(insuranceRow.totalPrice)}</strong></li></ul>
+               <p>${t('protection.deposit')}: ${formatReviewMoney(insuranceRow.depositAmount)}</p>`
+            : `<p>${t('summary.noProtection')}</p>`}
+        </div>
 
         <div class="rc-booking-complete__summary-section">
           <h4>${t('summary.addedFeatures')}</h4>
@@ -1096,6 +1149,7 @@ document.addEventListener('languageChanged', function () {
       mileageOption: reviewMileageOption,
       selectedAddonIds: reviewAddonIds,
       availableAddons: reviewAllAddons,
+      selectedInsurance: reviewInsurancePackage,
       pageType: 'review'
     });
   }
