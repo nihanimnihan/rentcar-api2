@@ -1,9 +1,13 @@
 package com.rentcar.api.payment.provider;
 
 import com.rentcar.api.domain.payment.Payment;
+import com.rentcar.api.domain.handover.BookingDeposit;
 import com.rentcar.api.payment.model.PaymentIntentResult;
 import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.model.PaymentResult;
+import com.rentcar.api.payment.model.DepositCheckoutResult;
+
+import java.math.BigDecimal;
 
 public interface PaymentProvider {
 
@@ -20,6 +24,25 @@ public interface PaymentProvider {
      * synthetic secrets are rejected before they reach this interface.
      */
     PaymentIntentResult createIntent(Payment payment);
+
+    default PaymentIntentResult createDepositIntent(BookingDeposit deposit) {
+        throw new UnsupportedOperationException("createDepositIntent not supported by provider");
+    }
+
+    default DepositCheckoutResult createDepositCheckoutSession(BookingDeposit deposit, String successUrl, String cancelUrl) {
+        PaymentIntentResult intent = createDepositIntent(deposit);
+        return new DepositCheckoutResult(
+                intent.providerName(),
+                null,
+                successUrl,
+                intent.providerIntentId(),
+                intent.clientSecret()
+        );
+    }
+
+    default PaymentResult refundDeposit(BookingDeposit deposit, BigDecimal amount) {
+        throw new UnsupportedOperationException("refundDeposit not supported by provider");
+    }
 
     /**
      * Short display name for this provider; included in API responses.

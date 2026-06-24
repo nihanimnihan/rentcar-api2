@@ -1,16 +1,20 @@
 package com.rentcar.api.payment.provider;
 
+import com.rentcar.api.domain.handover.BookingDeposit;
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.exception.PaymentProviderNotConfiguredException;
 import com.rentcar.api.payment.model.PaymentIntentResult;
 import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.model.PaymentResult;
+import com.rentcar.api.payment.model.DepositCheckoutResult;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Refund;
+import com.stripe.model.checkout.Session;
 import com.stripe.param.PaymentIntentConfirmParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.param.RefundCreateParams;
+import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.net.RequestOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -119,6 +123,105 @@ public class StripePaymentProvider implements PaymentProvider {
             return new PaymentIntentResult(providerName(), pi.getClientSecret(), pi.getId());
         } catch (StripeException e) {
             throw new RuntimeException("Stripe error while creating payment intent: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public PaymentIntentResult createDepositIntent(BookingDeposit deposit) {
+        requireConfigured();
+
+        try {
+            if (deposit.getStripePaymentIntentId() != null && !deposit.getStripePaymentIntentId().isBlank()) {
+                PaymentIntent existing = PaymentIntent.retrieve(deposit.getStripePaymentIntentId(), requestOptions());
+                return new PaymentIntentResult(providerName(), existing.getClientSecret(), existing.getId());
+            }
+
+            PaymentIntentCreateParams.Builder builder = PaymentIntentCreateParams.builder()
+                    .setAmount(amountInSmallestCurrencyUnit(deposit.getAmount()))
+                    .setCurrency(deposit.getCurrency().toLowerCase(Locale.ROOT))
+                    .addPaymentMethodType("card")
+                    .setDescription("RentCar deposit " + deposit.getBooking().getBookingReference())
+                    .putMetadata("bookingReference", deposit.getBooking().getBookingReference())
+                    .putMetadata("bookingId", String.valueOf(deposit.getBooking().getId()))
+                    .putMetadata("depositId", String.valueOf(deposit.getId()))
+                    .putMetadata("paymentType", "DEPOSIT");
+            String email = deposit.getBooking() != null && deposit.getBooking().getCustomer() != null
+                    ? deposit.getBooking().getCustomer().getEmail()
+                    : null;
+            if (email != null && !email.isBlank()) {
+                builder.setReceiptEmail(email);
+            }
+
+            PaymentIntent pi = PaymentIntent.create(builder.build(), requestOptions("stripe-deposit-" + deposit.getId()));
+            return new PaymentIntentResult(providerName(), pi.getClientSecret(), pi.getId());
+        } catch (StripeException e) {
+            throw new RuntimeException("Stripe error while creating deposit payment intent: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public DepositCheckoutResult createDepositCheckoutSession(BookingDeposit deposit, String successUrl, String cancelUrl) {
+        requireConfigured();
+
+        try {
+            SessionCreateParams.Builder builder = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl(successUrl)
+                    .setCancelUrl(cancelUrl)
+                    .putMetadata("bookingReference", deposit.getBooking().getBookingReference())
+                    .putMetadata("bookingId", String.valueOf(deposit.getBooking().getId()))
+                    .putMetadata("depositId", String.valueOf(deposit.getId()))
+                    .putMetadata("paymentType", "DEPOSIT")
+                    .setPaymentIntentData(SessionCreateParams.PaymentIntentData.builder()
+                            .putMetadata("bookingReference", deposit.getBooking().getBookingReference())
+                            .putMetadata("bookingId", String.valueOf(deposit.getBooking().getId()))
+                            .putMetadata("depositId", String.valueOf(deposit.getId()))
+                            .putMetadata("paymentType", "DEPOSIT")
+                            .build())
+                    .addLineItem(SessionCreateParams.LineItem.builder()
+                            .setQuantity(1L)
+                            .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                                    .setCurrency(deposit.getCurrency().toLowerCase(Locale.ROOT))
+                                    .setUnitAmount(amountInSmallestCurrencyUnit(deposit.getAmount()))
+                                    .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                            .setName("RentCar deposit " + deposit.getBooking().getBookingReference())
+                                            .build())
+                                    .build())
+                            .build());
+            String email = deposit.getBooking() != null && deposit.getBooking().getCustomer() != null
+                    ? deposit.getBooking().getCustomer().getEmail()
+                    : null;
+            if (email != null && !email.isBlank()) {
+                builder.setCustomerEmail(email);
+            }
+
+            Session session = Session.create(builder.build(), requestOptions("stripe-deposit-session-" + deposit.getId()));
+            return new DepositCheckoutResult(providerName(), session.getId(), session.getUrl(), session.getPaymentIntent(), null);
+        } catch (StripeException e) {
+            throw new RuntimeException("Stripe error while creating deposit checkout session: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public PaymentResult refundDeposit(BookingDeposit deposit, BigDecimal amount) {
+        requireConfigured();
+        String paymentIntentId = deposit.getStripePaymentIntentId();
+        if (paymentIntentId == null || paymentIntentId.isBlank()) {
+            throw new IllegalStateException("Stripe deposit PaymentIntent id is required before refunding deposit " + deposit.getId());
+        }
+        try {
+            RefundCreateParams params = RefundCreateParams.builder()
+                    .setPaymentIntent(paymentIntentId)
+                    .setAmount(amountInSmallestCurrencyUnit(amount))
+                    .putMetadata("bookingReference", deposit.getBooking().getBookingReference())
+                    .putMetadata("bookingId", String.valueOf(deposit.getBooking().getId()))
+                    .putMetadata("depositId", String.valueOf(deposit.getId()))
+                    .putMetadata("paymentType", "DEPOSIT")
+                    .build();
+            Refund refund = Refund.create(params, requestOptions("stripe-deposit-refund-" + deposit.getId() + "-" + amount));
+            return new PaymentResult("succeeded".equals(refund.getStatus()), refund.getId(), refund.getStatus());
+        } catch (StripeException e) {
+            throw new RuntimeException("Stripe error while refunding deposit: " + e.getMessage(), e);
         }
     }
 

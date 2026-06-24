@@ -45,7 +45,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     );
 
     @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END FROM Booking b WHERE b.car = :car " +
-            "AND (b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED OR (b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt > :now)) " +
+            "AND (b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED OR b.status = com.rentcar.api.domain.booking.BookingStatus.PICKED_UP OR (b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt > :now)) " +
             "AND b.pickupDateTime < :newDropoff AND b.dropoffDateTime > :newPickup")
     boolean existsByCarAndActiveStatusAndPickupDateTimeLessThanAndDropoffDateTimeGreaterThan(
             Car car,

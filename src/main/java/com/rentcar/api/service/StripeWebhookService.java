@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 public class StripeWebhookService {
 
     private final PaymentService paymentService;
+    private final AdminHandoverService adminHandoverService;
 
     @Value("${stripe.webhook-secret:}")
     private String webhookSecret;
@@ -50,6 +51,23 @@ public class StripeWebhookService {
     private void handlePaymentIntentEvent(Event event, StripeObject stripeObject) {
         if (!(stripeObject instanceof PaymentIntent intent)) {
             throw new IllegalArgumentException("Expected PaymentIntent for event " + event.getType());
+        }
+
+        if ("DEPOSIT".equals(intent.getMetadata() == null ? null : intent.getMetadata().get("paymentType"))) {
+            var deposit = adminHandoverService.applyStripeDepositIntentStatus(
+                    intent.getId(),
+                    intent.getStatus(),
+                    intent.getAmount(),
+                    intent.getCurrency(),
+                    intent.getMetadata());
+            if (deposit != null) {
+                log.info("Stripe deposit webhook applied: eventId={} type={} depositId={} status={}",
+                        event.getId(), event.getType(), deposit.id(), deposit.status());
+            } else {
+                log.warn("Stripe deposit webhook deposit not found: eventId={} type={} intentId={}",
+                        event.getId(), event.getType(), intent.getId());
+            }
+            return;
         }
 
         paymentService.applyStripePaymentIntentStatus(

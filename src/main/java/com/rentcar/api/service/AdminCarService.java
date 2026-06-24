@@ -4,11 +4,14 @@ import com.rentcar.api.domain.car.Car;
 import com.rentcar.api.domain.transfer.ChauffeurCategory;
 import com.rentcar.api.dto.admin.AdminCarRequest;
 import com.rentcar.api.dto.admin.AdminCarResponse;
+import com.rentcar.api.dto.admin.handover.AdminVehicleDamageRequest;
+import com.rentcar.api.dto.admin.handover.VehicleDamageResponse;
 import com.rentcar.api.exception.CarNotFoundException;
 import com.rentcar.api.exception.ChauffeurCategoryNotFoundException;
 import com.rentcar.api.exception.InvalidCarConfigurationException;
 import com.rentcar.api.repository.CarRepository;
 import com.rentcar.api.repository.ChauffeurCategoryRepository;
+import com.rentcar.api.repository.VehicleDamageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ public class AdminCarService {
 
     private final CarRepository carRepository;
     private final ChauffeurCategoryRepository chauffeurCategoryRepository;
+    private final VehicleDamageRepository vehicleDamageRepository;
 
     public List<AdminCarResponse> list() {
         return carRepository.findAllOrderByIdDesc().stream()
@@ -113,6 +117,45 @@ public class AdminCarService {
         return chauffeurCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc();
     }
 
+    public List<VehicleDamageResponse> listDamages(Long carId) {
+        Car car = findOrThrow(carId);
+        return vehicleDamageRepository.findAllByCarAndActiveTrueOrderByIdAsc(car).stream()
+                .map(this::toDamageResponse)
+                .toList();
+    }
+
+    @Transactional
+    public VehicleDamageResponse createDamage(Long carId, AdminVehicleDamageRequest request) {
+        Car car = findOrThrow(carId);
+        var damage = com.rentcar.api.domain.handover.VehicleDamage.builder()
+                .car(car)
+                .damageCode(request.damageCode())
+                .title(request.title())
+                .description(blankToNull(request.description()))
+                .location(blankToNull(request.location()))
+                .severity(request.severity())
+                .active(request.active())
+                .build();
+        return toDamageResponse(vehicleDamageRepository.save(damage));
+    }
+
+    @Transactional
+    public VehicleDamageResponse updateDamage(Long carId, Long damageId, AdminVehicleDamageRequest request) {
+        Car car = findOrThrow(carId);
+        var damage = vehicleDamageRepository.findById(damageId)
+                .orElseThrow(() -> new IllegalArgumentException("Damage not found with id: " + damageId));
+        if (!damage.getCar().getId().equals(car.getId())) {
+            throw new IllegalArgumentException("Damage does not belong to car " + carId);
+        }
+        damage.setDamageCode(request.damageCode());
+        damage.setTitle(request.title());
+        damage.setDescription(blankToNull(request.description()));
+        damage.setLocation(blankToNull(request.location()));
+        damage.setSeverity(request.severity());
+        damage.setActive(request.active());
+        return toDamageResponse(vehicleDamageRepository.save(damage));
+    }
+
     // ── private helpers ────────────────────────────────────────────────────────
 
     private Car findOrThrow(Long id) {
@@ -169,7 +212,29 @@ public class AdminCarService {
                 c.getImageUrl(),
                 c.isChauffeurAvailable(),
                 catRef,
-                c.getHourlyPrice()
+                c.getHourlyPrice(),
+                vehicleDamageRepository.findAllByCarAndActiveTrueOrderByIdAsc(c).stream()
+                        .map(this::toDamageResponse)
+                        .toList()
         );
+    }
+
+    private VehicleDamageResponse toDamageResponse(com.rentcar.api.domain.handover.VehicleDamage damage) {
+        return new VehicleDamageResponse(
+                damage.getId(),
+                damage.getCar().getId(),
+                damage.getDamageCode(),
+                damage.getTitle(),
+                damage.getDescription(),
+                damage.getLocation(),
+                damage.getSeverity(),
+                damage.isActive(),
+                damage.getCreatedAt(),
+                damage.getUpdatedAt()
+        );
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

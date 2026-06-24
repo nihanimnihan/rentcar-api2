@@ -1,15 +1,18 @@
 package com.rentcar.api.payment.provider;
 
+import com.rentcar.api.domain.handover.BookingDeposit;
 import com.rentcar.api.domain.payment.Payment;
 import com.rentcar.api.payment.model.PaymentIntentResult;
 import com.rentcar.api.payment.model.PaymentIntentVerification;
 import com.rentcar.api.payment.model.PaymentResult;
+import com.rentcar.api.payment.model.DepositCheckoutResult;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.math.RoundingMode;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -73,6 +76,31 @@ public class FakePaymentProvider implements PaymentProvider, EnvironmentAware {
     public String fetchPaymentIntentStatus(com.rentcar.api.domain.payment.Payment payment) {
         // Fake provider resolves synchronously to 'succeeded' for local testing flows.
         return "succeeded";
+    }
+
+    @Override
+    public PaymentIntentResult createDepositIntent(BookingDeposit deposit) {
+        return new PaymentIntentResult(
+                providerName(),
+                "fake_deposit_client_secret_" + deposit.getId(),
+                "fake_deposit_intent_" + deposit.getId()
+        );
+    }
+
+    @Override
+    public DepositCheckoutResult createDepositCheckoutSession(BookingDeposit deposit, String successUrl, String cancelUrl) {
+        return new DepositCheckoutResult(
+                providerName(),
+                "fake_deposit_session_" + deposit.getId(),
+                successUrl,
+                "fake_deposit_intent_" + deposit.getId(),
+                "fake_deposit_client_secret_" + deposit.getId()
+        );
+    }
+
+    @Override
+    public PaymentResult refundDeposit(BookingDeposit deposit, BigDecimal amount) {
+        return new PaymentResult(true, "FAKE-DEPOSIT-REFUND-" + deposit.getId());
     }
 
     @Override

@@ -103,6 +103,11 @@ function renderTable(cars) {
       <td>${car.bags ?? '—'}</td>
       <td>€${Number(car.dailyPrice).toFixed(2)}</td>
       <td>
+        <span class="admin-badge ${car.damages && car.damages.length ? 'admin-badge--warning' : 'admin-badge--neutral'}">
+          ${car.damages ? car.damages.length : 0}
+        </span>
+      </td>
+      <td>
         ${car.chauffeurAvailable
           ? `<span class="admin-badge admin-badge--info">${car.chauffeurCategory ? esc(car.chauffeurCategory.code) : 'Yes'}</span>`
           : '<span class="admin-badge admin-badge--neutral">No</span>'}

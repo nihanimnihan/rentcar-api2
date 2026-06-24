@@ -3,6 +3,8 @@ package com.rentcar.api.controller;
 import com.rentcar.api.domain.transfer.ChauffeurCategory;
 import com.rentcar.api.dto.admin.AdminCarRequest;
 import com.rentcar.api.dto.admin.AdminCarResponse;
+import com.rentcar.api.dto.admin.handover.AdminVehicleDamageRequest;
+import com.rentcar.api.dto.admin.handover.VehicleDamageResponse;
 import com.rentcar.api.service.AdminCarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +66,25 @@ public class AdminCarController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         adminCarService.delete(id);
+    }
+
+    @GetMapping("/cars/{id}/damages")
+    public List<VehicleDamageResponse> listDamages(@PathVariable Long id) {
+        return adminCarService.listDamages(id);
+    }
+
+    @PostMapping("/cars/{id}/damages")
+    @ResponseStatus(HttpStatus.CREATED)
+    public VehicleDamageResponse createDamage(@PathVariable Long id,
+                                              @Valid @RequestBody AdminVehicleDamageRequest request) {
+        return adminCarService.createDamage(id, request);
+    }
+
+    @PutMapping("/cars/{id}/damages/{damageId}")
+    public VehicleDamageResponse updateDamage(@PathVariable Long id,
+                                              @PathVariable Long damageId,
+                                              @Valid @RequestBody AdminVehicleDamageRequest request) {
+        return adminCarService.updateDamage(id, damageId, request);
     }
 
     // ── Chauffeur categories (for car form dropdown) ──────────────────────────

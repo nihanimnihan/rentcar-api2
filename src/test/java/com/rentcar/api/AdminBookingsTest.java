@@ -3,10 +3,13 @@ package com.rentcar.api;
 import com.jayway.jsonpath.JsonPath;
 import com.rentcar.api.domain.addon.Addon;
 import com.rentcar.api.domain.addon.AddonPricingType;
+import com.rentcar.api.domain.booking.BookingStatus;
+import com.rentcar.api.domain.handover.BookingDepositStatus;
 import com.rentcar.api.domain.payment.PaymentMethod;
 import com.rentcar.api.domain.payment.PaymentStatus;
 import com.rentcar.api.email.FakeEmailService;
 import com.rentcar.api.repository.AddonRepository;
+import com.rentcar.api.repository.BookingDepositRepository;
 import com.rentcar.api.repository.BookingRepository;
 import com.rentcar.api.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +60,8 @@ class AdminBookingsTest {
     private FakeEmailService fakeEmailService;
     @Autowired
     private BookingRepository bookingRepository;
+    @Autowired
+    private BookingDepositRepository bookingDepositRepository;
     @Autowired
     private PaymentRepository paymentRepository;
     @Autowired
@@ -141,6 +146,66 @@ class AdminBookingsTest {
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
         assertThat(payment.getMethod()).isEqualTo(PaymentMethod.CASH);
         assertThat(payment.getPaidAt()).isNotNull();
+    }
+
+    @Test
+    void handover_requiresCollectedDepositAndSignature_thenMarksPickedUp() throws Exception {
+        long carId = anyAvailableCarId(daysFromNow(1660), daysFromNow(1662));
+        MvcResult result = mockMvc.perform(post("/api/admin/bookings")
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(adminBookingBody(carId, 1660, 1662, "CASH", "350.00", List.of())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"))
+                .andReturn();
+        long bookingId = ((Number) JsonPath.read(result.getResponse().getContentAsString(), "$.id")).longValue();
+
+        mockMvc.perform(post("/api/admin/bookings/{id}/handover", bookingId)
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "kmOut": 12345,
+                                  "fuelLevelOut": "FULL",
+                                  "batteryLevelOut": "NOT_APPLICABLE",
+                                  "customerSignatureData": "data:image/png;base64,abc123",
+                                  "notes": "Tablet handover"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.customerSignaturePresent").value(true));
+
+        mockMvc.perform(post("/api/admin/bookings/{id}/picked-up", bookingId)
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(containsString("collected deposit")));
+
+        mockMvc.perform(post("/api/admin/bookings/{id}/deposit/manual-collection", bookingId)
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "method": "CARD_TERMINAL",
+                                  "note": "Terminal receipt 42"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COLLECTED"))
+                .andExpect(jsonPath("$.amount").value(750.00))
+                .andExpect(jsonPath("$.remainingAmount").value(750.00))
+                .andExpect(jsonPath("$.refundDeadlineAt").exists());
+
+        mockMvc.perform(post("/api/admin/bookings/{id}/picked-up", bookingId)
+                        .with(httpBasic(ADMIN_USER, ADMIN_PASS)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.booking.status").value("PICKED_UP"))
+                .andExpect(jsonPath("$.canMarkPickedUp").value(false));
+
+        var booking = bookingRepository.findByIdWithDetails(bookingId).orElseThrow();
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.PICKED_UP);
+        var deposit = bookingDepositRepository.findByBooking(booking).orElseThrow();
+        assertThat(deposit.getStatus()).isEqualTo(BookingDepositStatus.COLLECTED);
+        assertThat(deposit.getRefundDeadlineAt()).isEqualTo(deposit.getCollectedAt().plus(java.time.Duration.ofDays(45)));
     }
 
     @Test

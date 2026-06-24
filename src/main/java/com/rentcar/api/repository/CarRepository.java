@@ -33,7 +33,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     @Query("""
         SELECT c
         FROM Car c
-        LEFT JOIN Booking b ON b.car = c AND b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+        LEFT JOIN Booking b ON b.car = c AND (b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED OR b.status = com.rentcar.api.domain.booking.BookingStatus.PICKED_UP)
         GROUP BY c
         ORDER BY count(b.id) DESC
     """)
@@ -42,7 +42,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     /**
      * Search with availability date filter.
      * Both pickupDateTime and dropoffDateTime are required (non-null).
-     * Excludes cars with an overlapping PENDING or CONFIRMED booking.
+     * Excludes cars with an overlapping PENDING, CONFIRMED, or PICKED_UP booking.
      */
     @Query("""
         SELECT c FROM Car c
@@ -61,6 +61,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             WHERE b.car = c
             AND (
                 b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+                OR b.status = com.rentcar.api.domain.booking.BookingStatus.PICKED_UP
                 OR (b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt > :now)
             )
             AND b.pickupDateTime  < :dropoffDateTime
@@ -132,6 +133,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             WHERE b.car = c
             AND (
                 b.status = com.rentcar.api.domain.booking.BookingStatus.CONFIRMED
+                OR b.status = com.rentcar.api.domain.booking.BookingStatus.PICKED_UP
                 OR (b.status = com.rentcar.api.domain.booking.BookingStatus.PENDING AND b.expiresAt > :now)
             )
             AND b.pickupDateTime  < :dropoffDateTime

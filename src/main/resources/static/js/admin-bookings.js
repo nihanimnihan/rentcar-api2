@@ -14,6 +14,7 @@ let adminManualPriceOverride = false;
 const STATUS_CLASSES = {
   PENDING: 'badge--pending',
   CONFIRMED: 'badge--confirmed',
+  PICKED_UP: 'badge--confirmed',
   FAILED: 'badge--failed',
   CANCELLED: 'badge--cancelled',
   EXPIRED: 'badge--neutral',
@@ -257,6 +258,8 @@ function renderBookingDetail(b) {
 
     ${lifecycleDetailSection(b)}
 
+    ${handoverActionSection(b)}
+
     ${addonDetailSection(b.addons || [])}
 
     ${detailSection('admin.detail.cancellation', [
@@ -264,6 +267,21 @@ function renderBookingDetail(b) {
       detailItem('admin.detail.cancelledAt', formatDateTime(b.cancelledAt)),
       detailItem('admin.detail.notes', b.notes || tt('admin.detail.none'))
     ])}
+  `;
+}
+
+function handoverActionSection(b) {
+  const hiddenByLifecycle = b.status === 'CANCELLED' || b.status === 'EXPIRED' || b.noShow;
+  if (hiddenByLifecycle) return '';
+  const label = b.status === 'PICKED_UP' ? 'View Handover' : 'Start Handover';
+  if (b.status !== 'CONFIRMED' && b.status !== 'PICKED_UP') return '';
+  return `
+    <section class="admin-detail-section">
+      <h4>Vehicle Handover</h4>
+      <div class="admin-detail-actions">
+        <a class="admin-btn admin-btn--primary" href="booking-handover.html?bookingId=${esc(b.id)}">${esc(label)}</a>
+      </div>
+    </section>
   `;
 }
 

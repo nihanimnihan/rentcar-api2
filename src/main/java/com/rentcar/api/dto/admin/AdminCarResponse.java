@@ -1,6 +1,8 @@
 package com.rentcar.api.dto.admin;
 
 import java.math.BigDecimal;
+import java.util.List;
+import com.rentcar.api.dto.admin.handover.VehicleDamageResponse;
 
 public record AdminCarResponse(
         Long id,
@@ -23,7 +25,8 @@ public record AdminCarResponse(
         String imageUrl,
         boolean chauffeurAvailable,
         CategoryRef chauffeurCategory,
-        BigDecimal hourlyPrice
+        BigDecimal hourlyPrice,
+        List<VehicleDamageResponse> damages
 ) {
     public record CategoryRef(Long id, String code, String name) {}
 }

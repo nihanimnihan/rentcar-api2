@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - Vehicle Handover | RentCar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/vendors.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/brand-theme.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-db-body">
+  <header class="admin-db-header">
+    <div class="admin-db-header__left">
+      <button class="admin-db-hamburger js-admin-sidebar-toggle" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="admin-db-header__brand">RentCar <span class="admin-db-header__badge">Admin</span></span>
+    </div>
+    <div class="admin-db-header__right">
+      <div class="admin-lang-switcher" aria-label="Language" data-i18n-aria-label="admin.language">
+        <button type="button" data-admin-lang="en">EN</button>
+        <button type="button" data-admin-lang="es">ES</button>
+        <button type="button" data-admin-lang="tr">TR</button>
+      </div>
+      <span class="admin-db-header__user" data-i18n="admin.administrator">Administrator</span>
+    </div>
+  </header>
+
+  <div class="admin-db js-admin-db" id="adminDashboard">
+    <aside class="admin-db__sidebar">
+      <nav class="admin-db__nav">
+        <ul>
+          <li class="admin-db__nav-item">
+            <a href="bookings.html" class="admin-db__nav-link -is-active">
+              <span class="admin-db__nav-icon icon-car text-16"></span>
+              <span data-i18n="admin.bookings">Bookings</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="cars.html" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-price-tag text-16"></span>
+              <span data-i18n="admin.vehicles">Vehicles</span>
+            </a>
+          </li>
+          <li class="admin-db__nav-item">
+            <a href="addons.html" class="admin-db__nav-link">
+              <span class="admin-db__nav-icon icon-star text-16"></span>
+              <span data-i18n="admin.addons">Add-ons</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+    <div class="admin-db__backdrop js-admin-sidebar-toggle"></div>
+
+    <main class="admin-db__main">
+      <div class="admin-db__content admin-handover-page">
+        <div class="admin-db__page-header">
+          <div>
+            <a class="admin-link" href="bookings.html">Back to bookings</a>
+            <h1 class="admin-db__page-title">Vehicle Handover</h1>
+            <p class="admin-db__page-sub" id="handover-subtitle">Loading booking...</p>
+          </div>
+        </div>
+
+        <div id="handover-error" class="admin-alert admin-alert--error" hidden></div>
+        <div id="handover-loading" class="admin-loading">Loading handover...</div>
+
+        <div id="handover-content" hidden>
+          <div class="admin-handover-grid">
+            <section class="admin-panel">
+              <h2>Booking Summary</h2>
+              <dl class="admin-detail-grid" id="handover-booking-summary"></dl>
+            </section>
+
+            <section class="admin-panel">
+              <h2>Customer</h2>
+              <dl class="admin-detail-grid" id="handover-customer"></dl>
+            </section>
+
+            <section class="admin-panel">
+              <h2>Vehicle</h2>
+              <dl class="admin-detail-grid" id="handover-vehicle"></dl>
+            </section>
+
+            <section class="admin-panel">
+              <h2>Insurance & Deposit</h2>
+              <dl class="admin-detail-grid" id="handover-insurance"></dl>
+            </section>
+
+            <section class="admin-panel admin-panel--wide">
+              <h2>Existing Vehicle Damage List</h2>
+              <div id="handover-damages" class="admin-damage-list"></div>
+            </section>
+
+            <section class="admin-panel admin-panel--wide">
+              <h2>Handover Details</h2>
+              <form id="handover-form" class="admin-form-grid">
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="kmOut">Km out</label>
+                  <input class="admin-form-input" id="kmOut" name="kmOut" type="number" min="0" required>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="fuelLevelOut">Fuel level out</label>
+                  <select class="admin-form-input" id="fuelLevelOut" name="fuelLevelOut" required>
+                    <option value="">Select</option>
+                    <option value="FULL">Full</option>
+                    <option value="THREE_QUARTERS">Three quarters</option>
+                    <option value="HALF">Half</option>
+                    <option value="QUARTER">Quarter</option>
+                    <option value="EMPTY">Empty</option>
+                  </select>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="batteryLevelOut">Battery level out</label>
+                  <select class="admin-form-input" id="batteryLevelOut" name="batteryLevelOut" required>
+                    <option value="">Select</option>
+                    <option value="NOT_APPLICABLE">Not applicable</option>
+                    <option value="FULL">Full</option>
+                    <option value="THREE_QUARTERS">Three quarters</option>
+                    <option value="HALF">Half</option>
+                    <option value="QUARTER">Quarter</option>
+                    <option value="EMPTY">Empty</option>
+                  </select>
+                </div>
+                <div class="admin-form-group admin-form-group--wide">
+                  <label class="admin-form-label" for="handoverNotes">Notes</label>
+                  <textarea class="admin-form-input" id="handoverNotes" name="notes" rows="3"></textarea>
+                </div>
+              </form>
+            </section>
+
+            <section class="admin-panel">
+              <h2>Deposit Collection</h2>
+              <div id="deposit-status" class="admin-alert"></div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="deposit-method">Collection method</label>
+                <select class="admin-form-input" id="deposit-method">
+                  <option value="STRIPE">Stripe</option>
+                  <option value="CASH">Cash</option>
+                  <option value="CARD_TERMINAL">Card terminal</option>
+                </select>
+              </div>
+              <div class="admin-detail-actions">
+                <button type="button" class="admin-btn admin-btn--primary" id="stripe-deposit">Generate Deposit Payment Link</button>
+                <button type="button" class="admin-btn" id="manual-deposit">Mark Deposit Collected</button>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label" for="deposit-note">Admin note</label>
+                <textarea class="admin-form-input" id="deposit-note" rows="2"></textarea>
+              </div>
+              <div id="deposit-payment-link" class="admin-copy-link" hidden></div>
+            </section>
+
+            <section class="admin-panel">
+              <h2>Deposit Refund</h2>
+              <form id="deposit-refund-form" class="admin-form-grid admin-form-grid--single">
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="refundAmount">Refund amount</label>
+                  <input class="admin-form-input" id="refundAmount" name="refundAmount" type="number" min="0.01" step="0.01">
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="refundType">Reason</label>
+                  <select class="admin-form-input" id="refundType" name="type">
+                    <option value="FULL_REFUND">Full refund</option>
+                    <option value="PARTIAL_REFUND">Partial refund</option>
+                    <option value="DAMAGE_DEDUCTION">Damage deduction</option>
+                    <option value="CLEANING_DEDUCTION">Cleaning deduction</option>
+                    <option value="OTHER_DEDUCTION">Other deduction</option>
+                  </select>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label" for="refundNote">Note</label>
+                  <textarea class="admin-form-input" id="refundNote" name="note" rows="2"></textarea>
+                </div>
+                <button type="submit" class="admin-btn">Refund Deposit</button>
+              </form>
+              <div id="refund-history" class="admin-refund-history"></div>
+            </section>
+
+            <section class="admin-panel admin-panel--wide">
+              <h2>Customer Signature</h2>
+              <canvas id="signature-pad" class="signature-pad" width="900" height="260"></canvas>
+              <div class="admin-detail-actions">
+                <button type="button" class="admin-btn" id="clear-signature">Clear</button>
+              </div>
+              <p class="admin-signature-confirm" data-i18n="admin.handover.signatureConfirm">
+                I confirm the vehicle handover details and deposit conditions.
+              </p>
+            </section>
+
+            <section class="admin-panel admin-panel--wide">
+              <h2>Final Action</h2>
+              <div id="pickup-readiness" class="admin-alert"></div>
+              <div class="admin-detail-actions">
+                <button type="button" class="admin-btn admin-btn--primary" id="save-handover">Save Handover Details</button>
+                <button type="button" class="admin-btn admin-btn--primary" id="mark-picked-up">Mark Vehicle Picked Up</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/escape-html.js"></script>
+  <script src="../js/admin-i18n.js"></script>
+  <script src="../js/admin-session.js"></script>
+  <script src="../js/admin-handover.js"></script>
+</body>
+</html>
